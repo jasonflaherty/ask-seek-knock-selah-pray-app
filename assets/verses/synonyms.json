@@ -1,0 +1,22 @@
+{
+  "sick": ["healing", "illness", "disease"],
+  "cancer": ["healing", "illness"],
+  "surgery": ["healing"],
+  "job": ["work", "provision"],
+  "money": ["provision"],
+  "bills": ["provision"],
+  "worried": ["anxiety", "fear", "peace"],
+  "scared": ["fear"],
+  "lost": ["guidance"],
+  "decision": ["guidance", "wisdom"],
+  "sorry": ["forgiveness"],
+  "sin": ["forgiveness"],
+  "died": ["grief", "comfort"],
+  "son": ["children", "family"],
+  "daughter": ["children", "family"],
+  "wife": ["marriage", "family"],
+  "husband": ["marriage", "family"],
+  "unsaved": ["salvation"],
+  "country": ["nation", "intercession"],
+  "tired": ["strength"]
+}
