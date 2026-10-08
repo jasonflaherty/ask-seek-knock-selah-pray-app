@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../features/prayers/data/drift_prayer_repository.dart';
+import '../features/prayers/domain/prayer_repository.dart';
+import 'db/app_database.dart';
 import 'utils/clock.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -9,6 +12,19 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 final clockProvider = Provider<Clock>((ref) => const SystemClock());
+
+final databaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
+});
+
+final prayerRepositoryProvider = Provider<PrayerRepository>((ref) {
+  return DriftPrayerRepository(
+    ref.watch(databaseProvider),
+    ref.watch(clockProvider),
+  );
+});
 
 final themeModeProvider =
     StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
