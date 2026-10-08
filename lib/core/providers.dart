@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../features/analytics/application/event_logger.dart';
 import '../features/prayers/data/drift_prayer_repository.dart';
 import '../features/prayers/domain/prayer_repository.dart';
 import '../features/verses/data/keyword_verse_suggester.dart';
@@ -26,6 +27,13 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 final prayerRepositoryProvider = Provider<PrayerRepository>((ref) {
   return DriftPrayerRepository(
     ref.watch(databaseProvider),
+    ref.watch(clockProvider),
+  );
+});
+
+final eventLoggerProvider = Provider<EventLogger>((ref) {
+  return EventLogger(
+    ref.watch(prayerRepositoryProvider),
     ref.watch(clockProvider),
   );
 });

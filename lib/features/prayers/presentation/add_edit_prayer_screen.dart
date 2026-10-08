@@ -8,7 +8,6 @@ import '../../../core/utils/announce.dart';
 import '../../verses/application/verse_suggest_notifier.dart';
 import '../../verses/presentation/verse_picker_sheet.dart';
 import '../domain/prayer.dart';
-import '../domain/prayer_event.dart';
 import 'tag_input.dart';
 
 class AddEditPrayerScreen extends ConsumerStatefulWidget {
@@ -102,7 +101,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                 _isAnswered ? _answerNoteController.text.trim() : null,
           ),
         );
-        await repo.logEvent(widget.prayerId!, PrayerEventType.edited);
+        await ref.read(eventLoggerProvider).edited(widget.prayerId!);
       } else {
         await repo.createPrayer(
           NewPrayer(
@@ -270,7 +269,9 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
                                       children: [
-                                        Row(
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 4,
                                           children: [
                                             TextButton(
                                               onPressed: () => ref
@@ -285,7 +286,6 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                                                 'Refresh suggestions',
                                               ),
                                             ),
-                                            const Spacer(),
                                             TextButton(
                                               onPressed: () async {
                                                 final result =

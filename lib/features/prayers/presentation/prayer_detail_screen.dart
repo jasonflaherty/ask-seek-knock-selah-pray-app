@@ -9,7 +9,6 @@ import '../../../core/providers.dart';
 import '../../../core/utils/announce.dart';
 import '../../verses/presentation/verse_picker_sheet.dart';
 import '../domain/prayer.dart';
-import '../domain/prayer_event.dart';
 
 class PrayerDetailScreen extends ConsumerStatefulWidget {
   const PrayerDetailScreen({super.key, required this.prayerId});
@@ -43,9 +42,7 @@ class _PrayerDetailScreenState extends ConsumerState<PrayerDetailScreen> {
   }
 
   Future<void> _prayed() async {
-    await ref
-        .read(prayerRepositoryProvider)
-        .logEvent(widget.prayerId, PrayerEventType.prayed);
+    await ref.read(eventLoggerProvider).prayed(widget.prayerId);
     HapticFeedback.lightImpact();
     setState(() => _justPrayed = true);
     await _load();

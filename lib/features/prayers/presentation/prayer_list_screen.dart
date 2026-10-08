@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../../app/app_config.dart';
 import '../../../app/theme.dart';
@@ -85,25 +86,28 @@ class PrayerListScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(today, style: theme.textTheme.bodyMedium),
                       const SizedBox(height: 16),
-                      SegmentedButton<AnswerFilter>(
-                        segments: const [
-                          ButtonSegment(
-                            value: AnswerFilter.active,
-                            label: Text('Active'),
-                          ),
-                          ButtonSegment(
-                            value: AnswerFilter.answered,
-                            label: Text('Answered'),
-                          ),
-                          ButtonSegment(
-                            value: AnswerFilter.all,
-                            label: Text('All'),
-                          ),
-                        ],
-                        selected: {listState.filter},
-                        onSelectionChanged: (s) =>
-                            notifier.setFilter(s.first),
-                        showSelectedIcon: false,
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SegmentedButton<AnswerFilter>(
+                          segments: const [
+                            ButtonSegment(
+                              value: AnswerFilter.active,
+                              label: Text('Active'),
+                            ),
+                            ButtonSegment(
+                              value: AnswerFilter.answered,
+                              label: Text('Answered'),
+                            ),
+                            ButtonSegment(
+                              value: AnswerFilter.all,
+                              label: Text('All'),
+                            ),
+                          ],
+                          selected: {listState.filter},
+                          onSelectionChanged: (s) =>
+                              notifier.setFilter(s.first),
+                          showSelectedIcon: false,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SortBar(
@@ -185,33 +189,40 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.screenPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.menu_book_outlined,
-              size: 56,
-              color: theme.colorScheme.primary,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppTheme.screenPadding),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.menu_book_outlined,
+                    size: 56,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Nothing here yet', style: theme.textTheme.titleLarge),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add a prayer request and we will suggest promises to pray with it.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: onAdd,
+                    child: const Text('Add your first prayer'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Text('Nothing here yet', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              'Add a prayer request and we will suggest promises to pray with it.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: onAdd,
-              child: const Text('Add your first prayer'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -329,11 +340,21 @@ class _SwipeablePrayerCard extends ConsumerWidget {
         ),
         child: Icon(Icons.delete_outline, color: theme.colorScheme.error),
       ),
-      child: PrayerCard(
-        prayer: prayer,
-        onTap: () => context.push('/prayers/${prayer.id}'),
-        onMarkAnswered: () => _toggleAnswered(context, ref),
-        onDelete: () => _confirmDelete(context, ref),
+      child: VisibilityDetector(
+        key: Key('visibility-prayer-${prayer.id}'),
+        onVisibilityChanged: (info) {
+          if (!context.mounted) return;
+          ref.read(eventLoggerProvider).onVisibilityChanged(
+                prayer.id,
+                info.visibleFraction,
+              );
+        },
+        child: PrayerCard(
+          prayer: prayer,
+          onTap: () => context.push('/prayers/${prayer.id}'),
+          onMarkAnswered: () => _toggleAnswered(context, ref),
+          onDelete: () => _confirmDelete(context, ref),
+        ),
       ),
     );
   }

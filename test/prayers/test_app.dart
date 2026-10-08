@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import 'package:selah/app/app.dart';
 import 'package:selah/core/providers.dart';
@@ -53,6 +54,7 @@ Future<TestApp> pumpSelahApp(
   WidgetTester tester, {
   FakePrayerRepository? repo,
 }) async {
+  VisibilityDetectorController.instance.updateInterval = Duration.zero;
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final clock = FakeClock(DateTime(2024, 6, 15, 12));
@@ -78,7 +80,7 @@ Future<TestApp> pumpSelahApp(
 
   addTearDown(() async {
     await tester.pumpWidget(const SizedBox.shrink());
-    await pumpFrames(tester, 2);
+    await tester.pump(const Duration(seconds: 1));
     container.dispose();
     repository.dispose();
   });
