@@ -4,6 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../features/prayers/data/drift_prayer_repository.dart';
 import '../features/prayers/domain/prayer_repository.dart';
+import '../features/verses/data/keyword_verse_suggester.dart';
+import '../features/verses/data/text_normalizer.dart';
+import '../features/verses/data/verse_asset_loader.dart';
+import '../features/verses/domain/verse_suggester.dart';
 import 'db/app_database.dart';
 import 'utils/clock.dart';
 
@@ -24,6 +28,16 @@ final prayerRepositoryProvider = Provider<PrayerRepository>((ref) {
     ref.watch(databaseProvider),
     ref.watch(clockProvider),
   );
+});
+
+final verseDatasetProvider = Provider<VerseDataset>((ref) {
+  throw UnimplementedError('verseDatasetProvider must be overridden in main');
+});
+
+final verseSuggesterProvider = Provider<VerseSuggester>((ref) {
+  final dataset = ref.watch(verseDatasetProvider);
+  final normalizer = TextNormalizer(dataset.synonyms);
+  return KeywordVerseSuggester(dataset, normalizer);
 });
 
 final themeModeProvider =

@@ -1,5 +1,2602 @@
 {
   "translation": "KJV",
   "version": 1,
-  "verses": []
+  "verses": [
+    {
+      "id": "exo-32-11-14",
+      "ref": "Exodus 32:11–14",
+      "text": "And Moses besought the Lord his God, and said, Lord, why doth thy wrath wax hot against thy people, which thou hast brought forth out of the land of Egypt with great power, and with a mighty hand? Wherefore should the Egyptians speak, and say, For mischief did he bring them out, to slay them in the mountains, and to consume them from the face of the earth? Turn from thy fierce wrath, and repent of this evil against thy people. Remember Abraham, Isaac, and Israel, thy servants, to whom thou swarest by thine own self, and saidst unto them, I will multiply your seed as the stars of heaven, and all this land that I have spoken of will I give unto your seed, and they shall inherit it for ever. And the Lord repented of the evil which he thought to do unto his people.",
+      "themes": [
+        "intercession",
+        "mercy",
+        "nation",
+        "forgiveness"
+      ],
+      "keywords": [
+        "intercede",
+        "pray for others",
+        "spare",
+        "judgment",
+        "relent",
+        "people",
+        "moses",
+        "nation"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "Moses pleaded for Israel and the LORD relented."
+    },
+    {
+      "id": "gen-18-23-32",
+      "ref": "Genesis 18:23–32",
+      "text": "And Abraham drew near, and said, Wilt thou also destroy the righteous with the wicked? Peradventure there be fifty righteous within the city: wilt thou also destroy and not spare the place for the fifty righteous that are therein? That be far from thee to do after this manner, to slay the righteous with the wicked: and that the righteous should be as the wicked, that be far from thee: Shall not the Judge of all the earth do right? And the Lord said, If I find in Sodom fifty righteous within the city, then I will spare all the place for their sakes. And Abraham answered and said, Behold now, I have taken upon me to speak unto the Lord, which am but dust and ashes: Peradventure there shall lack five of the fifty righteous: wilt thou destroy all the city for lack of five? And he said, If I find there forty and five, I will not destroy it. And he spake unto him yet again, and said, Peradventure there shall be forty found there. And he said, I will not do it for forty’s sake. And he said unto him, Oh let not the Lord be angry, and I will speak: Peradventure there shall thirty be found there. And he said, I will not do it, if I find thirty there. And he said, Behold now, I have taken upon me to speak unto the Lord: Peradventure there shall be twenty found there. And he said, I will not destroy it for twenty’s sake. And he said, Oh let not the Lord be angry, and I will speak yet but this once: Peradventure ten shall be found there. And he said, I will not destroy it for ten’s sake.",
+      "themes": [
+        "intercession",
+        "mercy",
+        "nation"
+      ],
+      "keywords": [
+        "intercede",
+        "plead",
+        "spare",
+        "city",
+        "righteous",
+        "abraham",
+        "judgment"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "Abraham interceded for Sodom and God listened."
+    },
+    {
+      "id": "num-14-19-20",
+      "ref": "Numbers 14:19–20",
+      "text": "Pardon, I beseech thee, the iniquity of this people according unto the greatness of thy mercy, and as thou hast forgiven this people, from Egypt even until now. And the Lord said, I have pardoned according to thy word:",
+      "themes": [
+        "intercession",
+        "mercy",
+        "forgiveness",
+        "nation"
+      ],
+      "keywords": [
+        "pardon",
+        "forgive",
+        "mercy",
+        "people",
+        "moses",
+        "intercede"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "Moses asked God to pardon Israel and the LORD said, I have pardoned."
+    },
+    {
+      "id": "2ki-20-5-6",
+      "ref": "2 Kings 20:5–6",
+      "text": "Turn again, and tell Hezekiah the captain of my people, Thus saith the Lord, the God of David thy father, I have heard thy prayer, I have seen thy tears: behold, I will heal thee: on the third day thou shalt go up unto the house of the Lord. And I will add unto thy days fifteen years; and I will deliver thee and this city out of the hand of the king of Assyria; and I will defend this city for mine own sake, and for my servant David’s sake.",
+      "themes": [
+        "healing",
+        "prayer"
+      ],
+      "keywords": [
+        "heal",
+        "sick",
+        "prayer",
+        "tear",
+        "hezekiah",
+        "life",
+        "recover"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "God heard Hezekiah's prayer and healed him."
+    },
+    {
+      "id": "1sa-1-27",
+      "ref": "1 Samuel 1:27",
+      "text": "For this child I prayed; and the Lord hath given me my petition which I asked of him:",
+      "themes": [
+        "prayer",
+        "children",
+        "family"
+      ],
+      "keywords": [
+        "asked",
+        "prayer",
+        "child",
+        "son",
+        "hanna",
+        "petition",
+        "granted"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "Hannah received the son she had asked of the LORD."
+    },
+    {
+      "id": "jon-3-10",
+      "ref": "Jonah 3:10",
+      "text": "And God saw their works, that they turned from their evil way; and God repented of the evil, that he had said that he would do unto them; and he did it not.",
+      "themes": [
+        "mercy",
+        "nation"
+      ],
+      "keywords": [
+        "repent",
+        "turn",
+        "spare",
+        "city",
+        "mercy",
+        "judgment",
+        "nineveh"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "God saw Nineveh repent and did not destroy the city."
+    },
+    {
+      "id": "2ch-7-14",
+      "ref": "2 Chronicles 7:14",
+      "text": "If my people, which are called by my name, shall humble themselves, and pray, and seek my face, and turn from their wicked ways; then will I hear from heaven, and will forgive their sin, and will heal their land.",
+      "themes": [
+        "nation",
+        "prayer",
+        "forgiveness",
+        "healing"
+      ],
+      "keywords": [
+        "humble",
+        "pray",
+        "seek",
+        "turn",
+        "heal",
+        "land",
+        "nation",
+        "country",
+        "leaders"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "God promises to hear, forgive, and heal the land when His people humble themselves."
+    },
+    {
+      "id": "jer-33-3",
+      "ref": "Jeremiah 33:3",
+      "text": "Call unto me, and I will answer thee, and shew thee great and mighty things, which thou knowest not.",
+      "themes": [
+        "prayer",
+        "guidance"
+      ],
+      "keywords": [
+        "call",
+        "answer",
+        "pray",
+        "show",
+        "great",
+        "mighty",
+        "things"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Call unto me, and I will answer thee."
+    },
+    {
+      "id": "mat-7-7-8",
+      "ref": "Matthew 7:7–8",
+      "text": "Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you: For every one that asketh receiveth; and he that seeketh findeth; and to him that knocketh it shall be opened.",
+      "themes": [
+        "prayer",
+        "faith"
+      ],
+      "keywords": [
+        "ask",
+        "seek",
+        "knock",
+        "receive",
+        "find",
+        "open",
+        "pray"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Ask, and it shall be given you; seek, and ye shall find."
+    },
+    {
+      "id": "mar-11-24",
+      "ref": "Mark 11:24",
+      "text": "Therefore I say unto you, What things soever ye desire, when ye pray, believe that ye receive them, and ye shall have them.",
+      "themes": [
+        "prayer",
+        "faith"
+      ],
+      "keywords": [
+        "pray",
+        "believe",
+        "receive",
+        "ask",
+        "faith",
+        "whatsoever"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "What things soever ye desire, when ye pray, believe that ye receive them."
+    },
+    {
+      "id": "jhn-14-13-14",
+      "ref": "John 14:13–14",
+      "text": "And whatsoever ye shall ask in my name, that will I do, that the Father may be glorified in the Son. If ye shall ask any thing in my name, I will do it.",
+      "themes": [
+        "prayer",
+        "faith"
+      ],
+      "keywords": [
+        "ask",
+        "name",
+        "jesus",
+        "pray",
+        "whatsoever",
+        "answer"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Whatsoever ye shall ask in my name, that will I do."
+    },
+    {
+      "id": "1jo-5-14-15",
+      "ref": "1 John 5:14–15",
+      "text": "And this is the confidence that we have in him, that, if we ask any thing according to his will, he heareth us: And if we know that he hear us, whatsoever we ask, we know that we have the petitions that we desired of him.",
+      "themes": [
+        "prayer",
+        "faith"
+      ],
+      "keywords": [
+        "confidence",
+        "ask",
+        "will",
+        "hear",
+        "petition",
+        "pray"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "If we ask any thing according to his will, he heareth us."
+    },
+    {
+      "id": "psa-50-15",
+      "ref": "Psalm 50:15",
+      "text": "And call upon me in the day of trouble: I will deliver thee, and thou shalt glorify me.",
+      "themes": [
+        "prayer",
+        "protection"
+      ],
+      "keywords": [
+        "call",
+        "trouble",
+        "deliver",
+        "pray",
+        "day",
+        "honor"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Call upon me in the day of trouble: I will deliver thee."
+    },
+    {
+      "id": "psa-145-18-19",
+      "ref": "Psalm 145:18–19",
+      "text": "The Lord is nigh unto all them that call upon him, to all that call upon him in truth. He will fulfil the desire of them that fear him: he also will hear their cry, and will save them.",
+      "themes": [
+        "prayer",
+        "mercy"
+      ],
+      "keywords": [
+        "near",
+        "call",
+        "truth",
+        "desire",
+        "hear",
+        "cry",
+        "save"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "The LORD is nigh unto all them that call upon him."
+    },
+    {
+      "id": "phi-4-19",
+      "ref": "Philippians 4:19",
+      "text": "But my God shall supply all your need according to his riches in glory by Christ Jesus.",
+      "themes": [
+        "provision",
+        "work"
+      ],
+      "keywords": [
+        "supply",
+        "need",
+        "riches",
+        "provide",
+        "money",
+        "bills",
+        "job",
+        "lack"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "My God shall supply all your need according to his riches in glory."
+    },
+    {
+      "id": "mat-6-31-33",
+      "ref": "Matthew 6:31–33",
+      "text": "Therefore take no thought, saying, What shall we eat? or, What shall we drink? or, Wherewithal shall we be clothed? (For after all these things do the Gentiles seek:) for your heavenly Father knoweth that ye have need of all these things. But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.",
+      "themes": [
+        "provision",
+        "anxiety",
+        "fear"
+      ],
+      "keywords": [
+        "worry",
+        "food",
+        "drink",
+        "clothes",
+        "seek",
+        "kingdom",
+        "need",
+        "bills",
+        "anxious"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Seek first the kingdom; all these things shall be added unto you."
+    },
+    {
+      "id": "psa-37-25",
+      "ref": "Psalm 37:25",
+      "text": "I have been young, and now am old; yet have I not seen the righteous forsaken, nor his seed begging bread.",
+      "themes": [
+        "provision"
+      ],
+      "keywords": [
+        "forsaken",
+        "begging",
+        "bread",
+        "righteous",
+        "provide",
+        "food"
+      ],
+      "promiseType": "character_of_god",
+      "note": "I have not seen the righteous forsaken, nor his seed begging bread."
+    },
+    {
+      "id": "2co-9-8",
+      "ref": "2 Corinthians 9:8",
+      "text": "And God is able to make all grace abound toward you; that ye, always having all sufficiency in all things, may abound to every good work:",
+      "themes": [
+        "provision"
+      ],
+      "keywords": [
+        "grace",
+        "sufficiency",
+        "abound",
+        "good work",
+        "provide",
+        "enough"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "God is able to make all grace abound toward you."
+    },
+    {
+      "id": "psa-23-1",
+      "ref": "Psalm 23:1",
+      "text": "The Lord is my shepherd; I shall not want.",
+      "themes": [
+        "provision",
+        "peace",
+        "guidance"
+      ],
+      "keywords": [
+        "shepherd",
+        "want",
+        "lack",
+        "provide",
+        "care",
+        "lead"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The LORD is my shepherd; I shall not want."
+    },
+    {
+      "id": "jam-5-14-15",
+      "ref": "James 5:14–15",
+      "text": "Is any sick among you? let him call for the elders of the church; and let them pray over him, anointing him with oil in the name of the Lord: And the prayer of faith shall save the sick, and the Lord shall raise him up; and if he have committed sins, they shall be forgiven him.",
+      "themes": [
+        "healing",
+        "prayer"
+      ],
+      "keywords": [
+        "sick",
+        "hospital",
+        "anoint",
+        "pray",
+        "heal",
+        "illness",
+        "disease",
+        "save"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "The prayer of faith shall save the sick."
+    },
+    {
+      "id": "exo-15-26",
+      "ref": "Exodus 15:26",
+      "text": "And said, If thou wilt diligently hearken to the voice of the Lord thy God, and wilt do that which is right in his sight, and wilt give ear to his commandments, and keep all his statutes, I will put none of these diseases upon thee, which I have brought upon the Egyptians: for I am the Lord that healeth thee.",
+      "themes": [
+        "healing"
+      ],
+      "keywords": [
+        "heal",
+        "disease",
+        "health",
+        "lord",
+        "physician",
+        "sick"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "I am the LORD that healeth thee."
+    },
+    {
+      "id": "psa-103-2-3",
+      "ref": "Psalm 103:2–3",
+      "text": "Bless the Lord, O my soul, and forget not all his benefits: Who forgiveth all thine iniquities; who healeth all thy diseases;",
+      "themes": [
+        "healing",
+        "forgiveness",
+        "mercy"
+      ],
+      "keywords": [
+        "heal",
+        "disease",
+        "forgive",
+        "iniquity",
+        "benefit",
+        "sick"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Who forgiveth all thine iniquities; who healeth all thy diseases."
+    },
+    {
+      "id": "jer-30-17",
+      "ref": "Jeremiah 30:17",
+      "text": "For I will restore health unto thee, and I will heal thee of thy wounds, saith the Lord; because they called thee an Outcast, saying, This is Zion, whom no man seeketh after.",
+      "themes": [
+        "healing"
+      ],
+      "keywords": [
+        "restore",
+        "health",
+        "heal",
+        "wounds",
+        "sick",
+        "recover"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "I will restore health unto thee, and I will heal thee of thy wounds."
+    },
+    {
+      "id": "isa-53-5",
+      "ref": "Isaiah 53:5",
+      "text": "But he was wounded for our transgressions, he was bruised for our iniquities: the chastisement of our peace was upon him; and with his stripes we are healed.",
+      "themes": [
+        "healing",
+        "salvation"
+      ],
+      "keywords": [
+        "wounded",
+        "bruise",
+        "stripe",
+        "heal",
+        "peace",
+        "iniquity"
+      ],
+      "promiseType": "character_of_god",
+      "note": "With his stripes we are healed."
+    },
+    {
+      "id": "psa-147-3",
+      "ref": "Psalm 147:3",
+      "text": "He healeth the broken in heart, and bindeth up their wounds.",
+      "themes": [
+        "healing",
+        "comfort",
+        "grief"
+      ],
+      "keywords": [
+        "heal",
+        "broken",
+        "heart",
+        "wound",
+        "bind",
+        "grief"
+      ],
+      "promiseType": "character_of_god",
+      "note": "He healeth the broken in heart, and bindeth up their wounds."
+    },
+    {
+      "id": "isa-41-10",
+      "ref": "Isaiah 41:10",
+      "text": "Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee; yea, I will help thee; yea, I will uphold thee with the right hand of my righteousness.",
+      "themes": [
+        "fear",
+        "strength",
+        "anxiety"
+      ],
+      "keywords": [
+        "fear",
+        "afraid",
+        "strengthen",
+        "help",
+        "uphold",
+        "scared",
+        "worried"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Fear thou not; for I am with thee."
+    },
+    {
+      "id": "phi-4-6-7",
+      "ref": "Philippians 4:6–7",
+      "text": "Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God. And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus.",
+      "themes": [
+        "anxiety",
+        "peace",
+        "prayer",
+        "fear"
+      ],
+      "keywords": [
+        "anxious",
+        "worried",
+        "careful",
+        "pray",
+        "peace",
+        "guard",
+        "heart",
+        "mind"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Be careful for nothing; the peace of God shall keep your hearts."
+    },
+    {
+      "id": "1pe-5-7",
+      "ref": "1 Peter 5:7",
+      "text": "Casting all your care upon him; for he careth for you.",
+      "themes": [
+        "anxiety",
+        "fear",
+        "comfort"
+      ],
+      "keywords": [
+        "care",
+        "cast",
+        "anxiety",
+        "worry",
+        "burden",
+        "concern"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Casting all your care upon him; for he careth for you."
+    },
+    {
+      "id": "jos-1-9",
+      "ref": "Joshua 1:9",
+      "text": "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the Lord thy God is with thee whithersoever thou goest.",
+      "themes": [
+        "fear",
+        "strength"
+      ],
+      "keywords": [
+        "afraid",
+        "dismayed",
+        "courage",
+        "strong",
+        "with thee",
+        "fear"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Be strong and of a good courage; be not afraid."
+    },
+    {
+      "id": "psa-56-3",
+      "ref": "Psalm 56:3",
+      "text": "What time I am afraid, I will trust in thee.",
+      "themes": [
+        "fear",
+        "faith"
+      ],
+      "keywords": [
+        "afraid",
+        "trust",
+        "fear",
+        "scared",
+        "worry",
+        "courage"
+      ],
+      "promiseType": "character_of_god",
+      "note": "What time I am afraid, I will trust in thee."
+    },
+    {
+      "id": "jhn-14-27",
+      "ref": "John 14:27",
+      "text": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+      "themes": [
+        "peace",
+        "fear",
+        "anxiety"
+      ],
+      "keywords": [
+        "peace",
+        "afraid",
+        "troubled",
+        "heart",
+        "leave",
+        "give"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Peace I leave with you, my peace I give unto you."
+    },
+    {
+      "id": "isa-26-3",
+      "ref": "Isaiah 26:3",
+      "text": "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.",
+      "themes": [
+        "peace",
+        "anxiety",
+        "faith"
+      ],
+      "keywords": [
+        "peace",
+        "mind",
+        "trust",
+        "stay",
+        "perfect"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Thou wilt keep him in perfect peace, whose mind is stayed on thee."
+    },
+    {
+      "id": "pro-3-5-6",
+      "ref": "Proverbs 3:5–6",
+      "text": "Trust in the Lord with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.",
+      "themes": [
+        "guidance",
+        "wisdom",
+        "work"
+      ],
+      "keywords": [
+        "trust",
+        "lean",
+        "understanding",
+        "acknowledge",
+        "direct",
+        "path",
+        "decision"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "In all thy ways acknowledge him, and he shall direct thy paths."
+    },
+    {
+      "id": "psa-32-8",
+      "ref": "Psalm 32:8",
+      "text": "I will instruct thee and teach thee in the way which thou shalt go: I will guide thee with mine eye.",
+      "themes": [
+        "guidance",
+        "wisdom"
+      ],
+      "keywords": [
+        "instruct",
+        "teach",
+        "guide",
+        "way",
+        "counsel",
+        "decision"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "I will instruct thee and teach thee in the way which thou shalt go."
+    },
+    {
+      "id": "jam-1-5",
+      "ref": "James 1:5",
+      "text": "If any of you lack wisdom, let him ask of God, that giveth to all men liberally, and upbraideth not; and it shall be given him.",
+      "themes": [
+        "wisdom",
+        "guidance",
+        "prayer"
+      ],
+      "keywords": [
+        "wisdom",
+        "lack",
+        "ask",
+        "give",
+        "liberally",
+        "decision"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "If any of you lack wisdom, let him ask of God."
+    },
+    {
+      "id": "jer-29-11",
+      "ref": "Jeremiah 29:11",
+      "text": "For I know the thoughts that I think toward you, saith the Lord, thoughts of peace, and not of evil, to give you an expected end.",
+      "themes": [
+        "hope",
+        "guidance"
+      ],
+      "keywords": [
+        "thoughts",
+        "peace",
+        "future",
+        "hope",
+        "expected end",
+        "plan"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Thoughts of peace, and not of evil, to give you an expected end."
+    },
+    {
+      "id": "isa-30-21",
+      "ref": "Isaiah 30:21",
+      "text": "And thine ears shall hear a word behind thee, saying, This is the way, walk ye in it, when ye turn to the right hand, and when ye turn to the left.",
+      "themes": [
+        "guidance"
+      ],
+      "keywords": [
+        "voice",
+        "way",
+        "walk",
+        "right",
+        "left",
+        "guide",
+        "direction"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "This is the way, walk ye in it."
+    },
+    {
+      "id": "pro-2-6",
+      "ref": "Proverbs 2:6",
+      "text": "For the Lord giveth wisdom: out of his mouth cometh knowledge and understanding.",
+      "themes": [
+        "wisdom",
+        "guidance"
+      ],
+      "keywords": [
+        "wisdom",
+        "knowledge",
+        "understanding",
+        "mouth",
+        "lord"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The LORD giveth wisdom: out of his mouth cometh knowledge."
+    },
+    {
+      "id": "1jo-1-9",
+      "ref": "1 John 1:9",
+      "text": "If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness.",
+      "themes": [
+        "forgiveness",
+        "mercy"
+      ],
+      "keywords": [
+        "confess",
+        "sin",
+        "forgive",
+        "cleanse",
+        "guilt",
+        "guilty",
+        "sorry",
+        "faithful",
+        "shame"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "If we confess our sins, he is faithful and just to forgive us."
+    },
+    {
+      "id": "psa-103-12",
+      "ref": "Psalm 103:12",
+      "text": "As far as the east is from the west, so far hath he removed our transgressions from us.",
+      "themes": [
+        "forgiveness",
+        "mercy"
+      ],
+      "keywords": [
+        "remove",
+        "transgression",
+        "east",
+        "west",
+        "forgive",
+        "guilt",
+        "guilty",
+        "sin",
+        "shame"
+      ],
+      "promiseType": "character_of_god",
+      "note": "As far as the east is from the west, so far hath he removed our transgressions."
+    },
+    {
+      "id": "isa-1-18",
+      "ref": "Isaiah 1:18",
+      "text": "Come now, and let us reason together, saith the Lord: though your sins be as scarlet, they shall be as white as snow; though they be red like crimson, they shall be as wool.",
+      "themes": [
+        "forgiveness",
+        "mercy"
+      ],
+      "keywords": [
+        "scarlet",
+        "white",
+        "snow",
+        "sin",
+        "forgive",
+        "reason"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Though your sins be as scarlet, they shall be as white as snow."
+    },
+    {
+      "id": "mic-7-18-19",
+      "ref": "Micah 7:18–19",
+      "text": "Who is a God like unto thee, that pardoneth iniquity, and passeth by the transgression of the remnant of his heritage? he retaineth not his anger for ever, because he delighteth in mercy. He will turn again, he will have compassion upon us; he will subdue our iniquities; and thou wilt cast all their sins into the depths of the sea.",
+      "themes": [
+        "forgiveness",
+        "mercy"
+      ],
+      "keywords": [
+        "pardon",
+        "iniquity",
+        "compassion",
+        "cast",
+        "sea",
+        "sin",
+        "forgive"
+      ],
+      "promiseType": "character_of_god",
+      "note": "He delighteth in mercy and will cast all their sins into the depths of the sea."
+    },
+    {
+      "id": "act-3-19",
+      "ref": "Acts 3:19",
+      "text": "Repent ye therefore, and be converted, that your sins may be blotted out, when the times of refreshing shall come from the presence of the Lord;",
+      "themes": [
+        "forgiveness",
+        "salvation"
+      ],
+      "keywords": [
+        "repent",
+        "converted",
+        "blot",
+        "sin",
+        "refreshing",
+        "forgive"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Repent ye therefore, and be converted, that your sins may be blotted out."
+    },
+    {
+      "id": "isa-40-29-31",
+      "ref": "Isaiah 40:29–31",
+      "text": "He giveth power to the faint; and to them that have no might he increaseth strength. Even the youths shall faint and be weary, and the young men shall utterly fall: But they that wait upon the Lord shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.",
+      "themes": [
+        "strength",
+        "hope",
+        "perseverance"
+      ],
+      "keywords": [
+        "faint",
+        "weary",
+        "tired",
+        "wait",
+        "renew",
+        "eagle",
+        "strength",
+        "run"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "They that wait upon the LORD shall renew their strength."
+    },
+    {
+      "id": "2co-12-9",
+      "ref": "2 Corinthians 12:9",
+      "text": "And he said unto me, My grace is sufficient for thee: for my strength is made perfect in weakness. Most gladly therefore will I rather glory in my infirmities, that the power of Christ may rest upon me.",
+      "themes": [
+        "strength",
+        "mercy"
+      ],
+      "keywords": [
+        "grace",
+        "sufficient",
+        "weakness",
+        "strength",
+        "power",
+        "tired"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "My grace is sufficient for thee: for my strength is made perfect in weakness."
+    },
+    {
+      "id": "psa-46-1",
+      "ref": "Psalm 46:1",
+      "text": "God is our refuge and strength, a very present help in trouble.",
+      "themes": [
+        "strength",
+        "protection",
+        "fear"
+      ],
+      "keywords": [
+        "refuge",
+        "strength",
+        "help",
+        "trouble",
+        "present"
+      ],
+      "promiseType": "character_of_god",
+      "note": "God is our refuge and strength, a very present help in trouble."
+    },
+    {
+      "id": "mat-11-28",
+      "ref": "Matthew 11:28",
+      "text": "Come unto me, all ye that labour and are heavy laden, and I will give you rest.",
+      "themes": [
+        "strength",
+        "comfort"
+      ],
+      "keywords": [
+        "weary",
+        "heavy laden",
+        "rest",
+        "tired",
+        "come",
+        "burden"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Come unto me, all ye that labour and are heavy laden, and I will give you rest."
+    },
+    {
+      "id": "psa-34-18",
+      "ref": "Psalm 34:18",
+      "text": "The Lord is nigh unto them that are of a broken heart; and saveth such as be of a contrite spirit.",
+      "themes": [
+        "comfort",
+        "grief"
+      ],
+      "keywords": [
+        "nigh",
+        "broken",
+        "heart",
+        "contrite",
+        "save",
+        "grief",
+        "died",
+        "mourning"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The LORD is nigh unto them that are of a broken heart."
+    },
+    {
+      "id": "mat-5-4",
+      "ref": "Matthew 5:4",
+      "text": "Blessed are they that mourn: for they shall be comforted.",
+      "themes": [
+        "comfort",
+        "grief"
+      ],
+      "keywords": [
+        "mourn",
+        "comfort",
+        "grief",
+        "blessed",
+        "sorrow"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Blessed are they that mourn: for they shall be comforted."
+    },
+    {
+      "id": "rev-21-4",
+      "ref": "Revelation 21:4",
+      "text": "And God shall wipe away all tears from their eyes; and there shall be no more death, neither sorrow, nor crying, neither shall there be any more pain: for the former things are passed away.",
+      "themes": [
+        "comfort",
+        "grief",
+        "hope"
+      ],
+      "keywords": [
+        "wipe",
+        "tear",
+        "death",
+        "sorrow",
+        "crying",
+        "pain",
+        "died",
+        "grief"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "God shall wipe away all tears from their eyes."
+    },
+    {
+      "id": "2co-1-3-4",
+      "ref": "2 Corinthians 1:3–4",
+      "text": "Blessed be God, even the Father of our Lord Jesus Christ, the Father of mercies, and the God of all comfort; Who comforteth us in all our tribulation, that we may be able to comfort them which are in any trouble, by the comfort wherewith we ourselves are comforted of God.",
+      "themes": [
+        "comfort",
+        "grief",
+        "mercy"
+      ],
+      "keywords": [
+        "comfort",
+        "tribulation",
+        "consolation",
+        "mercy",
+        "affliction"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The God of all comfort comforts us in all our tribulation."
+    },
+    {
+      "id": "act-16-31",
+      "ref": "Acts 16:31",
+      "text": "And they said, Believe on the Lord Jesus Christ, and thou shalt be saved, and thy house.",
+      "themes": [
+        "salvation",
+        "family",
+        "marriage"
+      ],
+      "keywords": [
+        "believe",
+        "saved",
+        "house",
+        "jesus",
+        "husband",
+        "wife",
+        "unsaved",
+        "family"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Believe on the Lord Jesus Christ, and thou shalt be saved, and thy house."
+    },
+    {
+      "id": "2pe-3-9",
+      "ref": "2 Peter 3:9",
+      "text": "The Lord is not slack concerning his promise, as some men count slackness; but is longsuffering to us-ward, not willing that any should perish, but that all should come to repentance.",
+      "themes": [
+        "salvation",
+        "mercy",
+        "hope"
+      ],
+      "keywords": [
+        "longsuffering",
+        "perish",
+        "repent",
+        "all",
+        "unsaved",
+        "salvation",
+        "come"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Not willing that any should perish, but that all should come to repentance."
+    },
+    {
+      "id": "1ti-2-3-4",
+      "ref": "1 Timothy 2:3–4",
+      "text": "For this is good and acceptable in the sight of God our Saviour; Who will have all men to be saved, and to come unto the knowledge of the truth.",
+      "themes": [
+        "salvation"
+      ],
+      "keywords": [
+        "saved",
+        "truth",
+        "will",
+        "all men",
+        "knowledge",
+        "unsaved"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Who will have all men to be saved, and to come unto the knowledge of the truth."
+    },
+    {
+      "id": "rom-10-13",
+      "ref": "Romans 10:13",
+      "text": "For whosoever shall call upon the name of the Lord shall be saved.",
+      "themes": [
+        "salvation",
+        "prayer"
+      ],
+      "keywords": [
+        "call",
+        "name",
+        "lord",
+        "saved",
+        "whosoever"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Whosoever shall call upon the name of the Lord shall be saved."
+    },
+    {
+      "id": "psa-91-1-2",
+      "ref": "Psalm 91:1–2",
+      "text": "He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty. I will say of the Lord, He is my refuge and my fortress: my God; in him will I trust.",
+      "themes": [
+        "protection",
+        "fear"
+      ],
+      "keywords": [
+        "dwell",
+        "secret",
+        "refuge",
+        "fortress",
+        "trust",
+        "almighty",
+        "protect"
+      ],
+      "promiseType": "character_of_god",
+      "note": "He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty."
+    },
+    {
+      "id": "psa-91-11",
+      "ref": "Psalm 91:11",
+      "text": "For he shall give his angels charge over thee, to keep thee in all thy ways.",
+      "themes": [
+        "protection"
+      ],
+      "keywords": [
+        "angel",
+        "charge",
+        "keep",
+        "way",
+        "protect",
+        "guard"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "He shall give his angels charge over thee, to keep thee in all thy ways."
+    },
+    {
+      "id": "psa-121-7-8",
+      "ref": "Psalm 121:7–8",
+      "text": "The Lord shall preserve thee from all evil: he shall preserve thy soul. The Lord shall preserve thy going out and thy coming in from this time forth, and even for evermore.",
+      "themes": [
+        "protection"
+      ],
+      "keywords": [
+        "preserve",
+        "evil",
+        "soul",
+        "going",
+        "coming",
+        "keep",
+        "protect"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "The LORD shall preserve thee from all evil."
+    },
+    {
+      "id": "isa-54-17",
+      "ref": "Isaiah 54:17",
+      "text": "No weapon that is formed against thee shall prosper; and every tongue that shall rise against thee in judgment thou shalt condemn. This is the heritage of the servants of the Lord, and their righteousness is of me, saith the Lord.",
+      "themes": [
+        "protection"
+      ],
+      "keywords": [
+        "weapon",
+        "prosper",
+        "condemn",
+        "heritage",
+        "protect",
+        "defense"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "No weapon that is formed against thee shall prosper."
+    },
+    {
+      "id": "2th-3-3",
+      "ref": "2 Thessalonians 3:3",
+      "text": "But the Lord is faithful, who shall stablish you, and keep you from evil.",
+      "themes": [
+        "protection",
+        "faith"
+      ],
+      "keywords": [
+        "faithful",
+        "stablish",
+        "keep",
+        "evil",
+        "protect"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "The Lord is faithful, who shall stablish you, and keep you from evil."
+    },
+    {
+      "id": "psa-37-4-5",
+      "ref": "Psalm 37:4–5",
+      "text": "Delight thyself also in the Lord; and he shall give thee the desires of thine heart. Commit thy way unto the Lord; trust also in him; and he shall bring it to pass.",
+      "themes": [
+        "work",
+        "guidance",
+        "hope"
+      ],
+      "keywords": [
+        "delight",
+        "desire",
+        "commit",
+        "way",
+        "trust",
+        "bring",
+        "job",
+        "work"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Delight thyself also in the LORD; and he shall give thee the desires of thine heart."
+    },
+    {
+      "id": "pro-16-3",
+      "ref": "Proverbs 16:3",
+      "text": "Commit thy works unto the Lord, and thy thoughts shall be established.",
+      "themes": [
+        "work",
+        "guidance"
+      ],
+      "keywords": [
+        "commit",
+        "work",
+        "establish",
+        "thought",
+        "job",
+        "plan"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Commit thy works unto the LORD, and thy thoughts shall be established."
+    },
+    {
+      "id": "isa-54-13",
+      "ref": "Isaiah 54:13",
+      "text": "And all thy children shall be taught of the Lord; and great shall be the peace of thy children.",
+      "themes": [
+        "children",
+        "family",
+        "peace"
+      ],
+      "keywords": [
+        "children",
+        "taught",
+        "lord",
+        "peace",
+        "son",
+        "daughter"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "All thy children shall be taught of the LORD; and great shall be the peace of thy children."
+    },
+    {
+      "id": "pro-22-6",
+      "ref": "Proverbs 22:6",
+      "text": "Train up a child in the way he should go: and when he is old, he will not depart from it.",
+      "themes": [
+        "children",
+        "family"
+      ],
+      "keywords": [
+        "train",
+        "child",
+        "way",
+        "old",
+        "depart",
+        "son",
+        "daughter"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Train up a child in the way he should go."
+    },
+    {
+      "id": "psa-91-4",
+      "ref": "Psalm 91:4",
+      "text": "He shall cover thee with his feathers, and under his wings shalt thou trust: his truth shall be thy shield and buckler.",
+      "themes": [
+        "protection",
+        "fear"
+      ],
+      "keywords": [
+        "feather",
+        "wing",
+        "refuge",
+        "shield",
+        "buckler",
+        "protect",
+        "truth"
+      ],
+      "promiseType": "character_of_god",
+      "note": "He shall cover thee with his feathers, and under his wings shalt thou trust."
+    },
+    {
+      "id": "rom-8-28",
+      "ref": "Romans 8:28",
+      "text": "And we know that all things work together for good to them that love God, to them who are the called according to his purpose.",
+      "themes": [
+        "hope",
+        "perseverance",
+        "faith"
+      ],
+      "keywords": [
+        "work",
+        "good",
+        "love",
+        "purpose",
+        "called",
+        "all things"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "All things work together for good to them that love God."
+    },
+    {
+      "id": "rom-8-38-39",
+      "ref": "Romans 8:38–39",
+      "text": "For I am persuaded, that neither death, nor life, nor angels, nor principalities, nor powers, nor things present, nor things to come, Nor height, nor depth, nor any other creature, shall be able to separate us from the love of God, which is in Christ Jesus our Lord.",
+      "themes": [
+        "hope",
+        "faith"
+      ],
+      "keywords": [
+        "persuaded",
+        "separate",
+        "love",
+        "death",
+        "life",
+        "christ"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Nothing shall be able to separate us from the love of God."
+    },
+    {
+      "id": "heb-13-5",
+      "ref": "Hebrews 13:5",
+      "text": "Let your conversation be without covetousness; and be content with such things as ye have: for he hath said, I will never leave thee, nor forsake thee.",
+      "themes": [
+        "provision",
+        "fear",
+        "faith"
+      ],
+      "keywords": [
+        "content",
+        "leave",
+        "forsake",
+        "help",
+        "money",
+        "presence"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "I will never leave thee, nor forsake thee."
+    },
+    {
+      "id": "heb-4-16",
+      "ref": "Hebrews 4:16",
+      "text": "Let us therefore come boldly unto the throne of grace, that we may obtain mercy, and find grace to help in time of need.",
+      "themes": [
+        "prayer",
+        "mercy"
+      ],
+      "keywords": [
+        "boldly",
+        "throne",
+        "grace",
+        "mercy",
+        "help",
+        "time of need"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Come boldly unto the throne of grace, that we may obtain mercy."
+    },
+    {
+      "id": "psa-27-1",
+      "ref": "Psalm 27:1",
+      "text": "The Lord is my light and my salvation; whom shall I fear? the Lord is the strength of my life; of whom shall I be afraid?",
+      "themes": [
+        "fear",
+        "strength"
+      ],
+      "keywords": [
+        "light",
+        "salvation",
+        "afraid",
+        "strength",
+        "fear",
+        "whom"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The LORD is my light and my salvation; whom shall I fear?"
+    },
+    {
+      "id": "psa-27-14",
+      "ref": "Psalm 27:14",
+      "text": "Wait on the Lord: be of good courage, and he shall strengthen thine heart: wait, I say, on the Lord.",
+      "themes": [
+        "hope",
+        "strength",
+        "perseverance"
+      ],
+      "keywords": [
+        "wait",
+        "lord",
+        "courage",
+        "strengthen",
+        "heart",
+        "hope"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Wait on the LORD: be of good courage, and he shall strengthen thine heart."
+    },
+    {
+      "id": "psa-55-22",
+      "ref": "Psalm 55:22",
+      "text": "Cast thy burden upon the Lord, and he shall sustain thee: he shall never suffer the righteous to be moved.",
+      "themes": [
+        "anxiety",
+        "strength"
+      ],
+      "keywords": [
+        "cast",
+        "burden",
+        "sustain",
+        "suffer",
+        "righteous",
+        "care"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Cast thy burden upon the LORD, and he shall sustain thee."
+    },
+    {
+      "id": "nah-1-7",
+      "ref": "Nahum 1:7",
+      "text": "The Lord is good, a strong hold in the day of trouble; and he knoweth them that trust in him.",
+      "themes": [
+        "protection",
+        "strength"
+      ],
+      "keywords": [
+        "good",
+        "stronghold",
+        "trouble",
+        "trust",
+        "know"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The LORD is good, a strong hold in the day of trouble."
+    },
+    {
+      "id": "deu-31-6",
+      "ref": "Deuteronomy 31:6",
+      "text": "Be strong and of a good courage, fear not, nor be afraid of them: for the Lord thy God, he it is that doth go with thee; he will not fail thee, nor forsake thee.",
+      "themes": [
+        "fear",
+        "strength"
+      ],
+      "keywords": [
+        "strong",
+        "courage",
+        "afraid",
+        "fail",
+        "forsake",
+        "fear"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Be strong and of a good courage… he will not fail thee, nor forsake thee."
+    },
+    {
+      "id": "deu-31-8",
+      "ref": "Deuteronomy 31:8",
+      "text": "And the Lord, he it is that doth go before thee; he will be with thee, he will not fail thee, neither forsake thee: fear not, neither be dismayed.",
+      "themes": [
+        "fear",
+        "guidance"
+      ],
+      "keywords": [
+        "go",
+        "before",
+        "fail",
+        "forsake",
+        "afraid",
+        "dismayed"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "The LORD, he it is that doth go before thee."
+    },
+    {
+      "id": "psa-121-1-2",
+      "ref": "Psalm 121:1–2",
+      "text": "I will lift up mine eyes unto the hills, from whence cometh my help. My help cometh from the Lord, which made heaven and earth.",
+      "themes": [
+        "protection",
+        "hope"
+      ],
+      "keywords": [
+        "hills",
+        "help",
+        "come",
+        "lord",
+        "made",
+        "heaven",
+        "earth"
+      ],
+      "promiseType": "character_of_god",
+      "note": "My help cometh from the LORD, which made heaven and earth."
+    },
+    {
+      "id": "psa-139-13-14",
+      "ref": "Psalm 139:13–14",
+      "text": "For thou hast possessed my reins: thou hast covered me in my mother’s womb. I will praise thee; for I am fearfully and wonderfully made: marvellous are thy works; and that my soul knoweth right well.",
+      "themes": [
+        "family",
+        "children",
+        "hope"
+      ],
+      "keywords": [
+        "formed",
+        "inward",
+        "covered",
+        "womb",
+        "fearfully",
+        "wonderfully",
+        "child"
+      ],
+      "promiseType": "character_of_god",
+      "note": "I will praise thee; for I am fearfully and wonderfully made."
+    },
+    {
+      "id": "isa-43-1-2",
+      "ref": "Isaiah 43:1–2",
+      "text": "But now thus saith the Lord that created thee, O Jacob, and he that formed thee, O Israel, Fear not: for I have redeemed thee, I have called thee by thy name; thou art mine. When thou passest through the waters, I will be with thee; and through the rivers, they shall not overflow thee: when thou walkest through the fire, thou shalt not be burned; neither shall the flame kindle upon thee.",
+      "themes": [
+        "fear",
+        "protection",
+        "comfort"
+      ],
+      "keywords": [
+        "fear",
+        "redeemed",
+        "called",
+        "name",
+        "water",
+        "fire",
+        "pass"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "When thou passest through the waters, I will be with thee."
+    },
+    {
+      "id": "isa-43-19",
+      "ref": "Isaiah 43:19",
+      "text": "Behold, I will do a new thing; now it shall spring forth; shall ye not know it? I will even make a way in the wilderness, and rivers in the desert.",
+      "themes": [
+        "hope",
+        "guidance"
+      ],
+      "keywords": [
+        "new thing",
+        "spring",
+        "way",
+        "wilderness",
+        "river",
+        "desert"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Behold, I will do a new thing… I will even make a way in the wilderness."
+    },
+    {
+      "id": "lam-3-22-23",
+      "ref": "Lamentations 3:22–23",
+      "text": "It is of the Lord’s mercies that we are not consumed, because his compassions fail not. They are new every morning: great is thy faithfulness.",
+      "themes": [
+        "mercy",
+        "hope",
+        "perseverance"
+      ],
+      "keywords": [
+        "mercy",
+        "compassions",
+        "fail",
+        "faithful",
+        "new",
+        "morning",
+        "hope"
+      ],
+      "promiseType": "character_of_god",
+      "note": "It is of the LORD's mercies that we are not consumed… great is thy faithfulness."
+    },
+    {
+      "id": "zep-3-17",
+      "ref": "Zephaniah 3:17",
+      "text": "The Lord thy God in the midst of thee is mighty; he will save, he will rejoice over thee with joy; he will rest in his love, he will joy over thee with singing.",
+      "themes": [
+        "comfort",
+        "strength"
+      ],
+      "keywords": [
+        "mighty",
+        "save",
+        "rejoice",
+        "rest",
+        "love",
+        "joy"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The LORD thy God in the midst of thee is mighty; he will save."
+    },
+    {
+      "id": "mal-3-10",
+      "ref": "Malachi 3:10",
+      "text": "Bring ye all the tithes into the storehouse, that there may be meat in mine house, and prove me now herewith, saith the Lord of hosts, if I will not open you the windows of heaven, and pour you out a blessing, that there shall not be room enough to receive it.",
+      "themes": [
+        "provision",
+        "faith"
+      ],
+      "keywords": [
+        "tithe",
+        "storehouse",
+        "prove",
+        "open",
+        "windows",
+        "blessing",
+        "pour"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Prove me now herewith… if I will not open you the windows of heaven."
+    },
+    {
+      "id": "mat-6-34",
+      "ref": "Matthew 6:34",
+      "text": "Take therefore no thought for the morrow: for the morrow shall take thought for the things of itself. Sufficient unto the day is the evil thereof.",
+      "themes": [
+        "anxiety",
+        "fear",
+        "peace"
+      ],
+      "keywords": [
+        "tomorrow",
+        "thought",
+        "sufficient",
+        "day",
+        "evil",
+        "worry"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Take therefore no thought for the morrow."
+    },
+    {
+      "id": "mat-18-19-20",
+      "ref": "Matthew 18:19–20",
+      "text": "Again I say unto you, That if two of you shall agree on earth as touching any thing that they shall ask, it shall be done for them of my Father which is in heaven. For where two or three are gathered together in my name, there am I in the midst of them.",
+      "themes": [
+        "prayer",
+        "intercession"
+      ],
+      "keywords": [
+        "agree",
+        "ask",
+        "gather",
+        "name",
+        "midst",
+        "pray",
+        "two",
+        "three"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "If two of you shall agree on earth as touching any thing that they shall ask, it shall be done."
+    },
+    {
+      "id": "mat-19-26",
+      "ref": "Matthew 19:26",
+      "text": "But Jesus beheld them, and said unto them, With men this is impossible; but with God all things are possible.",
+      "themes": [
+        "faith",
+        "hope"
+      ],
+      "keywords": [
+        "impossible",
+        "possible",
+        "man",
+        "god",
+        "hard"
+      ],
+      "promiseType": "character_of_god",
+      "note": "With God all things are possible."
+    },
+    {
+      "id": "luk-1-37",
+      "ref": "Luke 1:37",
+      "text": "For with God nothing shall be impossible.",
+      "themes": [
+        "faith",
+        "hope"
+      ],
+      "keywords": [
+        "impossible",
+        "word",
+        "god",
+        "possible",
+        "believe",
+        "miracle"
+      ],
+      "promiseType": "character_of_god",
+      "note": "For with God nothing shall be impossible."
+    },
+    {
+      "id": "luk-11-9-10",
+      "ref": "Luke 11:9–10",
+      "text": "And I say unto you, Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you. For every one that asketh receiveth; and he that seeketh findeth; and to him that knocketh it shall be opened.",
+      "themes": [
+        "prayer",
+        "faith"
+      ],
+      "keywords": [
+        "ask",
+        "seek",
+        "knock",
+        "receive",
+        "find",
+        "open"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Ask, and it shall be given you."
+    },
+    {
+      "id": "jhn-15-7",
+      "ref": "John 15:7",
+      "text": "If ye abide in me, and my words abide in you, ye shall ask what ye will, and it shall be done unto you.",
+      "themes": [
+        "prayer",
+        "faith"
+      ],
+      "keywords": [
+        "abide",
+        "word",
+        "ask",
+        "desire",
+        "done"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "If ye abide in me, and my words abide in you, ye shall ask what ye will."
+    },
+    {
+      "id": "jhn-16-33",
+      "ref": "John 16:33",
+      "text": "These things I have spoken unto you, that in me ye might have peace. In the world ye shall have tribulation: but be of good cheer; I have overcome the world.",
+      "themes": [
+        "peace",
+        "perseverance",
+        "hope"
+      ],
+      "keywords": [
+        "peace",
+        "tribulation",
+        "overcome",
+        "world",
+        "cheer",
+        "trouble"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "In the world ye shall have tribulation: but be of good cheer; I have overcome the world."
+    },
+    {
+      "id": "act-2-21",
+      "ref": "Acts 2:21",
+      "text": "And it shall come to pass, that whosoever shall call on the name of the Lord shall be saved.",
+      "themes": [
+        "salvation",
+        "prayer"
+      ],
+      "keywords": [
+        "call",
+        "name",
+        "lord",
+        "saved",
+        "whosoever"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Whosoever shall call on the name of the Lord shall be saved."
+    },
+    {
+      "id": "rom-5-8",
+      "ref": "Romans 5:8",
+      "text": "But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us.",
+      "themes": [
+        "salvation",
+        "mercy"
+      ],
+      "keywords": [
+        "commend",
+        "love",
+        "sinners",
+        "christ",
+        "died",
+        "yet"
+      ],
+      "promiseType": "character_of_god",
+      "note": "While we were yet sinners, Christ died for us."
+    },
+    {
+      "id": "rom-15-13",
+      "ref": "Romans 15:13",
+      "text": "Now the God of hope fill you with all joy and peace in believing, that ye may abound in hope, through the power of the Holy Ghost.",
+      "themes": [
+        "hope",
+        "peace",
+        "faith"
+      ],
+      "keywords": [
+        "hope",
+        "joy",
+        "peace",
+        "believe",
+        "power",
+        "holy ghost"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The God of hope fill you with all joy and peace in believing."
+    },
+    {
+      "id": "1co-10-13",
+      "ref": "1 Corinthians 10:13",
+      "text": "There hath no temptation taken you but such as is common to man: but God is faithful, who will not suffer you to be tempted above that ye are able; but will with the temptation also make a way to escape, that ye may be able to bear it.",
+      "themes": [
+        "perseverance",
+        "strength"
+      ],
+      "keywords": [
+        "temptation",
+        "common",
+        "faithful",
+        "escape",
+        "endure",
+        "bear"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "God is faithful, who will not suffer you to be tempted above that ye are able."
+    },
+    {
+      "id": "2co-4-16-18",
+      "ref": "2 Corinthians 4:16–18",
+      "text": "For which cause we faint not; but though our outward man perish, yet the inward man is renewed day by day. For our light affliction, which is but for a moment, worketh for us a far more exceeding and eternal weight of glory; While we look not at the things which are seen, but at the things which are not seen: for the things which are seen are temporal; but the things which are not seen are eternal.",
+      "themes": [
+        "hope",
+        "perseverance",
+        "strength"
+      ],
+      "keywords": [
+        "faint",
+        "outward",
+        "inward",
+        "renew",
+        "affliction",
+        "eternal"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Though our outward man perish, yet the inward man is renewed day by day."
+    },
+    {
+      "id": "gal-6-9",
+      "ref": "Galatians 6:9",
+      "text": "And let us not be weary in well doing: for in due season we shall reap, if we faint not.",
+      "themes": [
+        "perseverance",
+        "hope",
+        "work"
+      ],
+      "keywords": [
+        "weary",
+        "well doing",
+        "faint",
+        "reap",
+        "season",
+        "tired"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Let us not be weary in well doing: for in due season we shall reap."
+    },
+    {
+      "id": "eph-3-20",
+      "ref": "Ephesians 3:20",
+      "text": "Now unto him that is able to do exceeding abundantly above all that we ask or think, according to the power that worketh in us,",
+      "themes": [
+        "prayer",
+        "hope",
+        "faith"
+      ],
+      "keywords": [
+        "able",
+        "exceeding",
+        "ask",
+        "think",
+        "power",
+        "work"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Able to do exceeding abundantly above all that we ask or think."
+    },
+    {
+      "id": "eph-6-10",
+      "ref": "Ephesians 6:10",
+      "text": "Finally, my brethren, be strong in the Lord, and in the power of his might.",
+      "themes": [
+        "strength"
+      ],
+      "keywords": [
+        "strong",
+        "lord",
+        "power",
+        "might",
+        "strength"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Be strong in the Lord, and in the power of his might."
+    },
+    {
+      "id": "phi-1-6",
+      "ref": "Philippians 1:6",
+      "text": "Being confident of this very thing, that he which hath begun a good work in you will perform it until the day of Jesus Christ:",
+      "themes": [
+        "hope",
+        "perseverance",
+        "faith"
+      ],
+      "keywords": [
+        "confident",
+        "begin",
+        "perform",
+        "day",
+        "christ",
+        "complete"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "He which hath begun a good work in you will perform it."
+    },
+    {
+      "id": "phi-4-13",
+      "ref": "Philippians 4:13",
+      "text": "I can do all things through Christ which strengtheneth me.",
+      "themes": [
+        "strength"
+      ],
+      "keywords": [
+        "can",
+        "do",
+        "all",
+        "strengthen",
+        "christ",
+        "able"
+      ],
+      "promiseType": "character_of_god",
+      "note": "I can do all things through Christ which strengtheneth me."
+    },
+    {
+      "id": "col-1-11",
+      "ref": "Colossians 1:11",
+      "text": "Strengthened with all might, according to his glorious power, unto all patience and longsuffering with joyfulness;",
+      "themes": [
+        "strength",
+        "perseverance"
+      ],
+      "keywords": [
+        "strengthened",
+        "might",
+        "patience",
+        "longsuffering",
+        "joyfulness"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Strengthened with all might, according to his glorious power."
+    },
+    {
+      "id": "1th-5-16-18",
+      "ref": "1 Thessalonians 5:16–18",
+      "text": "Rejoice evermore. Pray without ceasing. In every thing give thanks: for this is the will of God in Christ Jesus concerning you.",
+      "themes": [
+        "prayer",
+        "hope"
+      ],
+      "keywords": [
+        "rejoice",
+        "pray",
+        "thanks",
+        "everything",
+        "will"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Rejoice evermore. Pray without ceasing. In every thing give thanks."
+    },
+    {
+      "id": "2ti-1-7",
+      "ref": "2 Timothy 1:7",
+      "text": "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.",
+      "themes": [
+        "fear",
+        "strength",
+        "peace"
+      ],
+      "keywords": [
+        "spirit",
+        "fear",
+        "power",
+        "love",
+        "sound mind",
+        "afraid"
+      ],
+      "promiseType": "character_of_god",
+      "note": "God hath not given us the spirit of fear; but of power, and of love, and of a sound mind."
+    },
+    {
+      "id": "heb-11-1",
+      "ref": "Hebrews 11:1",
+      "text": "Now faith is the substance of things hoped for, the evidence of things not seen.",
+      "themes": [
+        "faith",
+        "hope"
+      ],
+      "keywords": [
+        "faith",
+        "substance",
+        "hope",
+        "evidence",
+        "seen"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Faith is the substance of things hoped for, the evidence of things not seen."
+    },
+    {
+      "id": "heb-11-6",
+      "ref": "Hebrews 11:6",
+      "text": "But without faith it is impossible to please him: for he that cometh to God must believe that he is, and that he is a rewarder of them that diligently seek him.",
+      "themes": [
+        "faith",
+        "prayer"
+      ],
+      "keywords": [
+        "faith",
+        "please",
+        "come",
+        "reward",
+        "diligent",
+        "seek"
+      ],
+      "promiseType": "character_of_god",
+      "note": "He that cometh to God must believe that he is, and that he is a rewarder."
+    },
+    {
+      "id": "jam-5-16",
+      "ref": "James 5:16",
+      "text": "Confess your faults one to another, and pray one for another, that ye may be healed. The effectual fervent prayer of a righteous man availeth much.",
+      "themes": [
+        "prayer",
+        "healing",
+        "forgiveness"
+      ],
+      "keywords": [
+        "confess",
+        "fault",
+        "pray",
+        "effectual",
+        "righteous",
+        "avail"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The effectual fervent prayer of a righteous man availeth much."
+    },
+    {
+      "id": "1pe-5-10",
+      "ref": "1 Peter 5:10",
+      "text": "But the God of all grace, who hath called us unto his eternal glory by Christ Jesus, after that ye have suffered a while, make you perfect, stablish, strengthen, settle you.",
+      "themes": [
+        "strength",
+        "perseverance",
+        "hope"
+      ],
+      "keywords": [
+        "grace",
+        "suffer",
+        "perfect",
+        "stablish",
+        "strengthen",
+        "settle"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "After that ye have suffered a while, make you perfect, stablish, strengthen, settle you."
+    },
+    {
+      "id": "1jo-4-18",
+      "ref": "1 John 4:18",
+      "text": "There is no fear in love; but perfect love casteth out fear: because fear hath torment. He that feareth is not made perfect in love.",
+      "themes": [
+        "fear",
+        "peace"
+      ],
+      "keywords": [
+        "fear",
+        "love",
+        "perfect",
+        "torment",
+        "cast"
+      ],
+      "promiseType": "character_of_god",
+      "note": "There is no fear in love; but perfect love casteth out fear."
+    },
+    {
+      "id": "jud-1-24",
+      "ref": "Jude 1:24",
+      "text": "Now unto him that is able to keep you from falling, and to present you faultless before the presence of his glory with exceeding joy,",
+      "themes": [
+        "protection",
+        "hope",
+        "salvation"
+      ],
+      "keywords": [
+        "able",
+        "keep",
+        "falling",
+        "present",
+        "faultless",
+        "joy"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Able to keep you from falling, and to present you faultless."
+    },
+    {
+      "id": "rev-3-20",
+      "ref": "Revelation 3:20",
+      "text": "Behold, I stand at the door, and knock: if any man hear my voice, and open the door, I will come in to him, and will sup with him, and he with me.",
+      "themes": [
+        "salvation",
+        "prayer"
+      ],
+      "keywords": [
+        "stand",
+        "door",
+        "knock",
+        "hear",
+        "open",
+        "sup"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Behold, I stand at the door, and knock."
+    },
+    {
+      "id": "psa-9-9-10",
+      "ref": "Psalm 9:9–10",
+      "text": "The Lord also will be a refuge for the oppressed, a refuge in times of trouble. And they that know thy name will put their trust in thee: for thou, Lord, hast not forsaken them that seek thee.",
+      "themes": [
+        "protection"
+      ],
+      "keywords": [
+        "refuge",
+        "oppressed",
+        "trouble",
+        "know",
+        "trust",
+        "forsake"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The LORD also will be a refuge for the oppressed, a refuge in times of trouble."
+    },
+    {
+      "id": "psa-16-11",
+      "ref": "Psalm 16:11",
+      "text": "Thou wilt shew me the path of life: in thy presence is fulness of joy; at thy right hand there are pleasures for evermore.",
+      "themes": [
+        "hope",
+        "guidance"
+      ],
+      "keywords": [
+        "path",
+        "life",
+        "presence",
+        "fulness",
+        "joy",
+        "pleasure"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Thou wilt shew me the path of life: in thy presence is fulness of joy."
+    },
+    {
+      "id": "psa-18-2",
+      "ref": "Psalm 18:2",
+      "text": "The Lord is my rock, and my fortress, and my deliverer; my God, my strength, in whom I will trust; my buckler, and the horn of my salvation, and my high tower.",
+      "themes": [
+        "protection",
+        "strength"
+      ],
+      "keywords": [
+        "rock",
+        "fortress",
+        "deliverer",
+        "strength",
+        "trust",
+        "buckler"
+      ],
+      "promiseType": "character_of_god",
+      "note": "The LORD is my rock, and my fortress, and my deliverer."
+    },
+    {
+      "id": "psa-34-4",
+      "ref": "Psalm 34:4",
+      "text": "I sought the Lord, and he heard me, and delivered me from all my fears.",
+      "themes": [
+        "fear",
+        "prayer"
+      ],
+      "keywords": [
+        "sought",
+        "heard",
+        "deliver",
+        "fear",
+        "afraid"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "I sought the LORD, and he heard me, and delivered me from all my fears."
+    },
+    {
+      "id": "psa-34-17",
+      "ref": "Psalm 34:17",
+      "text": "The righteous cry, and the Lord heareth, and delivereth them out of all their troubles.",
+      "themes": [
+        "prayer",
+        "protection"
+      ],
+      "keywords": [
+        "cry",
+        "hear",
+        "deliver",
+        "trouble",
+        "righteous"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "The righteous cry, and the LORD heareth, and delivereth them out of all their troubles."
+    },
+    {
+      "id": "psa-37-7",
+      "ref": "Psalm 37:7",
+      "text": "Rest in the Lord, and wait patiently for him: fret not thyself because of him who prospereth in his way, because of the man who bringeth wicked devices to pass.",
+      "themes": [
+        "peace"
+      ],
+      "keywords": [
+        "rest",
+        "wait",
+        "patient",
+        "fret",
+        "prosper"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Rest in the LORD, and wait patiently for him."
+    },
+    {
+      "id": "psa-40-1-2",
+      "ref": "Psalm 40:1–2",
+      "text": "I waited patiently for the Lord; and he inclined unto me, and heard my cry. He brought me up also out of an horrible pit, out of the miry clay, and set my feet upon a rock, and established my goings.",
+      "themes": [
+        "prayer",
+        "hope",
+        "perseverance"
+      ],
+      "keywords": [
+        "waited",
+        "heard",
+        "cry",
+        "pit",
+        "rock",
+        "establish"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "I waited patiently for the LORD; and he inclined unto me, and heard my cry."
+    },
+    {
+      "id": "psa-46-10",
+      "ref": "Psalm 46:10",
+      "text": "Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth.",
+      "themes": [
+        "peace"
+      ],
+      "keywords": [
+        "still",
+        "know",
+        "god",
+        "exalted",
+        "peace"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Be still, and know that I am God."
+    },
+    {
+      "id": "psa-51-10",
+      "ref": "Psalm 51:10",
+      "text": "Create in me a clean heart, O God; and renew a right spirit within me.",
+      "themes": [
+        "forgiveness",
+        "mercy"
+      ],
+      "keywords": [
+        "create",
+        "clean",
+        "heart",
+        "renew",
+        "spirit",
+        "right",
+        "sin"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Create in me a clean heart, O God; and renew a right spirit within me."
+    },
+    {
+      "id": "psa-84-11",
+      "ref": "Psalm 84:11",
+      "text": "For the Lord God is a sun and shield: the Lord will give grace and glory: no good thing will he withhold from them that walk uprightly.",
+      "themes": [
+        "provision",
+        "protection"
+      ],
+      "keywords": [
+        "sun",
+        "shield",
+        "grace",
+        "glory",
+        "withhold",
+        "good",
+        "walk"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "No good thing will he withhold from them that walk uprightly."
+    },
+    {
+      "id": "psa-94-19",
+      "ref": "Psalm 94:19",
+      "text": "In the multitude of my thoughts within me thy comforts delight my soul.",
+      "themes": [
+        "anxiety",
+        "comfort",
+        "peace"
+      ],
+      "keywords": [
+        "thoughts",
+        "within",
+        "comfort",
+        "delight",
+        "soul",
+        "worry"
+      ],
+      "promiseType": "character_of_god",
+      "note": "In the multitude of my thoughts within me thy comforts delight my soul."
+    },
+    {
+      "id": "psa-119-105",
+      "ref": "Psalm 119:105",
+      "text": "Thy word is a lamp unto my feet, and a light unto my path.",
+      "themes": [
+        "guidance",
+        "wisdom"
+      ],
+      "keywords": [
+        "lamp",
+        "feet",
+        "light",
+        "path",
+        "word",
+        "guide"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Thy word is a lamp unto my feet, and a light unto my path."
+    },
+    {
+      "id": "pro-3-24",
+      "ref": "Proverbs 3:24",
+      "text": "When thou liest down, thou shalt not be afraid: yea, thou shalt lie down, and thy sleep shall be sweet.",
+      "themes": [
+        "peace",
+        "fear"
+      ],
+      "keywords": [
+        "lie down",
+        "afraid",
+        "sleep",
+        "sweet",
+        "fear"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "When thou liest down, thou shalt not be afraid: yea, thou shalt thy sleep be sweet."
+    },
+    {
+      "id": "isa-40-11",
+      "ref": "Isaiah 40:11",
+      "text": "He shall feed his flock like a shepherd: he shall gather the lambs with his arm, and carry them in his bosom, and shall gently lead those that are with young.",
+      "themes": [
+        "comfort",
+        "family",
+        "children"
+      ],
+      "keywords": [
+        "shepherd",
+        "feed",
+        "gather",
+        "lambs",
+        "carry",
+        "gently",
+        "children"
+      ],
+      "promiseType": "character_of_god",
+      "note": "He shall gather the lambs with his arm, and carry them in his bosom."
+    },
+    {
+      "id": "isa-41-13",
+      "ref": "Isaiah 41:13",
+      "text": "For I the Lord thy God will hold thy right hand, saying unto thee, Fear not; I will help thee.",
+      "themes": [
+        "fear",
+        "strength"
+      ],
+      "keywords": [
+        "hold",
+        "hand",
+        "fear",
+        "help",
+        "right hand"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "I the LORD thy God will hold thy right hand, saying unto thee, Fear not; I will help thee."
+    },
+    {
+      "id": "isa-49-15-16",
+      "ref": "Isaiah 49:15–16",
+      "text": "Can a woman forget her sucking child, that she should not have compassion on the son of her womb? yea, they may forget, yet will I not forget thee. Behold, I have graven thee upon the palms of my hands; thy walls are continually before me.",
+      "themes": [
+        "comfort",
+        "family"
+      ],
+      "keywords": [
+        "forget",
+        "child",
+        "compassion",
+        "graven",
+        "hands",
+        "mother"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Yet will I not forget thee. Behold, I have graven thee upon the palms of my hands."
+    },
+    {
+      "id": "jer-17-7-8",
+      "ref": "Jeremiah 17:7–8",
+      "text": "Blessed is the man that trusteth in the Lord, and whose hope the Lord is. For he shall be as a tree planted by the waters, and that spreadeth out her roots by the river, and shall not see when heat cometh, but her leaf shall be green; and shall not be careful in the year of drought, neither shall cease from yielding fruit.",
+      "themes": [
+        "hope",
+        "strength"
+      ],
+      "keywords": [
+        "trust",
+        "hope",
+        "tree",
+        "water",
+        "heat",
+        "drought",
+        "fruit"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Blessed is the man that trusteth in the LORD, and whose hope the LORD is."
+    },
+    {
+      "id": "eze-36-26",
+      "ref": "Ezekiel 36:26",
+      "text": "A new heart also will I give you, and a new spirit will I put within you: and I will take away the stony heart out of your flesh, and I will give you an heart of flesh.",
+      "themes": [
+        "hope",
+        "forgiveness"
+      ],
+      "keywords": [
+        "new heart",
+        "spirit",
+        "stone",
+        "flesh",
+        "within"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "A new heart also will I give you, and a new spirit will I put within you."
+    },
+    {
+      "id": "jol-2-25",
+      "ref": "Joel 2:25",
+      "text": "And I will restore to you the years that the locust hath eaten, the cankerworm, and the caterpiller, and the palmerworm, my great army which I sent among you.",
+      "themes": [
+        "hope",
+        "provision"
+      ],
+      "keywords": [
+        "restore",
+        "year",
+        "locust",
+        "eaten",
+        "loss",
+        "recover"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "I will restore to you the years that the locust hath eaten."
+    },
+    {
+      "id": "hab-3-17-18",
+      "ref": "Habakkuk 3:17–18",
+      "text": "Although the fig tree shall not blossom, neither shall fruit be in the vines; the labour of the olive shall fail, and the fields shall yield no meat; the flock shall be cut off from the fold, and there shall be no herd in the stalls: Yet I will rejoice in the Lord, I will joy in the God of my salvation.",
+      "themes": [
+        "hope",
+        "perseverance"
+      ],
+      "keywords": [
+        "fig",
+        "fail",
+        "flock",
+        "rejoice",
+        "joy",
+        "salvation",
+        "hard"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Yet I will rejoice in the LORD, I will joy in the God of my salvation."
+    },
+    {
+      "id": "mat-28-20",
+      "ref": "Matthew 28:20",
+      "text": "Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, even unto the end of the world. Amen.",
+      "themes": [
+        "fear",
+        "hope"
+      ],
+      "keywords": [
+        "with you",
+        "always",
+        "end",
+        "world",
+        "presence",
+        "alone"
+      ],
+      "promiseType": "explicit_promise",
+      "note": "Lo, I am with you alway, even unto the end of the world."
+    },
+    {
+      "id": "jhn-10-10",
+      "ref": "John 10:10",
+      "text": "The thief cometh not, but for to steal, and to kill, and to destroy: I am come that they might have life, and that they might have it more abundantly.",
+      "themes": [
+        "hope",
+        "salvation"
+      ],
+      "keywords": [
+        "thief",
+        "steal",
+        "life",
+        "abundant",
+        "more"
+      ],
+      "promiseType": "character_of_god",
+      "note": "I am come that they might have life, and that they might have it more abundantly."
+    },
+    {
+      "id": "rom-12-12",
+      "ref": "Romans 12:12",
+      "text": "Rejoicing in hope; patient in tribulation; continuing instant in prayer;",
+      "themes": [
+        "hope",
+        "perseverance",
+        "prayer"
+      ],
+      "keywords": [
+        "rejoice",
+        "hope",
+        "patient",
+        "tribulation",
+        "continuing",
+        "prayer"
+      ],
+      "promiseType": "character_of_god",
+      "note": "Rejoicing in hope; patient in tribulation; continuing instant in prayer."
+    },
+    {
+      "id": "2ti-4-17",
+      "ref": "2 Timothy 4:17",
+      "text": "Notwithstanding the Lord stood with me, and strengthened me; that by me the preaching might be fully known, and that all the Gentiles might hear: and I was delivered out of the mouth of the lion.",
+      "themes": [
+        "strength",
+        "protection"
+      ],
+      "keywords": [
+        "stood",
+        "strengthened",
+        "preach",
+        "deliver",
+        "lion",
+        "mouth"
+      ],
+      "promiseType": "answered_prayer",
+      "note": "The Lord stood with me, and strengthened me… and I was delivered out of the mouth of the lion."
+    }
+  ]
 }

@@ -11,6 +11,8 @@
   "decision": ["guidance", "wisdom"],
   "sorry": ["forgiveness"],
   "sin": ["forgiveness"],
+  "guilty": ["forgiveness", "guilt", "sin"],
+  "guilt": ["forgiveness", "sin"],
   "died": ["grief", "comfort"],
   "son": ["children", "family"],
   "daughter": ["children", "family"],

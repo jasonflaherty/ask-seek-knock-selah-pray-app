@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../../../core/utils/announce.dart';
+import '../../verses/application/verse_suggest_notifier.dart';
+import '../../verses/presentation/verse_picker_sheet.dart';
 import '../domain/prayer.dart';
 import '../domain/prayer_event.dart';
 import 'tag_input.dart';
@@ -216,11 +218,14 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                                     alignLabelWithHint: true,
                                     errorText: _requestError,
                                   ),
-                                  onChanged: (_) {
+                                  onChanged: (value) {
                                     _markDirty();
                                     if (_requestError != null) {
                                       setState(() => _requestError = null);
                                     }
+                                    ref
+                                        .read(verseSuggestProvider.notifier)
+                                        .onRequestChanged(value);
                                   },
                                 ),
                                 const SizedBox(height: 20),
@@ -246,20 +251,123 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                                   style: theme.textTheme.bodyMedium,
                                 ),
                                 const SizedBox(height: 12),
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: context.palette.verseSurface,
-                                    borderRadius: BorderRadius.circular(
-                                      AppTheme.controlRadius,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    _verseIds.isEmpty
-                                        ? 'Verse suggestions will appear after you write your request (Phase 3).'
-                                        : '${_verseIds.length} verse(s) selected.',
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
+                                Builder(
+                                  builder: (context) {
+                                    final suggest = ref.watch(verseSuggestProvider);
+                                    final suggester =
+                                        ref.watch(verseSuggesterProvider);
+                                    final selected =
+                                        suggester.byIds(_verseIds).toList();
+                                    final selectedIds = _verseIds.toSet();
+                                    final suggestions = [
+                                      ...selected,
+                                      ...suggest.suggestions.where(
+                                        (v) => !selectedIds.contains(v.id),
+                                      ),
+                                    ];
+
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            TextButton(
+                                              onPressed: () => ref
+                                                  .read(
+                                                    verseSuggestProvider
+                                                        .notifier,
+                                                  )
+                                                  .refresh(
+                                                    _requestController.text,
+                                                  ),
+                                              child: const Text(
+                                                'Refresh suggestions',
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            TextButton(
+                                              onPressed: () async {
+                                                final result =
+                                                    await showVersePickerSheet(
+                                                  context: context,
+                                                  requestText:
+                                                      _requestController.text,
+                                                  selectedIds: selectedIds,
+                                                );
+                                                if (result != null) {
+                                                  setState(() {
+                                                    _verseIds = result.toList();
+                                                    _dirty = true;
+                                                  });
+                                                }
+                                              },
+                                              child: const Text('Browse all'),
+                                            ),
+                                          ],
+                                        ),
+                                        if (suggest.isLoading)
+                                          const Padding(
+                                            padding: EdgeInsets.all(16),
+                                            child: Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
+                                          )
+                                        else if (suggestions.isEmpty)
+                                          Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  context.palette.verseSurface,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                AppTheme.controlRadius,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              _requestController.text
+                                                          .trim()
+                                                          .length <
+                                                      8
+                                                  ? 'Write at least 8 characters to see verse suggestions.'
+                                                  : 'No matching verses yet. Try Refresh or Browse all.',
+                                              style: theme.textTheme.bodyMedium,
+                                            ),
+                                          )
+                                        else
+                                          for (final verse in suggestions.take(8))
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                bottom: 12,
+                                              ),
+                                              child: VerseSelectCard(
+                                                verse: verse,
+                                                selected: selectedIds
+                                                    .contains(verse.id),
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    if (value) {
+                                                      _verseIds = [
+                                                        ..._verseIds,
+                                                        verse.id,
+                                                      ];
+                                                    } else {
+                                                      _verseIds = _verseIds
+                                                          .where(
+                                                            (id) =>
+                                                                id != verse.id,
+                                                          )
+                                                          .toList();
+                                                    }
+                                                    _dirty = true;
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                      ],
+                                    );
+                                  },
                                 ),
                                 if (widget.isEditing) ...[
                                   const SizedBox(height: 24),

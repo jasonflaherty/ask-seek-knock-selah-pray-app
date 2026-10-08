@@ -6,8 +6,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:selah/app/app.dart';
 import 'package:selah/core/providers.dart';
 import 'package:selah/core/utils/clock.dart';
+import 'package:selah/features/verses/data/verse_asset_loader.dart';
+import 'package:selah/features/verses/domain/verse.dart';
+import 'package:selah/features/verses/domain/verse_suggester.dart';
 
 import 'fake_prayer_repository.dart';
+
+final _emptyDataset = VerseDataset(
+  translation: 'KJV',
+  version: 1,
+  verses: const [],
+  synonyms: const {},
+);
+
+class _NoopSuggester implements VerseSuggester {
+  @override
+  Verse? byId(String id) => null;
+
+  @override
+  List<Verse> byIds(List<String> ids) => const [];
+
+  @override
+  Future<List<Verse>> suggest(String request, {int limit = 6}) async =>
+      const [];
+}
 
 class TestApp {
   TestApp({
@@ -41,6 +63,8 @@ Future<TestApp> pumpSelahApp(
       sharedPreferencesProvider.overrideWithValue(prefs),
       clockProvider.overrideWithValue(clock),
       prayerRepositoryProvider.overrideWithValue(repository),
+      verseDatasetProvider.overrideWithValue(_emptyDataset),
+      verseSuggesterProvider.overrideWithValue(_NoopSuggester()),
     ],
   );
 

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../../../core/utils/announce.dart';
+import '../../verses/presentation/verse_picker_sheet.dart';
 import '../domain/prayer.dart';
 import '../domain/prayer_event.dart';
 
@@ -174,24 +175,101 @@ class _PrayerDetailScreenState extends ConsumerState<PrayerDetailScreen> {
                           ),
                         ],
                         const SizedBox(height: 24),
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            'Verses',
-                            style: theme.textTheme.titleMedium,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Semantics(
+                                header: true,
+                                child: Text(
+                                  'Verses',
+                                  style: theme.textTheme.titleMedium,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                final result = await showVersePickerSheet(
+                                  context: context,
+                                  requestText: prayer.request,
+                                  selectedIds: prayer.verseIds.toSet(),
+                                );
+                                if (result == null || !mounted) return;
+                                await ref
+                                    .read(prayerRepositoryProvider)
+                                    .updatePrayer(
+                                      prayer.id,
+                                      PrayerUpdate(
+                                        name: prayer.name,
+                                        request: prayer.request,
+                                        tags: prayer.tags,
+                                        verseIds: result.toList(),
+                                      ),
+                                    );
+                                await _load();
+                              },
+                              child: const Text('Change verses'),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 12),
-                        if (prayer.verseIds.isEmpty)
-                          Text(
-                            'No verses selected yet.',
-                            style: theme.textTheme.bodyMedium,
-                          )
-                        else
-                          Text(
-                            '${prayer.verseIds.length} verse(s) selected. Full text arrives in Phase 3.',
-                            style: theme.textTheme.bodyMedium,
-                          ),
+                        Builder(
+                          builder: (context) {
+                            final verses = ref
+                                .watch(verseSuggesterProvider)
+                                .byIds(prayer.verseIds);
+                            if (verses.isEmpty) {
+                              return Text(
+                                'No verses selected yet.',
+                                style: theme.textTheme.bodyMedium,
+                              );
+                            }
+                            return Column(
+                              children: [
+                                for (final verse in verses)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: context.palette.verseSurface,
+                                        borderRadius: BorderRadius.circular(
+                                          AppTheme.controlRadius,
+                                        ),
+                                        border: Border.all(
+                                          color: theme.colorScheme.outlineVariant,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            verse.ref,
+                                            style: theme.textTheme.labelLarge,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            verse.text,
+                                            style: AppTheme.scripture(
+                                              theme.colorScheme.onSurface,
+                                            ),
+                                          ),
+                                          if (verse.note.isNotEmpty) ...[
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              verse.note,
+                                              style: theme.textTheme.bodyMedium,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
                         const SizedBox(height: 24),
                         Text(
                           [
