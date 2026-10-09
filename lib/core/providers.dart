@@ -7,6 +7,8 @@ import '../features/church_sync/application/church_sync_service.dart';
 import '../features/church_sync/data/google_sheets_gateway.dart';
 import '../features/church_sync/data/sync_snapshot_store.dart';
 import '../features/church_sync/domain/sheets_gateway.dart';
+import '../features/liturgy/data/liturgy_catalog.dart';
+import '../features/liturgy/domain/liturgical_prayer.dart';
 import '../features/prayers/data/drift_prayer_repository.dart';
 import '../features/prayers/domain/prayer_repository.dart';
 import '../features/verses/data/drift_custom_verse_repository.dart';
@@ -90,6 +92,16 @@ final verseCatalogProvider = Provider<VerseCatalog>((ref) {
     suggester: ref.watch(verseSuggesterProvider),
     custom: ref.watch(customVerseRepositoryProvider),
   );
+});
+
+final liturgyCatalogProvider = Provider<LiturgyCatalog>((ref) {
+  return LiturgyCatalog();
+});
+
+final liturgyPrayersProvider = FutureProvider<List<LiturgicalPrayer>>((
+  ref,
+) async {
+  return ref.watch(liturgyCatalogProvider).load();
 });
 
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((

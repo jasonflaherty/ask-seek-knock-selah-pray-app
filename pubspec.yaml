@@ -51,6 +51,7 @@ flutter:
   assets:
     - assets/verses/
     - assets/branding/
+    - assets/liturgy/
 
   fonts:
     - family: AtkinsonHyperlegible
