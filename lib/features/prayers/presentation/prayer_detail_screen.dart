@@ -363,7 +363,7 @@ class _PrayerDetailScreenState extends ConsumerState<PrayerDetailScreen> {
                                 if (verse.note.isNotEmpty) ...[
                                   const SizedBox(height: 8),
                                   Text(
-                                    verse.note,
+                                    'NOTE: ${verse.note}',
                                     style: theme.textTheme.bodyMedium,
                                   ),
                                 ],
