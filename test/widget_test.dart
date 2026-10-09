@@ -8,7 +8,7 @@ void main() {
   testWidgets('app launches to empty home', (tester) async {
     await pumpSelahApp(tester);
 
-    expect(find.text('Selah'), findsOneWidget);
+    expect(find.text('Ask, Seek, Knock...'), findsOneWidget);
     expect(find.text('Add petition'), findsOneWidget);
   });
 }

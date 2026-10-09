@@ -24,7 +24,7 @@ void main() {
     await pumpSelahApp(tester);
     await pumpFrames(tester, 8);
 
-    expect(find.text('Selah'), findsOneWidget);
+    expect(find.text('Ask, Seek, Knock...'), findsOneWidget);
     expect(find.text('Add petition'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

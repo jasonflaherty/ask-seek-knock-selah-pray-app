@@ -35,19 +35,11 @@ class PrayerListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 64,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Selah', style: theme.textTheme.titleLarge),
-            Text(
-              'seek, ask, knock...',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+        title: Text(
+          'Ask, Seek, Knock...',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleLarge,
         ),
         actions: [
           IconButton(
