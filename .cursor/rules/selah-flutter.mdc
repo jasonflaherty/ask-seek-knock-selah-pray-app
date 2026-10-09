@@ -1,0 +1,27 @@
+---
+description: Flutter architecture and offline journal conventions for Selah
+globs: "**/*.dart"
+alwaysApply: false
+---
+
+# Selah Flutter
+
+Feature-first layers: `presentation` → Riverpod `application` → `domain` → `data`.
+
+- Domain is pure Dart. No Flutter or Drift imports.
+- Entities are plain immutable classes. Do not add freezed.
+- The app is offline. Do not add accounts, network calls, or off-device analytics.
+- Display name comes from `AppConfig.appName`.
+- New Drift tables or columns: edit `lib/core/db/tables.dart`, run `dart run build_runner build`, commit the generated `.g.dart`.
+- Verse rows are added in `tool/generate_verses.py`, then `python3 tool/generate_verses.py` and `dart run tool/build_verses.dart`. Do not hand-write KJV text into JSON.
+- Prayer strategies in `assets/verses/strategies.json` only choose verses (`triggers`, `seedRefs`, `alwaysOn`, `order`). They are not shown in the UI.
+- Keep tap targets at least 48px, label icon-only buttons, and avoid overflow at 200% text scale.
+- Cover suggester and repository changes with tests under `test/`.
+
+```dart
+// Bad: domain imports Flutter
+import 'package:flutter/material.dart';
+
+// Good: domain stays pure Dart
+class Prayer { const Prayer({required this.id}); final int id; }
+```
