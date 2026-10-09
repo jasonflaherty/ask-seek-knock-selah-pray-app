@@ -29,4 +29,15 @@ abstract final class SilenceNameCycle {
     if (index == null) return null;
     return names[index];
   }
+
+  /// Elapsed time at the start of the next name slot after [elapsed].
+  static Duration skipToNextSlot(
+    Duration elapsed, {
+    Duration slot = SilenceNameCycle.slot,
+  }) {
+    final slotMs = slot.inMilliseconds.clamp(minSlot.inMilliseconds, 1 << 30);
+    final current = elapsed.inMilliseconds < 0 ? 0 : elapsed.inMilliseconds;
+    final nextSlot = (current ~/ slotMs) + 1;
+    return Duration(milliseconds: nextSlot * slotMs);
+  }
 }

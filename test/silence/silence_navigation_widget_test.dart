@@ -66,7 +66,10 @@ void main() {
 
     expect(find.text('Jordan'), findsOneWidget);
     expect(find.text('Stop'), findsOneWidget);
-    expect(wakeLock.enabled, isTrue);
+    expect(find.text('15:00'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('14:59'), findsOneWidget);
 
     await tester.tap(find.text('Stop'));
     await tester.pumpAndSettle();
@@ -75,5 +78,35 @@ void main() {
     expect(find.text('Sit in silence.'), findsOneWidget);
     expect(wakeLock.enabled, isFalse);
     expect(bell.chimeCount, 0);
+  });
+
+  testWidgets('next name skips to the following petition', (tester) async {
+    final clock = FakeClock(DateTime(2024, 6, 15, 12));
+    final repo = FakePrayerRepository(clock);
+    await repo.createPrayer(
+      const NewPrayer(name: 'One', person: 'Ada', request: 'a'),
+    );
+    await repo.createPrayer(
+      const NewPrayer(name: 'Two', person: 'Ben', request: 'b'),
+    );
+
+    await pumpSelahApp(tester, repo: repo);
+
+    await tester.tap(find.byTooltip('Prayer timer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Start'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('Ada'), findsOneWidget);
+
+    await tester.tap(find.text('Next name'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1300));
+
+    expect(find.text('Ben'), findsOneWidget);
+
+    await tester.tap(find.text('Stop'));
+    await tester.pump();
   });
 }

@@ -42,12 +42,20 @@ class SilenceScreen extends ConsumerWidget {
                 maxWidth: AppTheme.maxContentWidth,
               ),
               child: session.isRunning
-                  ? _RunningView(session: session, onStop: notifier.stop)
+                  ? _RunningView(
+                      session: session,
+                      onStop: () {
+                        notifier.stop();
+                      },
+                      onSkip: notifier.skipName,
+                    )
                   : _SetupView(
                       minutes: session.durationMinutes,
                       onDecrease: notifier.decreaseDuration,
                       onIncrease: notifier.increaseDuration,
-                      onStart: notifier.start,
+                      onStart: () {
+                        notifier.start();
+                      },
                     ),
             ),
           ),
@@ -138,10 +146,15 @@ class _SetupView extends StatelessWidget {
 }
 
 class _RunningView extends StatelessWidget {
-  const _RunningView({required this.session, required this.onStop});
+  const _RunningView({
+    required this.session,
+    required this.onStop,
+    required this.onSkip,
+  });
 
   final SilenceSessionState session;
   final VoidCallback onStop;
+  final VoidCallback onSkip;
 
   String get _remainingLabel {
     final totalSeconds = session.remaining.inSeconds;
@@ -153,30 +166,59 @@ class _RunningView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final canSkip = session.names.length > 1;
 
     return Padding(
       padding: const EdgeInsets.all(AppTheme.screenPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(flex: 2),
-          Center(
-            child: FadingPetitionName(name: session.currentName),
-          ),
-          const Spacer(flex: 3),
+          const SizedBox(height: 16),
           Semantics(
             liveRegion: true,
             label: 'Time remaining $_remainingLabel',
             child: Text(
               _remainingLabel,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                letterSpacing: 1.2,
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.w400,
+                letterSpacing: 2,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          Expanded(
+            child: Center(
+              child: canSkip
+                  ? Semantics(
+                      button: true,
+                      label: session.currentName == null
+                          ? 'Next name'
+                          : 'Next name, currently ${session.currentName}',
+                      child: InkWell(
+                        onTap: onSkip,
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.controlRadius,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 32,
+                          ),
+                          child: FadingPetitionName(name: session.currentName),
+                        ),
+                      ),
+                    )
+                  : FadingPetitionName(name: session.currentName),
+            ),
+          ),
+          if (canSkip) ...[
+            TextButton(
+              onPressed: onSkip,
+              child: const Text('Next name'),
+            ),
+            const SizedBox(height: 8),
+          ],
           OutlinedButton(
             onPressed: onStop,
             child: const Text('Stop'),

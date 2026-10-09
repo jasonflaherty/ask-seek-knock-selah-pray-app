@@ -110,25 +110,44 @@ class SilenceSessionNotifier extends StateNotifier<SilenceSessionState> {
       ),
       clearCurrentName: _names.isEmpty,
     );
-    await _wakeLock.enable();
     _tick?.cancel();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       unawaited(_onTick());
     });
+    try {
+      await _wakeLock.enable();
+    } catch (_) {}
   }
 
   Future<void> stop({bool playBell = false}) async {
+    if (!state.isRunning) return;
     _tick?.cancel();
     _tick = null;
     _elapsed = Duration.zero;
-    await _wakeLock.disable();
-    if (playBell) {
-      await _bell.chime();
-    }
-    if (!mounted) return;
+    final minutes = state.durationMinutes;
+    // Update UI before awaiting platform plugins (wake lock / audio).
     state = SilenceSessionState(
-      durationMinutes: state.durationMinutes,
+      durationMinutes: minutes,
       names: _names,
+    );
+    try {
+      await _wakeLock.disable();
+    } catch (_) {}
+    if (playBell) {
+      try {
+        await _bell.chime();
+      } catch (_) {}
+    }
+  }
+
+  void skipName() {
+    if (!state.isRunning || _names.isEmpty) return;
+    _elapsed = SilenceNameCycle.skipToNextSlot(_elapsed);
+    state = state.copyWith(
+      currentName: SilenceNameCycle.nameAt(
+        names: _names,
+        elapsed: _elapsed,
+      ),
     );
   }
 

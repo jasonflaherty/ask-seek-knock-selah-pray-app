@@ -56,4 +56,19 @@ void main() {
     ]);
     expect(names, ['Jordan', 'Solo']);
   });
+
+  test('skipToNextSlot jumps to the next 15-second boundary', () {
+    expect(
+      SilenceNameCycle.skipToNextSlot(Duration.zero),
+      const Duration(seconds: 15),
+    );
+    expect(
+      SilenceNameCycle.skipToNextSlot(const Duration(seconds: 14)),
+      const Duration(seconds: 15),
+    );
+    expect(
+      SilenceNameCycle.skipToNextSlot(const Duration(seconds: 15)),
+      const Duration(seconds: 30),
+    );
+  });
 }
