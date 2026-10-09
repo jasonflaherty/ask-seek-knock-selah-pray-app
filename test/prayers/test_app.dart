@@ -8,10 +8,14 @@ import 'package:selah/app/app.dart';
 import 'package:selah/app/router.dart';
 import 'package:selah/core/providers.dart';
 import 'package:selah/core/utils/clock.dart';
+import 'package:selah/features/silence/application/silence_session_notifier.dart';
+import 'package:selah/features/silence/domain/silence_bell.dart';
+import 'package:selah/features/silence/domain/silence_wake_lock.dart';
 import 'package:selah/features/verses/data/verse_asset_loader.dart';
 import 'package:selah/features/verses/domain/verse.dart';
 import 'package:selah/features/verses/domain/verse_suggester.dart';
 
+import '../silence/fake_silence_deps.dart';
 import 'fake_prayer_repository.dart';
 
 final _emptyDataset = VerseDataset(
@@ -50,6 +54,8 @@ Future<void> pumpFrames(WidgetTester tester, [int count = 5]) async {
 Future<TestApp> pumpSelahApp(
   WidgetTester tester, {
   FakePrayerRepository? repo,
+  SilenceBell? silenceBell,
+  SilenceWakeLock? silenceWakeLock,
 }) async {
   VisibilityDetectorController.instance.updateInterval = Duration.zero;
   SharedPreferences.setMockInitialValues({});
@@ -57,6 +63,8 @@ Future<TestApp> pumpSelahApp(
   final prefs = await SharedPreferences.getInstance();
   final clock = FakeClock(DateTime(2024, 6, 15, 12));
   final repository = repo ?? FakePrayerRepository(clock);
+  final bell = silenceBell ?? FakeSilenceBell();
+  final wakeLock = silenceWakeLock ?? FakeSilenceWakeLock();
 
   final container = ProviderContainer(
     overrides: [
@@ -65,6 +73,8 @@ Future<TestApp> pumpSelahApp(
       prayerRepositoryProvider.overrideWithValue(repository),
       verseDatasetProvider.overrideWithValue(_emptyDataset),
       verseSuggesterProvider.overrideWithValue(_NoopSuggester()),
+      silenceBellProvider.overrideWithValue(bell),
+      silenceWakeLockProvider.overrideWithValue(wakeLock),
     ],
   );
 

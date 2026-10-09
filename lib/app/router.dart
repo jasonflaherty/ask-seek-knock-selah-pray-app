@@ -5,6 +5,7 @@ import '../features/prayers/presentation/add_edit_prayer_screen.dart';
 import '../features/prayers/presentation/prayer_detail_screen.dart';
 import '../features/prayers/presentation/prayer_list_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/silence/presentation/silence_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -13,6 +14,11 @@ final GoRouter appRouter = GoRouter(
       path: '/',
       name: 'home',
       builder: (context, state) => const PrayerListScreen(),
+    ),
+    GoRoute(
+      path: '/silence',
+      name: 'silence',
+      builder: (context, state) => const SilenceScreen(),
     ),
     GoRoute(
       path: '/liturgy',
