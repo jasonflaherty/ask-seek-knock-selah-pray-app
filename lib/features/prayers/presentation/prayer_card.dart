@@ -42,8 +42,9 @@ class PrayerCard extends ConsumerWidget {
         .map((v) => v.ref)
         .toList();
 
+    final visibilityLabel = prayer.shared ? 'Church' : 'Just me';
     final label =
-        '$_focus. $statusLabel. $preview. ${verseRefs.join(', ')}. Private.';
+        '$_focus. $statusLabel. $preview. ${verseRefs.join(', ')}. $visibilityLabel.';
 
     return Semantics(
       container: true,
@@ -55,16 +56,23 @@ class PrayerCard extends ConsumerWidget {
           const CustomSemanticsAction(label: 'Mark answered'): onMarkAnswered,
         const CustomSemanticsAction(label: 'Delete'): onDelete,
       },
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.cardPadding),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
+      child: Padding(
+        // Room for the pray icon hanging off the top-right corner.
+        padding: const EdgeInsets.only(top: 10, right: 10),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onTap,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.cardPadding,
+                    AppTheme.cardPadding,
+                    AppTheme.cardPadding + 4,
+                    AppTheme.cardPadding,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -92,6 +100,8 @@ class PrayerCard extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
+                          _VisibilityBadge(shared: prayer.shared),
+                          const SizedBox(width: 6),
                           _StatusBadge(
                             answered: prayer.isAnswered,
                             label: statusLabel,
@@ -120,6 +130,8 @@ class PrayerCard extends ConsumerWidget {
                               ),
                             ],
                           ),
+                          // Spacer so the hanging pray icon does not cover "...".
+                          const SizedBox(width: 28),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -221,17 +233,21 @@ class PrayerCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                PrayedButton(onPressed: onPrayed),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              top: -12,
+              right: -12,
+              child: PrayedButton(onPressed: onPrayed),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
+/// Icon-only pray control (praying hands). No bordered button chrome.
 class PrayedButton extends StatefulWidget {
   const PrayedButton({super.key, required this.onPressed});
 
@@ -259,30 +275,88 @@ class _PrayedButtonState extends State<PrayedButton> {
         ? palette.answeredBadgeFg
         : theme.colorScheme.primary;
 
-    return IconButton(
-      tooltip: 'Prayed',
-      onPressed: _press,
-      style: IconButton.styleFrom(
-        fixedSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
-        minimumSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
-        maximumSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
-        padding: EdgeInsets.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.standard,
-        backgroundColor: _justPrayed
-            ? palette.answeredBadgeBg
-            : palette.selectedItemBg,
-        foregroundColor: color,
-        side: BorderSide(
-          color: _justPrayed
-              ? palette.answeredBadgeFg
-              : theme.colorScheme.primary,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+    return Tooltip(
+      message: 'Prayed',
+      child: Semantics(
+        button: true,
+        label: 'Prayed',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _press,
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: AppTheme.minTapTarget,
+              height: AppTheme.minTapTarget,
+              child: Center(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: _justPrayed
+                      ? Icon(
+                          Icons.check_circle_outline,
+                          key: const ValueKey('check'),
+                          size: 26,
+                          color: color,
+                        )
+                      : Text(
+                          '🙏',
+                          key: const ValueKey('pray'),
+                          style: TextStyle(
+                            fontSize: 24,
+                            height: 1,
+                            color: color,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
-      icon: Icon(_justPrayed ? Icons.check : Icons.favorite_outline, size: 20),
+    );
+  }
+}
+
+class _VisibilityBadge extends StatelessWidget {
+  const _VisibilityBadge({required this.shared});
+
+  final bool shared;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    final label = shared ? 'Church' : 'Just me';
+    return Container(
+      margin: const EdgeInsets.only(top: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: palette.selectedItemBg,
+        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            shared ? Icons.groups_outlined : Icons.lock_outline,
+            size: 14,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              letterSpacing: 0.2,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

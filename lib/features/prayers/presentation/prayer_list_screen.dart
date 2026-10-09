@@ -152,8 +152,7 @@ class PrayerListScreen extends ConsumerWidget {
                           child: Center(child: CircularProgressIndicator()),
                         )
                       else if (listState.prayers.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
+                        SliverToBoxAdapter(
                           child: _EmptyState(
                             onAdd: () => context.push('/prayers/new'),
                           ),
@@ -230,51 +229,47 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(AppTheme.screenPadding),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.menu_book_outlined,
-                    size: 56,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Begin with a petition',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add who you are praying for. Selah will suggest promises '
-                    'from Scripture to pray with them.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'SELAH · Pause, Reflect, Meditate',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: onAdd,
-                    child: const Text('Add your first petition'),
-                  ),
-                ],
-              ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.screenPadding,
+        32,
+        AppTheme.screenPadding,
+        100,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.menu_book_outlined,
+            size: 56,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Begin with a petition',
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add who you are praying for. Selah will suggest promises '
+            'from Scripture to pray with them.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'SELAH · Pause, Reflect, Meditate',
+            style: theme.textTheme.bodySmall?.copyWith(
+              letterSpacing: 0.8,
             ),
           ),
-        );
-      },
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: onAdd,
+            child: const Text('Add your first petition'),
+          ),
+        ],
+      ),
     );
   }
 }

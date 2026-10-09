@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:selah/core/utils/clock.dart';
+import 'package:selah/core/utils/sync_id.dart';
 import 'package:selah/features/prayers/domain/prayer.dart';
 import 'package:selah/features/prayers/domain/prayer_event.dart';
 import 'package:selah/features/prayers/domain/prayer_repository.dart';
@@ -12,6 +13,7 @@ class FakePrayerRepository implements PrayerRepository {
   final _controller = StreamController<List<Prayer>>.broadcast();
   final Map<int, Prayer> _prayers = {};
   final Map<int, List<PrayerEventType>> _events = {};
+  final Map<String, DateTime> tombstones = {};
   int _nextId = 1;
 
   void dispose() {
@@ -56,9 +58,18 @@ class FakePrayerRepository implements PrayerRepository {
   Future<Prayer?> getPrayer(int id) async => _prayers[id];
 
   @override
+  Future<Prayer?> getPrayerBySyncId(String syncId) async {
+    for (final p in _prayers.values) {
+      if (p.syncId == syncId) return p;
+    }
+    return null;
+  }
+
+  @override
   Future<int> createPrayer(NewPrayer input) async {
     final id = _nextId++;
     final now = _clock.now();
+    final shared = input.shared;
     _prayers[id] = Prayer(
       id: id,
       name: input.name.trim(),
@@ -69,6 +80,9 @@ class FakePrayerRepository implements PrayerRepository {
       updatedAt: now,
       tags: List.of(input.tags),
       verseIds: List.of(input.verseIds),
+      syncId: shared ? (input.syncId ?? newSyncId()) : input.syncId,
+      shared: shared,
+      authorEmail: shared ? input.authorEmail.trim().toLowerCase() : '',
     );
     _emit();
     return id;
@@ -92,6 +106,30 @@ class FakePrayerRepository implements PrayerRepository {
         answeredNote = null;
       }
     }
+
+    var shared = existing.shared;
+    var syncId = existing.syncId;
+    var authorEmail = existing.authorEmail;
+    if (input.shared != null) {
+      if (input.shared! && !existing.shared) {
+        shared = true;
+        syncId ??= input.syncId ?? newSyncId();
+        final email = (input.authorEmail ?? existing.authorEmail).trim();
+        if (email.isNotEmpty) authorEmail = email.toLowerCase();
+        tombstones.remove(syncId);
+      } else if (!input.shared! && existing.shared) {
+        shared = false;
+        if (existing.syncId != null) {
+          tombstones[existing.syncId!] = now;
+        }
+        authorEmail = '';
+      }
+    }
+    if (input.syncId != null) syncId = input.syncId;
+    if (input.authorEmail != null && shared) {
+      authorEmail = input.authorEmail!.trim().toLowerCase();
+    }
+
     _prayers[id] = existing.copyWith(
       name: input.name.trim(),
       person: normalizePerson(input.person),
@@ -102,6 +140,9 @@ class FakePrayerRepository implements PrayerRepository {
       answeredAt: answeredAt,
       answeredNote: answeredNote,
       updatedAt: now,
+      syncId: syncId,
+      shared: shared,
+      authorEmail: authorEmail,
       clearAnsweredAt: !isAnswered,
       clearAnsweredNote: !isAnswered,
     );
@@ -110,6 +151,17 @@ class FakePrayerRepository implements PrayerRepository {
 
   @override
   Future<void> deletePrayer(int id) async {
+    final existing = _prayers[id];
+    if (existing != null && existing.shared && existing.syncId != null) {
+      tombstones[existing.syncId!] = _clock.now();
+    }
+    _prayers.remove(id);
+    _events.remove(id);
+    _emit();
+  }
+
+  @override
+  Future<void> purgePrayer(int id) async {
     _prayers.remove(id);
     _events.remove(id);
     _emit();
@@ -171,5 +223,33 @@ class FakePrayerRepository implements PrayerRepository {
     final list = names.toList()
       ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     return list;
+  }
+
+  @override
+  Future<List<Prayer>> churchPrayers() async =>
+      _prayers.values.where((p) => p.shared).toList();
+
+  @override
+  Future<void> setShared(
+    int id, {
+    required bool shared,
+    String? authorEmail,
+  }) async {
+    final existing = _prayers[id];
+    if (existing == null) return;
+    await updatePrayer(
+      id,
+      PrayerUpdate(
+        name: existing.name,
+        person: existing.person,
+        request: existing.request,
+        tags: existing.tags,
+        verseIds: existing.verseIds,
+        isAnswered: existing.isAnswered,
+        answeredNote: existing.answeredNote,
+        shared: shared,
+        authorEmail: authorEmail,
+      ),
+    );
   }
 }

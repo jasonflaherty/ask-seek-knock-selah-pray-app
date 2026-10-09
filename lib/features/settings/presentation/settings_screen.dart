@@ -6,10 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../app/app_config.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../../../core/utils/announce.dart';
+import '../../church_sync/data/google_sheets_gateway.dart';
 import '../data/prayer_backup.dart';
 import '../data/test_data_importer.dart';
 
@@ -24,6 +27,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _busy = false;
   bool _loaded = false;
   bool _statusReady = false;
+  final _sheetLinkController = TextEditingController();
 
   TestDataImporter get _importer => TestDataImporter(
         ref.read(prayerRepositoryProvider),
@@ -36,7 +40,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    final sync = ref.read(churchSyncServiceProvider).status();
+    if (sync.spreadsheetId != null) {
+      _sheetLinkController.text = sync.spreadsheetId!;
+    }
     _refreshStatus();
+  }
+
+  @override
+  void dispose() {
+    _sheetLinkController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshStatus() async {
@@ -141,6 +155,94 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _runSyncAction(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await action();
+      if (!mounted) return;
+      setState(() {});
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e')),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _signInGoogle() async {
+    await _runSyncAction(() async {
+      final email = await ref.read(churchSyncServiceProvider).signIn();
+      if (!mounted) return;
+      announceForAccessibility(context, 'Signed in as $email');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Signed in as $email')),
+      );
+    });
+  }
+
+  Future<void> _signOutGoogle() async {
+    await _runSyncAction(() async {
+      await ref.read(churchSyncServiceProvider).signOut();
+      if (!mounted) return;
+      announceForAccessibility(context, 'Signed out of Google');
+    });
+  }
+
+  Future<void> _linkSheet() async {
+    await _runSyncAction(() async {
+      await ref
+          .read(churchSyncServiceProvider)
+          .linkSpreadsheet(_sheetLinkController.text);
+      if (!mounted) return;
+      announceForAccessibility(context, 'Church spreadsheet linked');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Church spreadsheet linked')),
+      );
+    });
+  }
+
+  Future<void> _createSheet() async {
+    await _runSyncAction(() async {
+      final id =
+          await ref.read(churchSyncServiceProvider).createAndLinkSpreadsheet();
+      _sheetLinkController.text = id;
+      if (!mounted) return;
+      announceForAccessibility(context, 'Church spreadsheet created');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Spreadsheet created. Share it with your church in Google Drive.',
+          ),
+        ),
+      );
+    });
+  }
+
+  Future<void> _syncNow() async {
+    await _runSyncAction(() async {
+      final result = await ref.read(churchSyncServiceProvider).syncNow();
+      if (!mounted) return;
+      final msg =
+          'Synced: ${result.pulled} pulled, ${result.pushed} pushed, '
+          '${result.removed} removed';
+      announceForAccessibility(context, msg);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    });
+  }
+
+  Future<void> _supportDeveloper() async {
+    final uri = AppConfig.venmoSupportUri;
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open Venmo')),
+      );
     }
   }
 
@@ -249,6 +351,100 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       .setVisible(value),
                 ),
                 const SizedBox(height: 32),
+                Text('Church spreadsheet', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  'Sync prayers marked Church with one shared Google Sheet. '
+                  'Just me prayers stay on this device and are never uploaded.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                if (!googleSignInConfigured)
+                  Text(
+                    'Google sign-in needs GOOGLE_IOS_CLIENT_ID and '
+                    'GOOGLE_SERVER_CLIENT_ID dart-defines at build time. '
+                    'See README for Cloud Console setup.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                if (!googleSignInConfigured) const SizedBox(height: 12),
+                Builder(
+                  builder: (context) {
+                    final sync = ref.read(churchSyncServiceProvider).status();
+                    final last = sync.lastSyncAt;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          sync.isSignedIn
+                              ? 'Signed in as ${sync.email}'
+                              : 'Not signed in',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        if (last != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Last synced ${last.toLocal()}',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        if (!sync.isSignedIn)
+                          FilledButton.icon(
+                            onPressed: _busy || !googleSignInConfigured
+                                ? null
+                                : _signInGoogle,
+                            icon: const Icon(Icons.login),
+                            label: const Text('Sign in with Google'),
+                          )
+                        else ...[
+                          OutlinedButton.icon(
+                            onPressed: _busy ? null : _signOutGoogle,
+                            icon: const Icon(Icons.logout),
+                            label: const Text('Sign out'),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _sheetLinkController,
+                            decoration: const InputDecoration(
+                              labelText: 'Spreadsheet link or id',
+                              hintText: 'Paste a Google Sheets URL',
+                            ),
+                            enabled: !_busy,
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: _busy ? null : _linkSheet,
+                            icon: const Icon(Icons.link),
+                            label: const Text('Link spreadsheet'),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: _busy ? null : _createSheet,
+                            icon: const Icon(Icons.add_chart_outlined),
+                            label: const Text('Create church spreadsheet'),
+                          ),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            onPressed: _busy || !sync.canSync ? null : _syncNow,
+                            icon: _busy
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.sync),
+                            label: Text(_busy ? 'Syncing…' : 'Sync now'),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
                 Text('Backup', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text(
@@ -323,6 +519,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: Text(
                     _busy && _loaded ? 'Deleting…' : 'Delete test data',
                   ),
+                ),
+                const SizedBox(height: 40),
+                Text('Support', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  'If Selah helps you pray, you can support ongoing development.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: _supportDeveloper,
+                  icon: const Icon(Icons.favorite_outline),
+                  label: const Text('Support the developer'),
                 ),
               ],
             ),

@@ -13,6 +13,34 @@ class Prayers extends Table {
   TextColumn get answeredNote => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
+
+  /// Stable id for church spreadsheet sync. Null until first share.
+  TextColumn get syncId => text().nullable().unique()();
+
+  /// True when this prayer syncs to the church spreadsheet.
+  BoolColumn get shared => boolean().withDefault(const Constant(false))();
+
+  /// Google account that first shared this row (empty if private).
+  TextColumn get authorEmail =>
+      text().withLength(min: 0, max: 320).withDefault(const Constant(''))();
+}
+
+/// Church prayers deleted locally that still need a sheet tombstone push.
+class SyncTombstones extends Table {
+  TextColumn get syncId => text()();
+  DateTimeColumn get deletedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {syncId};
+}
+
+/// Fingerprint of each church row after the last successful sync.
+class SyncSnapshots extends Table {
+  TextColumn get syncId => text()();
+  TextColumn get fingerprint => text()();
+
+  @override
+  Set<Column> get primaryKey => {syncId};
 }
 
 class Tags extends Table {

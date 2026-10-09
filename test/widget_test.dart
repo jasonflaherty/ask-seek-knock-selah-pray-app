@@ -1,7 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:selah/app/app_config.dart';
-
 import 'prayers/test_app.dart';
 
 void main() {
@@ -10,8 +8,7 @@ void main() {
   testWidgets('app launches to empty home', (tester) async {
     await pumpSelahApp(tester);
 
-    expect(find.text(AppConfig.appName), findsOneWidget);
-    expect(find.text('Today'), findsOneWidget);
-    expect(find.text('Nothing here yet'), findsOneWidget);
+    expect(find.text('Selah'), findsOneWidget);
+    expect(find.text('Add petition'), findsOneWidget);
   });
 }

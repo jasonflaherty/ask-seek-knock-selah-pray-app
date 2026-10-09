@@ -50,6 +50,44 @@ class DriftCustomVerseRepository implements CustomVerseRepository {
   }
 
   @override
+  Future<Verse> importCustom({
+    required String id,
+    required String ref,
+    required String text,
+    String? note,
+  }) async {
+    if (!isCustomVerseId(id)) {
+      throw ArgumentError('Custom verse id must start with custom-');
+    }
+    final parsed = parseBibleReference(ref);
+    if (parsed == null) {
+      throw ArgumentError('Enter a valid Bible reference (e.g. John 14:13–14).');
+    }
+    final body = text.trim();
+    if (body.length < 12) {
+      throw ArgumentError('Paste the exact Scripture wording of the promise.');
+    }
+    final cleanedNote = note?.trim();
+    await _db.into(_db.customVerses).insertOnConflictUpdate(
+          CustomVersesCompanion.insert(
+            id: id,
+            ref: parsed.normalized,
+            body: body,
+            note: Value(
+              (cleanedNote == null || cleanedNote.isEmpty) ? null : cleanedNote,
+            ),
+            createdAt: _clock.now(),
+          ),
+        );
+    return _toVerse(
+      id: id,
+      ref: parsed.normalized,
+      text: body,
+      note: cleanedNote,
+    );
+  }
+
+  @override
   Future<Verse?> getById(String id) async {
     if (!isCustomVerseId(id)) return null;
     final row = await (_db.select(_db.customVerses)

@@ -10,7 +10,16 @@ import 'tables.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Prayers, Tags, PrayerTags, PrayerVerses, PrayerEvents, CustomVerses],
+  tables: [
+    Prayers,
+    Tags,
+    PrayerTags,
+    PrayerVerses,
+    PrayerEvents,
+    CustomVerses,
+    SyncTombstones,
+    SyncSnapshots,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
@@ -19,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -32,6 +41,13 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await m.addColumn(prayers, prayers.person);
+          }
+          if (from < 4) {
+            await m.addColumn(prayers, prayers.syncId);
+            await m.addColumn(prayers, prayers.shared);
+            await m.addColumn(prayers, prayers.authorEmail);
+            await m.createTable(syncTombstones);
+            await m.createTable(syncSnapshots);
           }
         },
         beforeOpen: (details) async {

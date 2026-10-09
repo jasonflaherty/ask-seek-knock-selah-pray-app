@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../../core/db/app_database.dart';
 import '../../../core/utils/clock.dart';
+import '../../../core/utils/sync_id.dart';
 import '../domain/prayer.dart';
 import '../domain/prayer_event.dart';
 import '../domain/prayer_repository.dart';
@@ -41,8 +42,19 @@ class DriftPrayerRepository implements PrayerRepository {
   }
 
   @override
+  Future<Prayer?> getPrayerBySyncId(String syncId) async {
+    final row = await (_db.select(_db.prayers)
+          ..where((t) => t.syncId.equals(syncId)))
+        .getSingleOrNull();
+    if (row == null) return null;
+    return _mapPrayer(row);
+  }
+
+  @override
   Future<int> createPrayer(NewPrayer input) async {
     final now = _clock.now();
+    final shared = input.shared;
+    final syncId = shared ? (input.syncId ?? newSyncId()) : input.syncId;
     return _db.transaction(() async {
       final id = await _db.into(_db.prayers).insert(
             PrayersCompanion.insert(
@@ -51,6 +63,11 @@ class DriftPrayerRepository implements PrayerRepository {
               request: input.request.trim(),
               createdAt: now,
               updatedAt: now,
+              syncId: Value(syncId),
+              shared: Value(shared),
+              authorEmail: Value(
+                shared ? input.authorEmail.trim().toLowerCase() : '',
+              ),
             ),
           );
       await _replaceTags(id, input.tags);
@@ -84,6 +101,33 @@ class DriftPrayerRepository implements PrayerRepository {
         answeredNote = input.answeredNote;
       }
 
+      var shared = existing.shared;
+      var syncId = existing.syncId;
+      var authorEmail = existing.authorEmail;
+
+      if (input.shared != null) {
+        if (input.shared! && !existing.shared) {
+          shared = true;
+          final assignedSyncId = syncId ?? input.syncId ?? newSyncId();
+          syncId = assignedSyncId;
+          final email = (input.authorEmail ?? existing.authorEmail).trim();
+          if (email.isNotEmpty) authorEmail = email.toLowerCase();
+          await (_db.delete(_db.syncTombstones)
+                ..where((t) => t.syncId.equals(assignedSyncId)))
+              .go();
+        } else if (!input.shared! && existing.shared) {
+          shared = false;
+          if (existing.syncId != null) {
+            await _upsertTombstone(existing.syncId!, now);
+          }
+          authorEmail = '';
+        }
+      }
+      if (input.syncId != null) syncId = input.syncId;
+      if (input.authorEmail != null && shared) {
+        authorEmail = input.authorEmail!.trim().toLowerCase();
+      }
+
       await (_db.update(_db.prayers)..where((t) => t.id.equals(id))).write(
         PrayersCompanion(
           name: Value(input.name.trim()),
@@ -93,6 +137,9 @@ class DriftPrayerRepository implements PrayerRepository {
           answeredAt: Value(answeredAt),
           answeredNote: Value(answeredNote),
           updatedAt: Value(now),
+          syncId: Value(syncId),
+          shared: Value(shared),
+          authorEmail: Value(authorEmail),
         ),
       );
       await _replaceTags(id, input.tags);
@@ -102,6 +149,19 @@ class DriftPrayerRepository implements PrayerRepository {
 
   @override
   Future<void> deletePrayer(int id) async {
+    await _db.transaction(() async {
+      final existing = await (_db.select(_db.prayers)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+      if (existing == null) return;
+      if (existing.shared && existing.syncId != null) {
+        await _upsertTombstone(existing.syncId!, _clock.now());
+      }
+      await (_db.delete(_db.prayers)..where((t) => t.id.equals(id))).go();
+    });
+  }
+
+  @override
+  Future<void> purgePrayer(int id) async {
     await (_db.delete(_db.prayers)..where((t) => t.id.equals(id))).go();
   }
 
@@ -154,6 +214,51 @@ class DriftPrayerRepository implements PrayerRepository {
     return list;
   }
 
+  @override
+  Future<List<Prayer>> churchPrayers() async {
+    final rows = await (_db.select(_db.prayers)
+          ..where((t) => t.shared.equals(true)))
+        .get();
+    final prayers = <Prayer>[];
+    for (final row in rows) {
+      prayers.add(await _mapPrayer(row));
+    }
+    return prayers;
+  }
+
+  @override
+  Future<void> setShared(
+    int id, {
+    required bool shared,
+    String? authorEmail,
+  }) async {
+    final existing = await getPrayer(id);
+    if (existing == null) return;
+    await updatePrayer(
+      id,
+      PrayerUpdate(
+        name: existing.name,
+        person: existing.person,
+        request: existing.request,
+        tags: existing.tags,
+        verseIds: existing.verseIds,
+        isAnswered: existing.isAnswered,
+        answeredNote: existing.answeredNote,
+        shared: shared,
+        authorEmail: authorEmail,
+      ),
+    );
+  }
+
+  Future<void> _upsertTombstone(String syncId, DateTime at) async {
+    await _db.into(_db.syncTombstones).insertOnConflictUpdate(
+          SyncTombstonesCompanion.insert(
+            syncId: syncId,
+            deletedAt: at,
+          ),
+        );
+  }
+
   Future<Prayer> _mapPrayer(PrayerRow row) async {
     final tags = await _tagsFor(row.id);
     final verseIds = await _verseIdsFor(row.id);
@@ -174,6 +279,9 @@ class DriftPrayerRepository implements PrayerRepository {
       verseIds: verseIds,
       timesViewed: timesViewed,
       lastPrayedAt: lastPrayedAt,
+      syncId: row.syncId,
+      shared: row.shared,
+      authorEmail: row.authorEmail,
     );
   }
 

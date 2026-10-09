@@ -35,6 +35,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
   List<String> _suggestions = [];
   List<String> _personSuggestions = [];
   bool _isAnswered = false;
+  bool _shared = false;
   bool _loading = true;
   bool _dirty = false;
   bool _saving = false;
@@ -60,6 +61,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
         _tags = List.of(prayer.tags);
         _verseIds = List.of(prayer.verseIds);
         _isAnswered = prayer.isAnswered;
+        _shared = prayer.shared;
         _answerNoteController.text = prayer.answeredNote ?? '';
       }
     }
@@ -98,6 +100,9 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
     final tags = List<String>.of(_tags);
     try {
       final person = normalizePerson(_personController.text);
+      final authorEmail = _shared
+          ? (ref.read(churchSyncServiceProvider).status().email ?? '')
+          : '';
       if (widget.isEditing) {
         await repo.updatePrayer(
           widget.prayerId!,
@@ -110,6 +115,8 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
             isAnswered: _isAnswered,
             answeredNote:
                 _isAnswered ? _answerNoteController.text.trim() : null,
+            shared: _shared,
+            authorEmail: _shared ? authorEmail : null,
           ),
         );
         await ref.read(eventLoggerProvider).edited(widget.prayerId!);
@@ -121,6 +128,8 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
             request: _requestController.text.trim(),
             tags: tags,
             verseIds: _verseIds,
+            shared: _shared,
+            authorEmail: authorEmail,
           ),
         );
       }
@@ -189,6 +198,37 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                Text(
+                                  'Visibility',
+                                  style: theme.textTheme.labelLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                SegmentedButton<bool>(
+                                  segments: const [
+                                    ButtonSegment(
+                                      value: false,
+                                      label: Text('Just me'),
+                                    ),
+                                    ButtonSegment(
+                                      value: true,
+                                      label: Text('Church'),
+                                    ),
+                                  ],
+                                  selected: {_shared},
+                                  onSelectionChanged: (s) {
+                                    setState(() => _shared = s.first);
+                                    _markDirty();
+                                  },
+                                  showSelectedIcon: false,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _shared
+                                      ? 'Shared with the church spreadsheet on the next sync.'
+                                      : 'Stays on this device. Never uploaded.',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                                const SizedBox(height: 20),
                                 Text('Title', style: theme.textTheme.labelLarge),
                                 const SizedBox(height: 8),
                                 TextField(

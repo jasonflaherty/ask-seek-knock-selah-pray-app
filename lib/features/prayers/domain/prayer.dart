@@ -1,7 +1,8 @@
 /// Immutable prayer entity. Fields `timesViewed` and `lastPrayedAt` are
 /// derived from `prayer_events` in the repository — not stored columns.
 ///
-/// Prayers are private by default (device-local). Sharing is an explicit action.
+/// Prayers are private by default (device-local). Marking a prayer as church
+/// shared is an explicit action; sync uploads only those rows.
 class Prayer {
   const Prayer({
     required this.id,
@@ -17,6 +18,9 @@ class Prayer {
     this.verseIds = const [],
     this.timesViewed = 0,
     this.lastPrayedAt,
+    this.syncId,
+    this.shared = false,
+    this.authorEmail = '',
   });
 
   final int id;
@@ -35,7 +39,18 @@ class Prayer {
   final int timesViewed;
   final DateTime? lastPrayedAt;
 
+  /// Stable id for church spreadsheet sync. Null until first share.
+  final String? syncId;
+
+  /// True when this prayer syncs to the church spreadsheet.
+  final bool shared;
+
+  /// Google account that first shared this row.
+  final String authorEmail;
+
   bool get hasPerson => person.trim().isNotEmpty;
+
+  bool get isChurch => shared;
 
   Prayer copyWith({
     int? id,
@@ -51,9 +66,13 @@ class Prayer {
     List<String>? verseIds,
     int? timesViewed,
     DateTime? lastPrayedAt,
+    String? syncId,
+    bool? shared,
+    String? authorEmail,
     bool clearAnsweredAt = false,
     bool clearAnsweredNote = false,
     bool clearLastPrayedAt = false,
+    bool clearSyncId = false,
   }) {
     return Prayer(
       id: id ?? this.id,
@@ -71,6 +90,9 @@ class Prayer {
       timesViewed: timesViewed ?? this.timesViewed,
       lastPrayedAt:
           clearLastPrayedAt ? null : (lastPrayedAt ?? this.lastPrayedAt),
+      syncId: clearSyncId ? null : (syncId ?? this.syncId),
+      shared: shared ?? this.shared,
+      authorEmail: authorEmail ?? this.authorEmail,
     );
   }
 
@@ -90,7 +112,10 @@ class Prayer {
           _listEq(other.tags, tags) &&
           _listEq(other.verseIds, verseIds) &&
           other.timesViewed == timesViewed &&
-          other.lastPrayedAt == lastPrayedAt;
+          other.lastPrayedAt == lastPrayedAt &&
+          other.syncId == syncId &&
+          other.shared == shared &&
+          other.authorEmail == authorEmail;
 
   @override
   int get hashCode => Object.hash(
@@ -107,6 +132,9 @@ class Prayer {
         Object.hashAll(verseIds),
         timesViewed,
         lastPrayedAt,
+        syncId,
+        shared,
+        authorEmail,
       );
 }
 
@@ -117,6 +145,9 @@ class NewPrayer {
     required this.request,
     this.tags = const [],
     this.verseIds = const [],
+    this.shared = false,
+    this.authorEmail = '',
+    this.syncId,
   });
 
   final String name;
@@ -124,6 +155,9 @@ class NewPrayer {
   final String request;
   final List<String> tags;
   final List<String> verseIds;
+  final bool shared;
+  final String authorEmail;
+  final String? syncId;
 }
 
 class PrayerUpdate {
@@ -135,6 +169,9 @@ class PrayerUpdate {
     this.verseIds = const [],
     this.isAnswered,
     this.answeredNote,
+    this.shared,
+    this.authorEmail,
+    this.syncId,
   });
 
   final String name;
@@ -144,6 +181,9 @@ class PrayerUpdate {
   final List<String> verseIds;
   final bool? isAnswered;
   final String? answeredNote;
+  final bool? shared;
+  final String? authorEmail;
+  final String? syncId;
 }
 
 enum AnswerFilter { active, answered, all }

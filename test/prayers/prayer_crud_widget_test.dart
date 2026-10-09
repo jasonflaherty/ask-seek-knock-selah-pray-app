@@ -11,16 +11,20 @@ void main() {
   testWidgets('add prayer happy path', (tester) async {
     final app = await pumpSelahApp(tester);
 
-    await tester.tap(find.text('Add your first prayer'));
+    await tester.tap(find.text('Add petition'));
     await pumpFrames(tester);
 
+    expect(find.text('Add prayer'), findsOneWidget);
+
     final fields = find.byType(TextField);
+    // Title, Person, Request (visibility is SegmentedButton).
     await tester.enterText(fields.at(0), 'Mom');
-    await tester.enterText(fields.at(1), 'Healing for her back pain');
+    await tester.enterText(fields.at(2), 'Healing for her back pain');
+    await tester.ensureVisible(find.text('Save'));
     await tester.tap(find.text('Save'));
     await pumpFrames(tester, 10);
 
-    expect(find.text('Mom'), findsOneWidget);
+    expect(find.text('Mom'), findsWidgets);
     expect(find.textContaining('Healing'), findsWidgets);
 
     expect(app.repo.allPrayers, hasLength(1));
@@ -30,9 +34,10 @@ void main() {
   testWidgets('validation errors when fields empty', (tester) async {
     await pumpSelahApp(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
+    await tester.tap(find.text('Add petition'));
     await pumpFrames(tester);
 
+    await tester.ensureVisible(find.text('Save'));
     await tester.tap(find.text('Save'));
     await pumpFrames(tester);
 

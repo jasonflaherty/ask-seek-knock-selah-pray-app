@@ -10,7 +10,7 @@ Feature-first layers: `presentation` → Riverpod `application` → `domain` →
 
 - Domain is pure Dart. No Flutter or Drift imports.
 - Entities are plain immutable classes. Do not add freezed.
-- The app is offline. Do not add accounts, network calls, or off-device analytics.
+- The journal is offline by default. Optional church spreadsheet sync (Google Sign-In) is the only network path; Just me prayers never leave the device. Do not add other accounts, analytics, or background network.
 - Display name comes from `AppConfig.appName`.
 - New Drift tables or columns: edit `lib/core/db/tables.dart`, run `dart run build_runner build`, commit the generated `.g.dart`.
 - Verse rows are added in `tool/generate_verses.py`, then `python3 tool/generate_verses.py` and `dart run tool/build_verses.dart`. Do not hand-write KJV text into JSON.
