@@ -41,7 +41,7 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/branding/selah_icon_1024.png
-  adaptive_icon_background: "#C9A227"
+  adaptive_icon_background: "#1A3A5C"
   adaptive_icon_foreground: assets/branding/selah_icon_1024.png
   remove_alpha_ios: true
 
