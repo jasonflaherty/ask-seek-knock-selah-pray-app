@@ -66,29 +66,25 @@ class KeywordVerseSuggester implements VerseSuggester {
 
   @override
   Future<List<Verse>> suggest(String request, {int limit = 6}) async {
+    final ranked = rank(request);
+    if (ranked.isEmpty) return _fallback(limit);
+    return ranked.take(limit).map((row) => row.verse).toList();
+  }
+
+  /// Verses with a positive keyword score, highest first.
+  List<({Verse verse, double score})> rank(String request) {
     final trimmed = request.trim();
-    if (trimmed.length < 3) {
-      return _fallback(limit);
-    }
+    if (trimmed.length < 3) return const [];
 
     final query = _normalizer.tokenize(trimmed);
-    if (query.isEmpty) {
-      return _fallback(limit);
-    }
+    if (query.isEmpty) return const [];
 
     final scored = <({_IndexedVerse doc, double score})>[];
     for (final doc in _index) {
       final raw = _bm25(query, doc);
       if (raw > 0) {
-        scored.add((
-          doc: doc,
-          score: raw * _typeBoost(doc.verse.promiseType),
-        ));
+        scored.add((doc: doc, score: raw * _typeBoost(doc.verse.promiseType)));
       }
-    }
-
-    if (scored.isEmpty) {
-      return _fallback(limit);
     }
 
     scored.sort((a, b) {
@@ -97,7 +93,7 @@ class KeywordVerseSuggester implements VerseSuggester {
       return a.doc.datasetIndex.compareTo(b.doc.datasetIndex);
     });
 
-    return scored.take(limit).map((e) => e.doc.verse).toList();
+    return [for (final row in scored) (verse: row.doc.verse, score: row.score)];
   }
 
   List<Verse> _fallback(int limit) {
@@ -132,10 +128,10 @@ class KeywordVerseSuggester implements VerseSuggester {
   }
 
   double _typeBoost(PromiseType type) => switch (type) {
-        PromiseType.explicitPromise => 1.15,
-        PromiseType.answeredPrayer => 1.1,
-        PromiseType.characterOfGod => 1.0,
-      };
+    PromiseType.explicitPromise => 1.15,
+    PromiseType.answeredPrayer => 1.1,
+    PromiseType.characterOfGod => 1.0,
+  };
 
   _IndexedVerse _buildIndex(Verse verse, int index) {
     final weights = <String, double>{};

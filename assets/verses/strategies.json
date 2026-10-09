@@ -1,0 +1,164 @@
+{
+  "version": 1,
+  "description": "Hidden index for choosing which scriptures to offer. Not shown in the UI. Each matching strategy contributes one verse from seedRefs. alwaysOn strategies may contribute even when no trigger matches. Triggers are whole words. The Lord's Prayer, a short repeated prayer, daily hours, fasting, the Spirit's help in Romans 8:26, and praying from one's place in Christ are omitted until those passages are in verses.json.",
+  "strategies": [
+    {
+      "id": "promise-back",
+      "alwaysOn": true,
+      "order": 0,
+      "triggers": [],
+      "seedRefs": [
+        "Jeremiah 33:3",
+        "1 John 5:14–15",
+        "John 15:7",
+        "Exodus 32:11–14"
+      ]
+    },
+    {
+      "id": "thanksgiving",
+      "alwaysOn": true,
+      "order": 1,
+      "triggers": [],
+      "seedRefs": [
+        "Philippians 4:6–7",
+        "1 Thessalonians 5:16–18",
+        "Psalm 50:15"
+      ]
+    },
+    {
+      "id": "faith-receives",
+      "alwaysOn": false,
+      "order": 2,
+      "triggers": ["believe", "faith", "trust", "receive", "doubt"],
+      "seedRefs": [
+        "Mark 11:24",
+        "John 14:13–14",
+        "Hebrews 4:16",
+        "Hebrews 11:6",
+        "Matthew 7:7–8"
+      ]
+    },
+    {
+      "id": "persistence",
+      "alwaysOn": false,
+      "order": 3,
+      "triggers": ["waiting", "waited", "years", "chronic", "unanswered", "delay", "decade"],
+      "seedRefs": [
+        "Luke 11:9–10",
+        "Romans 12:12",
+        "Psalm 27:14",
+        "Psalm 40:1–2",
+        "Galatians 6:9"
+      ]
+    },
+    {
+      "id": "clean-heart",
+      "alwaysOn": false,
+      "order": 4,
+      "triggers": [
+        "forgive",
+        "forgiven",
+        "forgiveness",
+        "grudge",
+        "resent",
+        "resentment",
+        "angry",
+        "anger",
+        "bitter",
+        "bitterness",
+        "guilty",
+        "guilt",
+        "sin",
+        "sinned",
+        "betray",
+        "betrayed",
+        "estranged"
+      ],
+      "seedRefs": [
+        "1 John 1:9",
+        "Psalm 103:12",
+        "Isaiah 1:18",
+        "Psalm 51:10",
+        "James 5:16"
+      ]
+    },
+    {
+      "id": "humility",
+      "alwaysOn": false,
+      "order": 5,
+      "triggers": ["pride", "proud", "humble", "humility", "arrogant", "arrogance", "ashamed", "shame"],
+      "seedRefs": [
+        "1 Peter 5:7",
+        "Psalm 51:10",
+        "2 Chronicles 7:14"
+      ]
+    },
+    {
+      "id": "corporate",
+      "alwaysOn": false,
+      "order": 6,
+      "triggers": ["church", "congregation", "ministry", "revival", "fellowship", "pastor"],
+      "seedRefs": [
+        "Matthew 18:19–20",
+        "James 5:16",
+        "James 5:14–15"
+      ]
+    },
+    {
+      "id": "intercession",
+      "alwaysOn": false,
+      "order": 7,
+      "triggers": [
+        "friend",
+        "son",
+        "daughter",
+        "mother",
+        "mom",
+        "father",
+        "dad",
+        "brother",
+        "sister",
+        "husband",
+        "wife",
+        "spouse",
+        "nation",
+        "country",
+        "leader",
+        "unsaved",
+        "missionary",
+        "neighbor",
+        "coworker",
+        "child",
+        "children",
+        "kid"
+      ],
+      "seedRefs": [
+        "Exodus 32:11–14",
+        "Genesis 18:23–32",
+        "Numbers 14:19–20"
+      ]
+    },
+    {
+      "id": "stillness-waiting",
+      "alwaysOn": false,
+      "order": 8,
+      "triggers": ["decision", "discern", "direction", "uncertain", "silence", "confused", "crossroads", "choice", "choose"],
+      "seedRefs": [
+        "Psalm 46:10",
+        "Psalm 27:14",
+        "Psalm 37:7"
+      ]
+    },
+    {
+      "id": "holy-desire",
+      "alwaysOn": false,
+      "order": 9,
+      "triggers": ["desire", "longing", "crave", "lukewarm", "distant", "hunger", "closer", "dry"],
+      "seedRefs": [
+        "Psalm 37:4–5",
+        "Matthew 6:31–33",
+        "Psalm 16:11"
+      ]
+    }
+  ]
+}
