@@ -3,7 +3,7 @@ class AppConfig {
   static const String appName = 'Selah';
 
   /// Venmo profile used by Settings → Support the developer.
-  static const String venmoUsername = 'jasonflaherty';
+  static const String venmoUsername = 'jjflaherty';
 
   static Uri get venmoSupportUri =>
       Uri.parse('https://venmo.com/u/$venmoUsername');

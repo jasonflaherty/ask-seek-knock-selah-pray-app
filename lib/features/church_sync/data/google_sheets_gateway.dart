@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
@@ -14,6 +17,49 @@ const _serverClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
 
 bool get googleSignInConfigured =>
     _iosClientId.isNotEmpty || _serverClientId.isNotEmpty;
+
+int _signInAttempts = 0;
+
+// #region agent log
+void _agentLog(
+  String hypothesisId,
+  String location,
+  String message,
+  Map<String, Object?> data,
+) {
+  final payload = jsonEncode({
+    'sessionId': '5991e1',
+    'timestamp': DateTime.now().millisecondsSinceEpoch,
+    'location': location,
+    'message': message,
+    'data': data,
+    'hypothesisId': hypothesisId,
+    'runId': 'pre-fix',
+  });
+  // ignore: avoid_print
+  print('SELAH_DEBUG $payload');
+  Future<void>(() async {
+    HttpClient? client;
+    try {
+      client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 2);
+      final req = await client.postUrl(
+        Uri.parse(
+          'http://127.0.0.1:7340/ingest/b13b22ee-0e32-4c23-97e4-0eaf0b916efc',
+        ),
+      );
+      req.headers.set('Content-Type', 'application/json');
+      req.headers.set('X-Debug-Session-Id', '5991e1');
+      req.write(payload);
+      final resp = await req.close().timeout(const Duration(seconds: 2));
+      await resp.drain<void>();
+    } catch (_) {
+    } finally {
+      client?.close(force: true);
+    }
+  });
+}
+// #endregion
 
 class GoogleSheetsGateway implements SheetsGateway {
   GoogleSheetsGateway({GoogleSignIn? signIn})
@@ -60,12 +106,48 @@ class GoogleSheetsGateway implements SheetsGateway {
   @override
   Future<String> signIn() async {
     _ensureConfigured();
-    final account = await _signIn.signIn();
-    if (account == null) {
-      throw SheetsGatewayException('Google sign-in was cancelled.');
+    final attempt = ++_signInAttempts;
+    // #region agent log
+    _agentLog('A', 'google_sheets_gateway.dart:signIn', 'signIn start', {
+      'attempt': attempt,
+      'iosClientIdSet': _iosClientId.isNotEmpty,
+      'serverClientIdSet': _serverClientId.isNotEmpty,
+      'iosClientIdLength': _iosClientId.length,
+      'serverClientIdLength': _serverClientId.length,
+      'platform': Platform.operatingSystem,
+    });
+    // #endregion
+    try {
+      final account = await _signIn.signIn();
+      if (account == null) {
+        // #region agent log
+        _agentLog(
+          'D',
+          'google_sheets_gateway.dart:signIn',
+          'signIn returned null',
+          {'attempt': attempt},
+        );
+        // #endregion
+        throw SheetsGatewayException('Google sign-in was cancelled.');
+      }
+      _account = account;
+      // #region agent log
+      _agentLog('D', 'google_sheets_gateway.dart:signIn', 'signIn account', {
+        'attempt': attempt,
+        'hasEmail': account.email.isNotEmpty,
+      });
+      // #endregion
+      return account.email;
+    } catch (e) {
+      // #region agent log
+      _agentLog('C', 'google_sheets_gateway.dart:signIn', 'signIn threw', {
+        'attempt': attempt,
+        'type': e.runtimeType.toString(),
+        'error': e.toString(),
+      });
+      // #endregion
+      rethrow;
     }
-    _account = account;
-    return account.email;
   }
 
   @override
