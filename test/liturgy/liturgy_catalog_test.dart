@@ -60,4 +60,17 @@ void main() {
     expect(titles, contains('Trinity Sunday'));
     expect(titles, contains('The Twenty-Fifth Sunday after Trinity'));
   });
+
+  test('seasonal collects expose calendar keys', () {
+    final ash = prayers.firstWhere((p) => p.id == 'ash-wednesday');
+    expect(ash.calendarKeys, ['ash-wednesday']);
+
+    final goodFriday = prayers
+        .where((p) => p.calendarKeys.contains('good-friday'))
+        .toList();
+    expect(goodFriday, hasLength(3));
+
+    final morning = prayers.firstWhere((p) => p.id == 'morning-peace');
+    expect(morning.calendarKeys, isEmpty);
+  });
 }

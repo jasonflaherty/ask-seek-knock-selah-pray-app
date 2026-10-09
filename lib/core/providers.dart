@@ -7,7 +7,9 @@ import '../features/church_sync/application/church_sync_service.dart';
 import '../features/church_sync/data/google_sheets_gateway.dart';
 import '../features/church_sync/data/sync_snapshot_store.dart';
 import '../features/church_sync/domain/sheets_gateway.dart';
+import '../features/liturgy/application/liturgy_favorites_notifier.dart';
 import '../features/liturgy/data/liturgy_catalog.dart';
+import '../features/liturgy/domain/liturgical_calendar.dart';
 import '../features/liturgy/domain/liturgical_prayer.dart';
 import '../features/prayers/data/drift_prayer_repository.dart';
 import '../features/prayers/domain/prayer_repository.dart';
@@ -102,6 +104,21 @@ final liturgyPrayersProvider = FutureProvider<List<LiturgicalPrayer>>((
   ref,
 ) async {
   return ref.watch(liturgyCatalogProvider).load();
+});
+
+final liturgicalCalendarProvider = Provider<LiturgicalCalendar>((ref) {
+  return const LiturgicalCalendar();
+});
+
+final liturgyTodayProvider = Provider<TodaySelection>((ref) {
+  final calendar = ref.watch(liturgicalCalendarProvider);
+  final now = ref.watch(clockProvider).now();
+  return calendar.todayAt(now);
+});
+
+final liturgyFavoritesProvider =
+    StateNotifierProvider<LiturgyFavoritesNotifier, Set<String>>((ref) {
+  return LiturgyFavoritesNotifier(ref.watch(sharedPreferencesProvider));
 });
 
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
