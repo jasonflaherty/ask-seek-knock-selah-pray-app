@@ -16,7 +16,7 @@ Minimum SDKs: iOS 13+, Android API 24+. The journal is offline by default. Optio
 
 Prayers marked **Just me** never leave the device. Prayers marked **Church** two-way sync with one shared Google Sheet (`Prayers` and `Verses` tabs).
 
-1. In Google Cloud Console, create an OAuth client for iOS and a Web client (server client id). Enable the Google Sheets API.
+1. In Google Cloud Console, in one project, enable the Google Sheets API and create three OAuth clients: iOS, Web (this is the server client id), and Android. The Android client uses package `com.psithurismlabs.selahprayerapp` and the SHA-1 of the keystore that signs the build. Debug installs use `~/.android/debug.keystore` (`androiddebugkey`, store password `android`). Do not put the Android client id in the app.
 2. Add test users on the OAuth consent screen while the app is unpublished / unverified.
 3. Share the church spreadsheet (edit access) with each Google account that will sync.
 4. Build with the OAuth client ids (iOS + Web / server client id):
