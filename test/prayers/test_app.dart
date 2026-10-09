@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import 'package:selah/app/app.dart';
+import 'package:selah/app/router.dart';
 import 'package:selah/core/providers.dart';
 import 'package:selah/core/utils/clock.dart';
 import 'package:selah/features/verses/data/verse_asset_loader.dart';
@@ -33,11 +34,7 @@ class _NoopSuggester implements VerseSuggester {
 }
 
 class TestApp {
-  TestApp({
-    required this.container,
-    required this.repo,
-    required this.clock,
-  });
+  TestApp({required this.container, required this.repo, required this.clock});
 
   final ProviderContainer container;
   final FakePrayerRepository repo;
@@ -56,6 +53,7 @@ Future<TestApp> pumpSelahApp(
 }) async {
   VisibilityDetectorController.instance.updateInterval = Duration.zero;
   SharedPreferences.setMockInitialValues({});
+  appRouter.go('/');
   final prefs = await SharedPreferences.getInstance();
   final clock = FakeClock(DateTime(2024, 6, 15, 12));
   final repository = repo ?? FakePrayerRepository(clock);
@@ -71,10 +69,7 @@ Future<TestApp> pumpSelahApp(
   );
 
   await tester.pumpWidget(
-    UncontrolledProviderScope(
-      container: container,
-      child: const SelahApp(),
-    ),
+    UncontrolledProviderScope(container: container, child: const SelahApp()),
   );
   await pumpFrames(tester);
 

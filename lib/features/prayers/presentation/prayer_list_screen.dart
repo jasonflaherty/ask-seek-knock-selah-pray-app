@@ -39,7 +39,9 @@ class PrayerListScreen extends ConsumerWidget {
           'Ask, Seek, Knock...',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.titleLarge,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w400,
+          ),
         ),
         actions: [
           IconButton(
@@ -237,10 +239,7 @@ class _EmptyState extends StatelessWidget {
             color: theme.colorScheme.primary,
           ),
           const SizedBox(height: 16),
-          Text(
-            'Begin with a petition',
-            style: theme.textTheme.titleLarge,
-          ),
+          Text('Begin with a petition', style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             'Add who you are praying for. Selah will suggest promises '
@@ -251,9 +250,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'SELAH · Pause, Reflect, Meditate',
-            style: theme.textTheme.bodySmall?.copyWith(
-              letterSpacing: 0.8,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(letterSpacing: 0.8),
           ),
           const SizedBox(height: 24),
           FilledButton(
