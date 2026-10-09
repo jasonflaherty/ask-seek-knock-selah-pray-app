@@ -34,6 +34,20 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _personMeta = const VerificationMeta('person');
+  @override
+  late final GeneratedColumn<String> person = GeneratedColumn<String>(
+    'person',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 0,
+      maxTextLength: 100,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _requestMeta = const VerificationMeta(
     'request',
   );
@@ -108,6 +122,7 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
   List<GeneratedColumn> get $columns => [
     id,
     name,
+    person,
     request,
     isAnswered,
     answeredAt,
@@ -137,6 +152,12 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('person')) {
+      context.handle(
+        _personMeta,
+        person.isAcceptableOrUnknown(data['person']!, _personMeta),
+      );
     }
     if (data.containsKey('request')) {
       context.handle(
@@ -200,6 +221,10 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      person: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}person'],
+      )!,
       request: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}request'],
@@ -236,6 +261,9 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
 class PrayerRow extends DataClass implements Insertable<PrayerRow> {
   final int id;
   final String name;
+
+  /// Who this prayer is for (empty = unassigned).
+  final String person;
   final String request;
   final bool isAnswered;
   final DateTime? answeredAt;
@@ -245,6 +273,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
   const PrayerRow({
     required this.id,
     required this.name,
+    required this.person,
     required this.request,
     required this.isAnswered,
     this.answeredAt,
@@ -257,6 +286,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['person'] = Variable<String>(person);
     map['request'] = Variable<String>(request);
     map['is_answered'] = Variable<bool>(isAnswered);
     if (!nullToAbsent || answeredAt != null) {
@@ -274,6 +304,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     return PrayersCompanion(
       id: Value(id),
       name: Value(name),
+      person: Value(person),
       request: Value(request),
       isAnswered: Value(isAnswered),
       answeredAt: answeredAt == null && nullToAbsent
@@ -295,6 +326,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     return PrayerRow(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      person: serializer.fromJson<String>(json['person']),
       request: serializer.fromJson<String>(json['request']),
       isAnswered: serializer.fromJson<bool>(json['isAnswered']),
       answeredAt: serializer.fromJson<DateTime?>(json['answeredAt']),
@@ -309,6 +341,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'person': serializer.toJson<String>(person),
       'request': serializer.toJson<String>(request),
       'isAnswered': serializer.toJson<bool>(isAnswered),
       'answeredAt': serializer.toJson<DateTime?>(answeredAt),
@@ -321,6 +354,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
   PrayerRow copyWith({
     int? id,
     String? name,
+    String? person,
     String? request,
     bool? isAnswered,
     Value<DateTime?> answeredAt = const Value.absent(),
@@ -330,6 +364,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
   }) => PrayerRow(
     id: id ?? this.id,
     name: name ?? this.name,
+    person: person ?? this.person,
     request: request ?? this.request,
     isAnswered: isAnswered ?? this.isAnswered,
     answeredAt: answeredAt.present ? answeredAt.value : this.answeredAt,
@@ -341,6 +376,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     return PrayerRow(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      person: data.person.present ? data.person.value : this.person,
       request: data.request.present ? data.request.value : this.request,
       isAnswered: data.isAnswered.present
           ? data.isAnswered.value
@@ -361,6 +397,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     return (StringBuffer('PrayerRow(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('person: $person, ')
           ..write('request: $request, ')
           ..write('isAnswered: $isAnswered, ')
           ..write('answeredAt: $answeredAt, ')
@@ -375,6 +412,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
   int get hashCode => Object.hash(
     id,
     name,
+    person,
     request,
     isAnswered,
     answeredAt,
@@ -388,6 +426,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
       (other is PrayerRow &&
           other.id == this.id &&
           other.name == this.name &&
+          other.person == this.person &&
           other.request == this.request &&
           other.isAnswered == this.isAnswered &&
           other.answeredAt == this.answeredAt &&
@@ -399,6 +438,7 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
 class PrayersCompanion extends UpdateCompanion<PrayerRow> {
   final Value<int> id;
   final Value<String> name;
+  final Value<String> person;
   final Value<String> request;
   final Value<bool> isAnswered;
   final Value<DateTime?> answeredAt;
@@ -408,6 +448,7 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
   const PrayersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.person = const Value.absent(),
     this.request = const Value.absent(),
     this.isAnswered = const Value.absent(),
     this.answeredAt = const Value.absent(),
@@ -418,6 +459,7 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
   PrayersCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.person = const Value.absent(),
     required String request,
     this.isAnswered = const Value.absent(),
     this.answeredAt = const Value.absent(),
@@ -431,6 +473,7 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
   static Insertable<PrayerRow> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<String>? person,
     Expression<String>? request,
     Expression<bool>? isAnswered,
     Expression<DateTime>? answeredAt,
@@ -441,6 +484,7 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (person != null) 'person': person,
       if (request != null) 'request': request,
       if (isAnswered != null) 'is_answered': isAnswered,
       if (answeredAt != null) 'answered_at': answeredAt,
@@ -453,6 +497,7 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
   PrayersCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
+    Value<String>? person,
     Value<String>? request,
     Value<bool>? isAnswered,
     Value<DateTime?>? answeredAt,
@@ -463,6 +508,7 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     return PrayersCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      person: person ?? this.person,
       request: request ?? this.request,
       isAnswered: isAnswered ?? this.isAnswered,
       answeredAt: answeredAt ?? this.answeredAt,
@@ -480,6 +526,9 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (person.present) {
+      map['person'] = Variable<String>(person.value);
     }
     if (request.present) {
       map['request'] = Variable<String>(request.value);
@@ -507,6 +556,7 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     return (StringBuffer('PrayersCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('person: $person, ')
           ..write('request: $request, ')
           ..write('isAnswered: $isAnswered, ')
           ..write('answeredAt: $answeredAt, ')
@@ -1540,6 +1590,361 @@ class PrayerEventsCompanion extends UpdateCompanion<PrayerEvent> {
   }
 }
 
+class $CustomVersesTable extends CustomVerses
+    with TableInfo<$CustomVersesTable, CustomVerse> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CustomVersesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _refMeta = const VerificationMeta('ref');
+  @override
+  late final GeneratedColumn<String> ref = GeneratedColumn<String>(
+    'ref',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 80,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, ref, body, note, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'custom_verses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CustomVerse> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('ref')) {
+      context.handle(
+        _refMeta,
+        ref.isAcceptableOrUnknown(data['ref']!, _refMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_refMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CustomVerse map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CustomVerse(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      ref: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ref'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CustomVersesTable createAlias(String alias) {
+    return $CustomVersesTable(attachedDatabase, alias);
+  }
+}
+
+class CustomVerse extends DataClass implements Insertable<CustomVerse> {
+  final String id;
+  final String ref;
+
+  /// Exact Scripture wording (named `body` so it does not shadow Drift's `text()`).
+  final String body;
+  final String? note;
+  final DateTime createdAt;
+  const CustomVerse({
+    required this.id,
+    required this.ref,
+    required this.body,
+    this.note,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['ref'] = Variable<String>(ref);
+    map['body'] = Variable<String>(body);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CustomVersesCompanion toCompanion(bool nullToAbsent) {
+    return CustomVersesCompanion(
+      id: Value(id),
+      ref: Value(ref),
+      body: Value(body),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CustomVerse.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CustomVerse(
+      id: serializer.fromJson<String>(json['id']),
+      ref: serializer.fromJson<String>(json['ref']),
+      body: serializer.fromJson<String>(json['body']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'ref': serializer.toJson<String>(ref),
+      'body': serializer.toJson<String>(body),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CustomVerse copyWith({
+    String? id,
+    String? ref,
+    String? body,
+    Value<String?> note = const Value.absent(),
+    DateTime? createdAt,
+  }) => CustomVerse(
+    id: id ?? this.id,
+    ref: ref ?? this.ref,
+    body: body ?? this.body,
+    note: note.present ? note.value : this.note,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CustomVerse copyWithCompanion(CustomVersesCompanion data) {
+    return CustomVerse(
+      id: data.id.present ? data.id.value : this.id,
+      ref: data.ref.present ? data.ref.value : this.ref,
+      body: data.body.present ? data.body.value : this.body,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomVerse(')
+          ..write('id: $id, ')
+          ..write('ref: $ref, ')
+          ..write('body: $body, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, ref, body, note, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CustomVerse &&
+          other.id == this.id &&
+          other.ref == this.ref &&
+          other.body == this.body &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt);
+}
+
+class CustomVersesCompanion extends UpdateCompanion<CustomVerse> {
+  final Value<String> id;
+  final Value<String> ref;
+  final Value<String> body;
+  final Value<String?> note;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const CustomVersesCompanion({
+    this.id = const Value.absent(),
+    this.ref = const Value.absent(),
+    this.body = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CustomVersesCompanion.insert({
+    required String id,
+    required String ref,
+    required String body,
+    this.note = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       ref = Value(ref),
+       body = Value(body),
+       createdAt = Value(createdAt);
+  static Insertable<CustomVerse> custom({
+    Expression<String>? id,
+    Expression<String>? ref,
+    Expression<String>? body,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (ref != null) 'ref': ref,
+      if (body != null) 'body': body,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CustomVersesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? ref,
+    Value<String>? body,
+    Value<String?>? note,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return CustomVersesCompanion(
+      id: id ?? this.id,
+      ref: ref ?? this.ref,
+      body: body ?? this.body,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (ref.present) {
+      map['ref'] = Variable<String>(ref.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomVersesCompanion(')
+          ..write('id: $id, ')
+          ..write('ref: $ref, ')
+          ..write('body: $body, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1548,6 +1953,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PrayerTagsTable prayerTags = $PrayerTagsTable(this);
   late final $PrayerVersesTable prayerVerses = $PrayerVersesTable(this);
   late final $PrayerEventsTable prayerEvents = $PrayerEventsTable(this);
+  late final $CustomVersesTable customVerses = $CustomVersesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1558,6 +1964,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     prayerTags,
     prayerVerses,
     prayerEvents,
+    customVerses,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -1595,6 +2002,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$PrayersTableCreateCompanionBuilder = PrayersCompanion Function({
   Value<int> id,
   required String name,
+  Value<String> person,
   required String request,
   Value<bool> isAnswered,
   Value<DateTime?> answeredAt,
@@ -1605,6 +2013,7 @@ typedef $$PrayersTableCreateCompanionBuilder = PrayersCompanion Function({
 typedef $$PrayersTableUpdateCompanionBuilder = PrayersCompanion Function({
   Value<int> id,
   Value<String> name,
+  Value<String> person,
   Value<String> request,
   Value<bool> isAnswered,
   Value<DateTime?> answeredAt,
@@ -1688,6 +2097,11 @@ class $$PrayersTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get person => $composableBuilder(
+    column: $table.person,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1816,6 +2230,11 @@ class $$PrayersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get person => $composableBuilder(
+    column: $table.person,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get request => $composableBuilder(
     column: $table.request,
     builder: (column) => ColumnOrderings(column),
@@ -1861,6 +2280,9 @@ class $$PrayersTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get person =>
+      $composableBuilder(column: $table.person, builder: (column) => column);
 
   GeneratedColumn<String> get request =>
       $composableBuilder(column: $table.request, builder: (column) => column);
@@ -1996,6 +2418,7 @@ class $$PrayersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String> person = const Value.absent(),
                 Value<String> request = const Value.absent(),
                 Value<bool> isAnswered = const Value.absent(),
                 Value<DateTime?> answeredAt = const Value.absent(),
@@ -2005,6 +2428,7 @@ class $$PrayersTableTableManager
               }) => PrayersCompanion(
                 id: id,
                 name: name,
+                person: person,
                 request: request,
                 isAnswered: isAnswered,
                 answeredAt: answeredAt,
@@ -2016,6 +2440,7 @@ class $$PrayersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
+                Value<String> person = const Value.absent(),
                 required String request,
                 Value<bool> isAnswered = const Value.absent(),
                 Value<DateTime?> answeredAt = const Value.absent(),
@@ -2025,6 +2450,7 @@ class $$PrayersTableTableManager
               }) => PrayersCompanion.insert(
                 id: id,
                 name: name,
+                person: person,
                 request: request,
                 isAnswered: isAnswered,
                 answeredAt: answeredAt,
@@ -3291,6 +3717,215 @@ typedef $$PrayerEventsTableProcessedTableManager =
       PrayerEvent,
       PrefetchHooks Function({bool prayerId})
     >;
+typedef $$CustomVersesTableCreateCompanionBuilder =
+    CustomVersesCompanion Function({
+      required String id,
+      required String ref,
+      required String body,
+      Value<String?> note,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$CustomVersesTableUpdateCompanionBuilder =
+    CustomVersesCompanion Function({
+      Value<String> id,
+      Value<String> ref,
+      Value<String> body,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$CustomVersesTableFilterComposer
+    extends Composer<_$AppDatabase, $CustomVersesTable> {
+  $$CustomVersesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ref => $composableBuilder(
+    column: $table.ref,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CustomVersesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CustomVersesTable> {
+  $$CustomVersesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ref => $composableBuilder(
+    column: $table.ref,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CustomVersesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CustomVersesTable> {
+  $$CustomVersesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ref =>
+      $composableBuilder(column: $table.ref, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$CustomVersesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CustomVersesTable,
+          CustomVerse,
+          $$CustomVersesTableFilterComposer,
+          $$CustomVersesTableOrderingComposer,
+          $$CustomVersesTableAnnotationComposer,
+          $$CustomVersesTableCreateCompanionBuilder,
+          $$CustomVersesTableUpdateCompanionBuilder,
+          (
+            CustomVerse,
+            BaseReferences<_$AppDatabase, $CustomVersesTable, CustomVerse>,
+          ),
+          CustomVerse,
+          PrefetchHooks Function()
+        > {
+  $$CustomVersesTableTableManager(_$AppDatabase db, $CustomVersesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CustomVersesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CustomVersesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CustomVersesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> ref = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CustomVersesCompanion(
+                id: id,
+                ref: ref,
+                body: body,
+                note: note,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String ref,
+                required String body,
+                Value<String?> note = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CustomVersesCompanion.insert(
+                id: id,
+                ref: ref,
+                body: body,
+                note: note,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$CustomVersesTable, CustomVerse>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $CustomVersesTable,
+                    CustomVerse
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CustomVersesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CustomVersesTable,
+      CustomVerse,
+      $$CustomVersesTableFilterComposer,
+      $$CustomVersesTableOrderingComposer,
+      $$CustomVersesTableAnnotationComposer,
+      $$CustomVersesTableCreateCompanionBuilder,
+      $$CustomVersesTableUpdateCompanionBuilder,
+      (
+        CustomVerse,
+        BaseReferences<_$AppDatabase, $CustomVersesTable, CustomVerse>,
+      ),
+      CustomVerse,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3304,4 +3939,6 @@ class $AppDatabaseManager {
       $$PrayerVersesTableTableManager(_db, _db.prayerVerses);
   $$PrayerEventsTableTableManager get prayerEvents =>
       $$PrayerEventsTableTableManager(_db, _db.prayerEvents);
+  $$CustomVersesTableTableManager get customVerses =>
+      $$CustomVersesTableTableManager(_db, _db.customVerses);
 }

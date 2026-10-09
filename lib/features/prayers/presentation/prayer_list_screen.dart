@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-import '../../../app/app_config.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../../../core/utils/announce.dart';
+import '../application/prayer_counts_provider.dart';
 import '../application/prayer_list_notifier.dart';
 import '../application/prayer_list_state.dart';
 import '../domain/prayer.dart';
 import '../domain/sort_mode.dart';
+import 'filter_menu.dart';
+import 'intercession_checklist.dart';
+import 'journal_header.dart';
+import 'person_filter_menu.dart';
 import 'prayer_card.dart';
 import 'sort_bar.dart';
 
@@ -23,154 +27,191 @@ class PrayerListScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final listState = ref.watch(prayerListProvider);
     final notifier = ref.read(prayerListProvider.notifier);
-    final themeMode = ref.watch(themeModeProvider);
-    final today = DateFormat.yMMMMEEEEd().format(DateTime.now());
+    final counts =
+        ref.watch(prayerCountsProvider).valueOrNull ??
+        const PrayerCounts(active: 0, answered: 0);
+    final showHomeVerse = ref.watch(homeVerseVisibleProvider);
     final items = notifier.displayItems;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppConfig.appName),
+        toolbarHeight: 64,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Selah', style: theme.textTheme.titleLarge),
+            Text(
+              'seek, ask, knock...',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
         actions: [
-          PopupMenuButton<ThemeMode>(
-            tooltip: 'Theme',
-            icon: const Icon(Icons.brightness_6_outlined),
-            onSelected: (mode) =>
-                ref.read(themeModeProvider.notifier).setMode(mode),
-            itemBuilder: (context) => [
-              CheckedPopupMenuItem(
-                value: ThemeMode.system,
-                checked: themeMode == ThemeMode.system,
-                child: const Text('System'),
-              ),
-              CheckedPopupMenuItem(
-                value: ThemeMode.light,
-                checked: themeMode == ThemeMode.light,
-                child: const Text('Light'),
-              ),
-              CheckedPopupMenuItem(
-                value: ThemeMode.dark,
-                checked: themeMode == ThemeMode.dark,
-                child: const Text('Dark'),
-              ),
-            ],
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/prayers/new'),
         icon: const Icon(Icons.add),
-        label: const Text('Add prayer'),
+        label: const Text('Add petition'),
       ),
       body: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppTheme.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppTheme.maxContentWidth,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.screenPadding,
-                    AppTheme.screenPadding,
-                    AppTheme.screenPadding,
-                    0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                        header: true,
-                        child: Text('Today', style: theme.textTheme.headlineLarge),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(today, style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 16),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SegmentedButton<AnswerFilter>(
-                          segments: const [
-                            ButtonSegment(
-                              value: AnswerFilter.active,
-                              label: Text('Active'),
-                            ),
-                            ButtonSegment(
-                              value: AnswerFilter.answered,
-                              label: Text('Answered'),
-                            ),
-                            ButtonSegment(
-                              value: AnswerFilter.all,
-                              label: Text('All'),
-                            ),
-                          ],
-                          selected: {listState.filter},
-                          onSelectionChanged: (s) =>
-                              notifier.setFilter(s.first),
-                          showSelectedIcon: false,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SortBar(
-                        selected: listState.sortMode,
-                        onSelected: (mode) async {
-                          await notifier.setSortMode(mode);
-                          if (mode == SortMode.shuffle && context.mounted) {
-                            announceForAccessibility(context, 'List shuffled');
-                          }
-                        },
-                      ),
-                    ],
+                ColoredBox(
+                  color: theme.colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.screenPadding,
+                      8,
+                      AppTheme.screenPadding,
+                      0,
+                    ),
+                    child: JournalHeader(
+                      activeCount: counts.active,
+                      answeredCount: counts.answered,
+                      showMeditationVerse: false,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
                 Expanded(
-                  child: listState.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : listState.prayers.isEmpty
-                          ? _EmptyState(
-                              onAdd: () => context.push('/prayers/new'),
-                            )
-                          : AnimatedSwitcher(
-                              duration: motion(context),
-                              child: ListView.builder(
-                                key: ValueKey(
-                                  '${listState.sortMode}-${listState.reshuffleCount}-${listState.filter}',
-                                ),
-                                padding: const EdgeInsets.fromLTRB(
-                                  AppTheme.screenPadding,
-                                  8,
-                                  AppTheme.screenPadding,
-                                  100,
-                                ),
-                                itemCount: items.length,
-                                itemBuilder: (context, index) {
-                                  final item = items[index];
-                                  return switch (item) {
-                                    PrayerSectionHeader(:final title) => Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 12,
-                                          bottom: 8,
-                                        ),
-                                        child: Semantics(
-                                          header: true,
-                                          child: Text(
-                                            title,
-                                            style: theme.textTheme.labelLarge,
-                                          ),
-                                        ),
-                                      ),
-                                    PrayerListEntry(:final prayer) => Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: AppTheme.cardGap,
-                                        ),
-                                        child: _SwipeablePrayerCard(
-                                          prayer: prayer,
-                                        ),
-                                      ),
-                                  };
-                                },
-                              ),
+                  child: CustomScrollView(
+                    slivers: [
+                      if (showHomeVerse)
+                        const SliverPadding(
+                          padding: EdgeInsets.fromLTRB(
+                            AppTheme.screenPadding,
+                            16,
+                            AppTheme.screenPadding,
+                            0,
+                          ),
+                          sliver: SliverToBoxAdapter(
+                            child: JournalMeditationVerse(),
+                          ),
+                        ),
+                      PinnedHeaderSliver(
+                        child: ColoredBox(
+                          color: theme.colorScheme.surface,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppTheme.screenPadding,
+                              16,
+                              AppTheme.screenPadding,
+                              8,
                             ),
+                            child: Row(
+                              children: [
+                                FilterMenu(
+                                  selected: listState.filter,
+                                  onSelected: notifier.setFilter,
+                                ),
+                                const SizedBox(width: 8),
+                                PersonFilterMenu(
+                                  selected: listState.personFilter,
+                                  knownPersons: listState.knownPersons,
+                                  onSelected: notifier.setPersonFilter,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: SortBar(
+                                    selected: listState.sortMode,
+                                    onSelected: (mode) async {
+                                      await notifier.setSortMode(mode);
+                                      if (mode == SortMode.shuffle &&
+                                          context.mounted) {
+                                        announceForAccessibility(
+                                          context,
+                                          'List shuffled',
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (listState.isLoading)
+                        const SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else if (listState.prayers.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _EmptyState(
+                            onAdd: () => context.push('/prayers/new'),
+                          ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppTheme.screenPadding,
+                            8,
+                            AppTheme.screenPadding,
+                            100,
+                          ),
+                          sliver: SliverList(
+                            key: ValueKey(
+                              '${listState.sortMode}-${listState.reshuffleCount}-${listState.filter}-${listState.personFilter.value}',
+                            ),
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              if (index == items.length) {
+                                return IntercessionChecklist(
+                                  prayers: listState.prayers,
+                                );
+                              }
+                              final item = items[index];
+                              return switch (item) {
+                                PrayerSectionHeader(:final title) => Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 12,
+                                    bottom: 8,
+                                  ),
+                                  child: Semantics(
+                                    header: true,
+                                    child: Text(
+                                      title.toUpperCase(),
+                                      style: theme.textTheme.labelMedium
+                                          ?.copyWith(
+                                            letterSpacing: 1.0,
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                                PrayerListEntry(:final prayer) => Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppTheme.cardGap,
+                                  ),
+                                  child: _SwipeablePrayerCard(prayer: prayer),
+                                ),
+                              };
+                            }, childCount: items.length + 1),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -205,17 +246,28 @@ class _EmptyState extends StatelessWidget {
                     color: theme.colorScheme.primary,
                   ),
                   const SizedBox(height: 16),
-                  Text('Nothing here yet', style: theme.textTheme.titleLarge),
+                  Text(
+                    'Begin with a petition',
+                    style: theme.textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 8),
                   Text(
-                    'Add a prayer request and we will suggest promises to pray with it.',
+                    'Add who you are praying for. Selah will suggest promises '
+                    'from Scripture to pray with them.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'SELAH · Pause, Reflect, Meditate',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      letterSpacing: 0.8,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: onAdd,
-                    child: const Text('Add your first prayer'),
+                    child: const Text('Add your first petition'),
                   ),
                 ],
               ),
@@ -254,6 +306,7 @@ class _SwipeablePrayerCard extends ConsumerWidget {
 
     final snapshot = NewPrayer(
       name: prayer.name,
+      person: prayer.person,
       request: prayer.request,
       tags: prayer.tags,
       verseIds: prayer.verseIds,
@@ -272,14 +325,13 @@ class _SwipeablePrayerCard extends ConsumerWidget {
         action: SnackBarAction(
           label: 'Undo',
           onPressed: () async {
-            final id =
-                await ref.read(prayerRepositoryProvider).createPrayer(snapshot);
+            final id = await ref
+                .read(prayerRepositoryProvider)
+                .createPrayer(snapshot);
             if (wasAnswered) {
-              await ref.read(prayerRepositoryProvider).setAnswered(
-                    id,
-                    answered: true,
-                    note: note,
-                  );
+              await ref
+                  .read(prayerRepositoryProvider)
+                  .setAnswered(id, answered: true, note: note);
             }
           },
         ),
@@ -344,14 +396,19 @@ class _SwipeablePrayerCard extends ConsumerWidget {
         key: Key('visibility-prayer-${prayer.id}'),
         onVisibilityChanged: (info) {
           if (!context.mounted) return;
-          ref.read(eventLoggerProvider).onVisibilityChanged(
-                prayer.id,
-                info.visibleFraction,
-              );
+          ref
+              .read(eventLoggerProvider)
+              .onVisibilityChanged(prayer.id, info.visibleFraction);
         },
         child: PrayerCard(
           prayer: prayer,
           onTap: () => context.push('/prayers/${prayer.id}'),
+          onPrayed: () async {
+            HapticFeedback.lightImpact();
+            await ref.read(eventLoggerProvider).prayed(prayer.id);
+            if (!context.mounted) return;
+            announceForAccessibility(context, 'Prayed');
+          },
           onMarkAnswered: () => _toggleAnswered(context, ref),
           onDelete: () => _confirmDelete(context, ref),
         ),

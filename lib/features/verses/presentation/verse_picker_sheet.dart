@@ -5,6 +5,7 @@ import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../application/verse_suggest_notifier.dart';
 import '../domain/verse.dart';
+import 'add_custom_verse_sheet.dart';
 
 Future<Set<String>?> showVersePickerSheet({
   required BuildContext context,
@@ -38,24 +39,51 @@ class VersePickerSheet extends ConsumerStatefulWidget {
 
 class _VersePickerSheetState extends ConsumerState<VersePickerSheet> {
   late Set<String> _selected;
+  final Map<String, Verse> _cache = {};
 
   @override
   void initState() {
     super.initState();
     _selected = Set.of(widget.initialSelected);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final verses =
+          await ref.read(verseCatalogProvider).byIds(_selected.toList());
+      for (final v in verses) {
+        _cache[v.id] = v;
+      }
+      if (mounted) setState(() {});
       ref.read(verseSuggestProvider.notifier).refresh(widget.requestText);
     });
+  }
+
+  Future<void> _addCustom() async {
+    final verse = await showAddCustomVerseSheet(context);
+    if (verse == null || !mounted) return;
+    setState(() {
+      _cache[verse.id] = verse;
+      _selected.add(verse.id);
+    });
+  }
+
+  List<Verse> _versesForDisplay(List<Verse> suggestions) {
+    final suggestionIds = suggestions.map((v) => v.id).toSet();
+    for (final v in suggestions) {
+      _cache[v.id] = v;
+    }
+    final pinned = <Verse>[];
+    for (final id in _selected) {
+      if (!suggestionIds.contains(id) && _cache[id] != null) {
+        pinned.add(_cache[id]!);
+      }
+    }
+    return [...pinned, ...suggestions];
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final suggest = ref.watch(verseSuggestProvider);
-    final suggester = ref.watch(verseSuggesterProvider);
-    final selectedVerses = suggester.byIds(_selected.toList());
-    final suggestionIds = suggest.suggestions.map((v) => v.id).toSet();
-    final extras = selectedVerses.where((v) => !suggestionIds.contains(v.id));
+    final display = _versesForDisplay(suggest.suggestions);
 
     return DraggableScrollableSheet(
       expand: false,
@@ -67,18 +95,33 @@ class _VersePickerSheetState extends ConsumerState<VersePickerSheet> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Text(
-                      'Verses to pray',
-                      style: theme.textTheme.titleLarge,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Verses to pray',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(verseSuggestProvider.notifier).refresh(),
+                        child: const Text('Refresh'),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () =>
-                        ref.read(verseSuggestProvider.notifier).refresh(),
-                    child: const Text('Refresh suggestions'),
+                  Text(
+                    'Pray God’s promises and answered prayers from Scripture.',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _addCustom,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add my own verse'),
                   ),
                 ],
               ),
@@ -94,7 +137,7 @@ class _VersePickerSheetState extends ConsumerState<VersePickerSheet> {
                       child: Center(child: CircularProgressIndicator()),
                     )
                   else ...[
-                    for (final verse in [...extras, ...suggest.suggestions])
+                    for (final verse in display)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: VerseSelectCard(
@@ -104,6 +147,7 @@ class _VersePickerSheetState extends ConsumerState<VersePickerSheet> {
                             setState(() {
                               if (value) {
                                 _selected.add(verse.id);
+                                _cache[verse.id] = verse;
                               } else {
                                 _selected.remove(verse.id);
                               }
@@ -111,11 +155,10 @@ class _VersePickerSheetState extends ConsumerState<VersePickerSheet> {
                           },
                         ),
                       ),
-                    if (!suggest.isLoading &&
-                        suggest.suggestions.isEmpty &&
-                        extras.isEmpty)
+                    if (!suggest.isLoading && display.isEmpty)
                       Text(
-                        'Keep writing your request (at least 8 characters) to see suggestions.',
+                        'Keep writing your request (at least 8 characters) for suggestions, '
+                        'or add a Scripture promise yourself.',
                         style: theme.textTheme.bodyMedium,
                       ),
                   ],

@@ -39,9 +39,11 @@ class PrayerListNotifier extends StateNotifier<PrayerListState> {
 
   void _subscribe() {
     _sub?.cancel();
-    _sub = _repo.watchPrayers(filter: state.filter).listen((prayers) {
+    _sub = _repo.watchPrayers(filter: state.filter).listen((prayers) async {
       _raw = prayers;
-      _recompute();
+      final persons = await _repo.allPersonNames();
+      if (!mounted) return;
+      _recompute(knownPersons: persons);
     });
   }
 
@@ -49,6 +51,12 @@ class PrayerListNotifier extends StateNotifier<PrayerListState> {
     if (filter == state.filter) return;
     state = state.copyWith(filter: filter, isLoading: true);
     _subscribe();
+  }
+
+  void setPersonFilter(PersonFilter filter) {
+    if (filter == state.personFilter) return;
+    state = state.copyWith(personFilter: filter);
+    _recompute();
   }
 
   Future<void> setSortMode(SortMode mode) async {
@@ -87,7 +95,7 @@ class PrayerListNotifier extends StateNotifier<PrayerListState> {
     return state.prayers.map(PrayerListEntry.new).toList();
   }
 
-  void _recompute() {
+  void _recompute({List<String>? knownPersons}) {
     final today = _dateOnly(_clock.now());
     var reshuffleCount = state.reshuffleCount;
     var seedDay = state.seedDay ?? today;
@@ -96,8 +104,11 @@ class PrayerListNotifier extends StateNotifier<PrayerListState> {
       reshuffleCount = 0;
     }
 
+    final personFiltered =
+        _raw.where(state.personFilter.matches).toList(growable: false);
+
     final sorted = sortPrayers(
-      _raw,
+      personFiltered,
       mode: state.sortMode,
       seed: dailyShuffleSeed(seedDay, reshuffleCount),
     );
@@ -107,6 +118,7 @@ class PrayerListNotifier extends StateNotifier<PrayerListState> {
       reshuffleCount: reshuffleCount,
       seedDay: seedDay,
       isLoading: false,
+      knownPersons: knownPersons,
     );
   }
 

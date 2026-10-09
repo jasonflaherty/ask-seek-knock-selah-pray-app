@@ -5,15 +5,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../features/analytics/application/event_logger.dart';
 import '../features/prayers/data/drift_prayer_repository.dart';
 import '../features/prayers/domain/prayer_repository.dart';
+import '../features/verses/data/drift_custom_verse_repository.dart';
 import '../features/verses/data/keyword_verse_suggester.dart';
+import '../features/verses/data/strategy_verse_suggester.dart';
 import '../features/verses/data/text_normalizer.dart';
 import '../features/verses/data/verse_asset_loader.dart';
+import '../features/verses/domain/custom_verse_repository.dart';
+import '../features/verses/domain/verse_catalog.dart';
 import '../features/verses/domain/verse_suggester.dart';
 import 'db/app_database.dart';
 import 'utils/clock.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('sharedPreferencesProvider must be overridden in main');
+  throw UnimplementedError(
+    'sharedPreferencesProvider must be overridden in main',
+  );
 });
 
 final clockProvider = Provider<Clock>((ref) => const SystemClock());
@@ -45,13 +51,35 @@ final verseDatasetProvider = Provider<VerseDataset>((ref) {
 final verseSuggesterProvider = Provider<VerseSuggester>((ref) {
   final dataset = ref.watch(verseDatasetProvider);
   final normalizer = TextNormalizer(dataset.synonyms);
-  return KeywordVerseSuggester(dataset, normalizer);
+  final keywords = KeywordVerseSuggester(dataset, normalizer);
+  return StrategyVerseSuggester(keywords, dataset.strategies);
 });
 
-final themeModeProvider =
-    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+final customVerseRepositoryProvider = Provider<CustomVerseRepository>((ref) {
+  return DriftCustomVerseRepository(
+    ref.watch(databaseProvider),
+    ref.watch(clockProvider),
+  );
+});
+
+final verseCatalogProvider = Provider<VerseCatalog>((ref) {
+  return VerseCatalog(
+    suggester: ref.watch(verseSuggesterProvider),
+    custom: ref.watch(customVerseRepositoryProvider),
+  );
+});
+
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
+  ref,
+) {
   return ThemeModeNotifier(ref.watch(sharedPreferencesProvider));
 });
+
+/// Whether the home-screen meditation verse banner is shown.
+final homeVerseVisibleProvider =
+    StateNotifierProvider<HomeVerseVisibleNotifier, bool>((ref) {
+      return HomeVerseVisibleNotifier(ref.watch(sharedPreferencesProvider));
+    });
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier(this._prefs) : super(_read(_prefs));
@@ -78,5 +106,17 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
       ThemeMode.system => 'system',
     };
     await _prefs.setString(_key, value);
+  }
+}
+
+class HomeVerseVisibleNotifier extends StateNotifier<bool> {
+  HomeVerseVisibleNotifier(this._prefs) : super(_prefs.getBool(_key) ?? true);
+
+  static const _key = 'home_verse_visible';
+  final SharedPreferences _prefs;
+
+  Future<void> setVisible(bool visible) async {
+    state = visible;
+    await _prefs.setBool(_key, visible);
   }
 }

@@ -10,4 +10,7 @@ abstract class PrayerRepository {
   Future<void> setAnswered(int id, {required bool answered, String? note});
   Future<void> logEvent(int prayerId, PrayerEventType type);
   Future<List<String>> allTagLabels();
+
+  /// Distinct person labels, sorted case-insensitively (excludes empty).
+  Future<List<String>> allPersonNames();
 }

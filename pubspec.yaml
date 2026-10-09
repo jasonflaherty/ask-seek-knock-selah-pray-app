@@ -19,6 +19,9 @@ dependencies:
   visibility_detector: ^0.4.0
   intl: ^0.19.0
   shared_preferences: ^2.3.0
+  share_plus: ^13.3.1
+  file_picker: ^13.1.0
+  pdf: ^3.13.1
 
 dev_dependencies:
   flutter_test:
@@ -27,12 +30,22 @@ dev_dependencies:
   build_runner: ^2.4.0
   drift_dev: ^2.35.0
   mocktail: ^1.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/selah_icon_1024.png
+  adaptive_icon_background: "#C9A227"
+  adaptive_icon_foreground: assets/branding/selah_icon_1024.png
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/verses/
+    - assets/branding/
 
   fonts:
     - family: AtkinsonHyperlegible

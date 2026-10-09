@@ -24,13 +24,16 @@ class AddEditPrayerScreen extends ConsumerStatefulWidget {
 
 class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _tagInputKey = GlobalKey<TagInputState>();
   final _nameController = TextEditingController();
+  final _personController = TextEditingController();
   final _requestController = TextEditingController();
   final _answerNoteController = TextEditingController();
 
   List<String> _tags = [];
   List<String> _verseIds = [];
   List<String> _suggestions = [];
+  List<String> _personSuggestions = [];
   bool _isAnswered = false;
   bool _loading = true;
   bool _dirty = false;
@@ -47,10 +50,12 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
   Future<void> _bootstrap() async {
     final repo = ref.read(prayerRepositoryProvider);
     _suggestions = await repo.allTagLabels();
+    _personSuggestions = await repo.allPersonNames();
     if (widget.prayerId != null) {
       final prayer = await repo.getPrayer(widget.prayerId!);
       if (prayer != null && mounted) {
         _nameController.text = prayer.name;
+        _personController.text = prayer.person;
         _requestController.text = prayer.request;
         _tags = List.of(prayer.tags);
         _verseIds = List.of(prayer.verseIds);
@@ -64,6 +69,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _personController.dispose();
     _requestController.dispose();
     _answerNoteController.dispose();
     super.dispose();
@@ -84,17 +90,22 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
   }
 
   Future<void> _save() async {
+    // Commit any tag still sitting in the text field (not yet chipped).
+    _tagInputKey.currentState?.commitPending();
     if (!_validate()) return;
     setState(() => _saving = true);
     final repo = ref.read(prayerRepositoryProvider);
+    final tags = List<String>.of(_tags);
     try {
+      final person = normalizePerson(_personController.text);
       if (widget.isEditing) {
         await repo.updatePrayer(
           widget.prayerId!,
           PrayerUpdate(
             name: _nameController.text.trim(),
+            person: person,
             request: _requestController.text.trim(),
-            tags: _tags,
+            tags: tags,
             verseIds: _verseIds,
             isAnswered: _isAnswered,
             answeredNote:
@@ -106,8 +117,9 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
         await repo.createPrayer(
           NewPrayer(
             name: _nameController.text.trim(),
+            person: person,
             request: _requestController.text.trim(),
-            tags: _tags,
+            tags: tags,
             verseIds: _verseIds,
           ),
         );
@@ -177,13 +189,13 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Text('Name', style: theme.textTheme.labelLarge),
+                                Text('Title', style: theme.textTheme.labelLarge),
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: _nameController,
                                   maxLength: 100,
                                   decoration: InputDecoration(
-                                    labelText: 'Who or what is this for?',
+                                    labelText: 'Short title for this prayer',
                                     errorText: _nameError,
                                     errorStyle: theme.textTheme.bodySmall
                                         ?.copyWith(
@@ -202,6 +214,50 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                                     liveRegion: true,
                                     child: const SizedBox.shrink(),
                                   ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Who is this for?',
+                                  style: theme.textTheme.labelLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: _personController,
+                                  maxLength: 100,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Person (optional)',
+                                    hintText: 'Mom, neighbor, myself…',
+                                  ),
+                                  onChanged: (_) {
+                                    _markDirty();
+                                    setState(() {});
+                                  },
+                                ),
+                                if (_personSuggestions.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      for (final name in _personSuggestions
+                                          .where(
+                                            (p) =>
+                                                p.toLowerCase() !=
+                                                normalizePerson(
+                                                  _personController.text,
+                                                ).toLowerCase(),
+                                          )
+                                          .take(8))
+                                        ActionChip(
+                                          label: Text(name),
+                                          onPressed: () {
+                                            _personController.text = name;
+                                            _markDirty();
+                                            setState(() {});
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                ],
                                 const SizedBox(height: 16),
                                 Text(
                                   'Prayer request',
@@ -229,6 +285,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                                 ),
                                 const SizedBox(height: 20),
                                 TagInput(
+                                  key: _tagInputKey,
                                   tags: _tags,
                                   suggestions: _suggestions,
                                   onChanged: (tags) {

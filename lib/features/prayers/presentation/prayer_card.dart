@@ -1,40 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/providers.dart';
 import '../domain/prayer.dart';
 
-class PrayerCard extends StatelessWidget {
+class PrayerCard extends ConsumerWidget {
   const PrayerCard({
     super.key,
     required this.prayer,
     required this.onTap,
+    required this.onPrayed,
     required this.onMarkAnswered,
     required this.onDelete,
   });
 
   final Prayer prayer;
   final VoidCallback onTap;
+  final VoidCallback onPrayed;
   final VoidCallback onMarkAnswered;
   final VoidCallback onDelete;
 
+  /// Person/focus first (PDF style); fall back to title.
+  String get _focus => prayer.hasPerson ? prayer.person : prayer.name;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final preview = prayer.request.length > 80
-        ? '${prayer.request.substring(0, 80)}…'
+    final statusLabel = prayer.isAnswered
+        ? 'ANSWERED PRAISE'
+        : 'ACTIVE PETITION';
+    final preview = prayer.request.length > 160
+        ? '${prayer.request.substring(0, 160)}…'
         : prayer.request;
-    final tagText = prayer.tags.isEmpty ? '' : prayer.tags.join(', ');
-    final status = prayer.isAnswered ? 'Answered' : 'Active';
+
+    final verseRefs = ref
+        .watch(verseSuggesterProvider)
+        .byIds(prayer.verseIds)
+        .map((v) => v.ref)
+        .toList();
+
     final label =
-        '${prayer.name}. $preview. ${prayer.verseIds.length} verses. $tagText. $status.';
+        '$_focus. $statusLabel. $preview. ${verseRefs.join(', ')}. Private.';
 
     return Semantics(
       container: true,
       button: true,
       label: label,
       customSemanticsActions: {
+        const CustomSemanticsAction(label: 'Prayed'): onPrayed,
         if (!prayer.isAnswered)
           const CustomSemanticsAction(label: 'Mark answered'): onMarkAnswered,
         const CustomSemanticsAction(label: 'Delete'): onDelete,
@@ -45,114 +61,268 @@ class PrayerCard extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(AppTheme.cardPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        prayer.name,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ),
-                    PopupMenuButton<String>(
-                      tooltip: 'Prayer actions',
-                      onSelected: (value) {
-                        if (value == 'answered') onMarkAnswered();
-                        if (value == 'delete') onDelete();
-                      },
-                      itemBuilder: (context) => [
-                        if (!prayer.isAnswered)
-                          const PopupMenuItem(
-                            value: 'answered',
-                            child: Text('Mark answered'),
-                          ),
-                        if (prayer.isAnswered)
-                          const PopupMenuItem(
-                            value: 'answered',
-                            child: Text('Mark unanswered'),
-                          ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Delete'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  prayer.request,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                if (prayer.tags.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final tag in prayer.tags)
-                        Chip(
-                          label: Text(tag),
-                          visualDensity: VisualDensity.compact,
-                          materialTapTargetSize: MaterialTapTargetSize.padded,
-                        ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.menu_book_outlined,
-                      size: 20,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${prayer.verseIds.length} verses',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const Spacer(),
-                    if (prayer.isAnswered)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: palette.answeredBadgeBg,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.controlRadius),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.check_circle_outline,
-                              size: 18,
-                              color: palette.answeredBadgeFg,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _focus,
+                                  style: theme.textTheme.titleMedium,
+                                ),
+                                if (prayer.hasPerson &&
+                                    prayer.name.trim().toLowerCase() !=
+                                        prayer.person.trim().toLowerCase()) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    prayer.name,
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ],
+                              ],
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Answered',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: palette.answeredBadgeFg,
+                          ),
+                          const SizedBox(width: 8),
+                          _StatusBadge(
+                            answered: prayer.isAnswered,
+                            label: statusLabel,
+                          ),
+                          PopupMenuButton<String>(
+                            tooltip: 'Prayer actions',
+                            padding: EdgeInsets.zero,
+                            onSelected: (value) {
+                              if (value == 'answered') onMarkAnswered();
+                              if (value == 'delete') onDelete();
+                            },
+                            itemBuilder: (context) => [
+                              if (!prayer.isAnswered)
+                                const PopupMenuItem(
+                                  value: 'answered',
+                                  child: Text('Mark answered'),
+                                ),
+                              if (prayer.isAnswered)
+                                const PopupMenuItem(
+                                  value: 'answered',
+                                  child: Text('Mark unanswered'),
+                                ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete'),
                               ),
-                            ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        '"$preview"',
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontFamily: AppTheme.scriptureFont,
+                          fontStyle: FontStyle.italic,
+                          height: 1.45,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      if (verseRefs.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 6,
+                          children: [
+                            for (final refText in verseRefs.take(3))
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.menu_book_outlined,
+                                    size: 16,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    refText,
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            if (verseRefs.length > 3)
+                              Text(
+                                '+${verseRefs.length - 3} more',
+                                style: theme.textTheme.bodySmall,
+                              ),
                           ],
                         ),
-                      ),
-                  ],
+                      ],
+                      if (prayer.isAnswered &&
+                          prayer.answeredNote != null &&
+                          prayer.answeredNote!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: palette.answeredBadgeBg.withValues(
+                              alpha: 0.45,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.chipRadius,
+                            ),
+                          ),
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Praise Answer: ',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: palette.answeredBadgeFg,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: prayer.answeredNote!.trim(),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (prayer.tags.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final tag in prayer.tags)
+                              Chip(
+                                label: Text(tag),
+                                visualDensity: VisualDensity.compact,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 12),
+                PrayedButton(onPressed: onPrayed),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class PrayedButton extends StatefulWidget {
+  const PrayedButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  State<PrayedButton> createState() => _PrayedButtonState();
+}
+
+class _PrayedButtonState extends State<PrayedButton> {
+  bool _justPrayed = false;
+
+  Future<void> _press() async {
+    setState(() => _justPrayed = true);
+    widget.onPressed();
+    await Future<void>.delayed(const Duration(seconds: 2));
+    if (mounted) setState(() => _justPrayed = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    final color = _justPrayed
+        ? palette.answeredBadgeFg
+        : theme.colorScheme.primary;
+
+    return IconButton(
+      tooltip: 'Prayed',
+      onPressed: _press,
+      style: IconButton.styleFrom(
+        fixedSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
+        minimumSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
+        maximumSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.standard,
+        backgroundColor: _justPrayed
+            ? palette.answeredBadgeBg
+            : palette.selectedItemBg,
+        foregroundColor: color,
+        side: BorderSide(
+          color: _justPrayed
+              ? palette.answeredBadgeFg
+              : theme.colorScheme.primary,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+        ),
+      ),
+      icon: Icon(_justPrayed ? Icons.check : Icons.favorite_outline, size: 20),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.answered, required this.label});
+
+  final bool answered;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    final bg = answered ? palette.answeredBadgeBg : palette.selectedItemBg;
+    final fg = answered ? palette.answeredBadgeFg : theme.colorScheme.primary;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (answered) ...[
+            Icon(Icons.check, size: 14, color: fg),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: fg,
+              letterSpacing: 0.4,
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }

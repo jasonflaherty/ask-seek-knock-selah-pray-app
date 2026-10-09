@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../app/theme.dart';
 
@@ -15,10 +16,10 @@ class TagInput extends StatefulWidget {
   final ValueChanged<List<String>> onChanged;
 
   @override
-  State<TagInput> createState() => _TagInputState();
+  State<TagInput> createState() => TagInputState();
 }
 
-class _TagInputState extends State<TagInput> {
+class TagInputState extends State<TagInput> {
   final _controller = TextEditingController();
   final _focus = FocusNode();
 
@@ -29,36 +30,50 @@ class _TagInputState extends State<TagInput> {
     super.dispose();
   }
 
+  /// Commits any text still in the field (e.g. before Save).
+  void commitPending() {
+    final raw = _controller.text;
+    if (raw.trim().isEmpty) return;
+    _add(raw);
+  }
+
   void _add(String raw) {
     final label = raw.trim().replaceAll(RegExp(r'\s+'), ' ');
     if (label.isEmpty) return;
-    final exists = widget.tags.any((t) => t.toLowerCase() == label.toLowerCase());
+    if (label.length > 40) return;
+    final exists =
+        widget.tags.any((t) => t.toLowerCase() == label.toLowerCase());
     if (exists) {
       _controller.clear();
+      setState(() {});
       return;
     }
     widget.onChanged([...widget.tags, label]);
     _controller.clear();
+    setState(() {});
   }
 
   void _remove(String tag) {
     widget.onChanged(widget.tags.where((t) => t != tag).toList());
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final filtered = widget.suggestions
+  List<String> get _availableSuggestions {
+    final q = _controller.text.trim().toLowerCase();
+    return widget.suggestions
         .where((s) {
-          final q = _controller.text.trim().toLowerCase();
-          if (q.isEmpty) return false;
           if (widget.tags.any((t) => t.toLowerCase() == s.toLowerCase())) {
             return false;
           }
+          if (q.isEmpty) return true;
           return s.toLowerCase().contains(q);
         })
-        .take(6)
         .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final available = _availableSuggestions;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,28 +97,59 @@ class _TagInputState extends State<TagInput> {
           ),
           const SizedBox(height: 12),
         ],
-        TextField(
-          controller: _controller,
-          focusNode: _focus,
-          textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(
-            labelText: 'Add a tag',
-            hintText: 'family, healing…',
-          ),
-          onChanged: (_) => setState(() {}),
-          onSubmitted: _add,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                focusNode: _focus,
+                textInputAction: TextInputAction.done,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(40),
+                ],
+                decoration: const InputDecoration(
+                  labelText: 'Add a tag',
+                  hintText: 'family, healing…',
+                ),
+                onChanged: (_) => setState(() {}),
+                onSubmitted: _add,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: IconButton.filled(
+                tooltip: 'Add tag',
+                onPressed: () => _add(_controller.text),
+                icon: const Icon(Icons.add),
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(
+                    AppTheme.minTapTarget,
+                    AppTheme.minTapTarget,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        if (filtered.isNotEmpty) ...[
+        if (available.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            'Tap to add',
+            style: theme.textTheme.bodySmall,
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final s in filtered)
+              for (final s in available)
                 ActionChip(
                   label: Text(s),
                   onPressed: () => _add(s),
                   backgroundColor: context.palette.selectedItemBg,
+                  side: BorderSide(color: theme.colorScheme.outline),
                 ),
             ],
           ),

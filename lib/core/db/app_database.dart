@@ -9,7 +9,9 @@ import 'tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Prayers, Tags, PrayerTags, PrayerVerses, PrayerEvents])
+@DriftDatabase(
+  tables: [Prayers, Tags, PrayerTags, PrayerVerses, PrayerEvents, CustomVerses],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
@@ -17,7 +19,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -25,7 +27,12 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (Migrator m, int from, int to) async {
-          // Future migrations go here. Never wipe user data.
+          if (from < 2) {
+            await m.createTable(customVerses);
+          }
+          if (from < 3) {
+            await m.addColumn(prayers, prayers.person);
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');

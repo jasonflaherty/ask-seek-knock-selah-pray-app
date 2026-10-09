@@ -15,18 +15,20 @@ class SelahPalette extends ThemeExtension<SelahPalette> {
   final Color selectedItemBg;
   final Color verseSurface;
 
+  /// Liturgical gold badge; cool selected wash.
   static const light = SelahPalette(
-    answeredBadgeBg: Color(0xFFFBEBC8),
-    answeredBadgeFg: Color(0xFF5C3D00),
-    selectedItemBg: Color(0xFFE4F1F6),
-    verseSurface: Color(0xFFF3F0EA),
+    answeredBadgeBg: Color(0xFFE8D5A3),
+    answeredBadgeFg: Color(0xFF3D2E0A),
+    selectedItemBg: Color(0xFFE8EEF5),
+    verseSurface: Color(0xFFF5F2EB),
   );
 
+  /// Deep wine + gold for answered state in dark mode.
   static const dark = SelahPalette(
-    answeredBadgeBg: Color(0xFF3E3112),
+    answeredBadgeBg: Color(0xFF5C2814),
     answeredBadgeFg: Color(0xFFF5D78E),
-    selectedItemBg: Color(0xFF1F3A47),
-    verseSurface: Color(0xFF161A22),
+    selectedItemBg: Color(0xFF243044),
+    verseSurface: Color(0xFF141A24),
   );
 
   @override
@@ -72,38 +74,40 @@ abstract final class AppTheme {
   static const String uiFont = 'AtkinsonHyperlegible';
   static const String scriptureFont = 'Lora';
 
-  static const double cardRadius = 20;
-  static const double controlRadius = 14;
+  /// Tighter radii for a modern, crisp UI (still ≥ 8 for touch affordance).
+  static const double cardRadius = 12;
+  static const double controlRadius = 8;
+  static const double chipRadius = 6;
   static const double screenPadding = 20;
-  static const double cardPadding = 20;
-  static const double cardGap = 12;
+  static const double cardPadding = 16;
+  static const double cardGap = 10;
   static const double maxContentWidth = 640;
-  static const double buttonHeight = 52;
+  static const double buttonHeight = 48;
   static const double minTapTarget = 48;
 
-  // Light tokens
-  static const Color lightSurface = Color(0xFFFBF8F3);
+  // Light — Byzantine blue on cooler parchment
+  static const Color lightSurface = Color(0xFFF7F5F0);
   static const Color lightCard = Color(0xFFFFFFFF);
-  static const Color lightOnSurface = Color(0xFF1E2330);
-  static const Color lightOnSurfaceVariant = Color(0xFF4A5060);
-  static const Color lightPrimary = Color(0xFF1D5C73);
+  static const Color lightOnSurface = Color(0xFF1A1F2E);
+  static const Color lightOnSurfaceVariant = Color(0xFF4A5163);
+  static const Color lightPrimary = Color(0xFF1A3A5C);
   static const Color lightOnPrimary = Color(0xFFFFFFFF);
-  static const Color lightOutline = Color(0xFF757B89);
-  static const Color lightOutlineVariant = Color(0xFFC8CCD4);
+  static const Color lightOutline = Color(0xFF6B7280);
+  static const Color lightOutlineVariant = Color(0xFFD4D0C8);
   static const Color lightError = Color(0xFFB3261E);
   static const Color lightOnError = Color(0xFFFFFFFF);
   static const Color lightErrorContainer = Color(0xFFF9DEDC);
   static const Color lightOnErrorContainer = Color(0xFF410E0B);
 
-  // Dark tokens
-  static const Color darkSurface = Color(0xFF12151C);
-  static const Color darkCard = Color(0xFF1B1F29);
-  static const Color darkOnSurface = Color(0xFFECEEF3);
-  static const Color darkOnSurfaceVariant = Color(0xFFB4BAC8);
-  static const Color darkPrimary = Color(0xFF8FCBE0);
-  static const Color darkOnPrimary = Color(0xFF08303E);
-  static const Color darkOutline = Color(0xFF8C93A3);
-  static const Color darkOutlineVariant = Color(0xFF3A4050);
+  // Dark — deep navy with liturgical gold
+  static const Color darkSurface = Color(0xFF0F141E);
+  static const Color darkCard = Color(0xFF1A2230);
+  static const Color darkOnSurface = Color(0xFFECE8DC);
+  static const Color darkOnSurfaceVariant = Color(0xFFB4B0A4);
+  static const Color darkPrimary = Color(0xFFD4AF37);
+  static const Color darkOnPrimary = Color(0xFF1A1408);
+  static const Color darkOutline = Color(0xFF8C887C);
+  static const Color darkOutlineVariant = Color(0xFF2E3644);
   static const Color darkError = Color(0xFFF2B8B5);
   static const Color darkOnError = Color(0xFF601410);
   static const Color darkErrorContainer = Color(0xFF8C1D18);
@@ -182,6 +186,7 @@ abstract final class AppTheme {
     );
 
     final textTheme = _textTheme(onSurface, onSurfaceVariant);
+    final hairline = BorderSide(color: outlineVariant, width: 1);
 
     return ThemeData(
       useMaterial3: true,
@@ -192,6 +197,7 @@ abstract final class AppTheme {
       textTheme: textTheme,
       primaryTextTheme: textTheme,
       extensions: [palette],
+      visualDensity: VisualDensity.standard,
       appBarTheme: AppBarTheme(
         backgroundColor: surface,
         foregroundColor: onSurface,
@@ -199,6 +205,7 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: textTheme.titleLarge,
+        titleSpacing: 16,
       ),
       cardTheme: CardThemeData(
         color: card,
@@ -206,12 +213,13 @@ abstract final class AppTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cardRadius),
-          side: BorderSide(color: outlineVariant),
+          side: hairline,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(minTapTarget, buttonHeight),
+          elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(controlRadius),
           ),
@@ -221,7 +229,7 @@ abstract final class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(minTapTarget, buttonHeight),
-          side: BorderSide(color: outline),
+          side: BorderSide(color: outline, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(controlRadius),
           ),
@@ -241,6 +249,9 @@ abstract final class AppTheme {
         backgroundColor: primary,
         foregroundColor: onPrimary,
         elevation: 0,
+        focusElevation: 0,
+        hoverElevation: 0,
+        highlightElevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(controlRadius),
         ),
@@ -249,26 +260,26 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: card,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(controlRadius),
-          borderSide: BorderSide(color: outline),
+          borderSide: BorderSide(color: outline, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(controlRadius),
-          borderSide: BorderSide(color: outline),
+          borderSide: BorderSide(color: outline, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(controlRadius),
-          borderSide: BorderSide(color: primary, width: 3),
+          borderSide: BorderSide(color: primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(controlRadius),
-          borderSide: BorderSide(color: error),
+          borderSide: BorderSide(color: error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(controlRadius),
-          borderSide: BorderSide(color: error, width: 3),
+          borderSide: BorderSide(color: error, width: 2),
         ),
         labelStyle: textTheme.labelLarge,
         floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -276,25 +287,34 @@ abstract final class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: card,
         selectedColor: palette.selectedItemBg,
-        side: BorderSide(color: outline),
+        side: BorderSide(color: outline, width: 1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(controlRadius),
+          borderRadius: BorderRadius.circular(chipRadius),
         ),
-        labelStyle: textTheme.labelLarge,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        labelStyle: textTheme.labelMedium,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(controlRadius),
+          side: hairline,
         ),
       ),
-      dividerTheme: DividerThemeData(color: outlineVariant, thickness: 1),
+      dividerTheme: DividerThemeData(
+        color: outlineVariant,
+        thickness: 1,
+        space: 1,
+      ),
       listTileTheme: ListTileThemeData(
-        minVerticalPadding: 12,
+        minVerticalPadding: 10,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         titleTextStyle: textTheme.titleMedium,
         subtitleTextStyle: textTheme.bodyMedium?.copyWith(color: onSurfaceVariant),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(controlRadius),
+        ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
@@ -307,6 +327,25 @@ abstract final class AppTheme {
         }),
         trackOutlineColor: WidgetStateProperty.all(outline),
       ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: card,
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(controlRadius),
+          side: hairline,
+        ),
+        textStyle: textTheme.bodyLarge,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: card,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(cardRadius),
+          side: hairline,
+        ),
+        titleTextStyle: textTheme.titleLarge,
+        contentTextStyle: textTheme.bodyMedium,
+      ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
@@ -316,9 +355,23 @@ abstract final class AppTheme {
             return card;
           }),
           foregroundColor: WidgetStateProperty.all(onSurface),
-          side: WidgetStateProperty.all(BorderSide(color: outline)),
+          side: WidgetStateProperty.all(BorderSide(color: outline, width: 1)),
           minimumSize: const WidgetStatePropertyAll(Size(0, minTapTarget)),
-          textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
+          visualDensity: VisualDensity.compact,
+          textStyle: WidgetStatePropertyAll(textTheme.labelMedium),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(controlRadius),
+            ),
+          ),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(minTapTarget, minTapTarget),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(controlRadius),
+          ),
         ),
       ),
     );
@@ -328,68 +381,73 @@ abstract final class AppTheme {
     return TextTheme(
       headlineLarge: TextStyle(
         fontFamily: uiFont,
-        fontSize: 26,
-        height: 1.5,
+        fontSize: 28,
+        height: 1.25,
+        letterSpacing: -0.4,
         fontWeight: FontWeight.w700,
         color: onSurface,
       ),
       titleLarge: TextStyle(
         fontFamily: uiFont,
-        fontSize: 22,
-        height: 1.5,
+        fontSize: 20,
+        height: 1.3,
+        letterSpacing: -0.2,
         fontWeight: FontWeight.w700,
         color: onSurface,
       ),
       titleMedium: TextStyle(
         fontFamily: uiFont,
-        fontSize: 19,
-        height: 1.5,
+        fontSize: 17,
+        height: 1.35,
+        letterSpacing: -0.1,
         fontWeight: FontWeight.w700,
         color: onSurface,
       ),
       bodyLarge: TextStyle(
         fontFamily: uiFont,
-        fontSize: 18,
-        height: 1.5,
+        fontSize: 17,
+        height: 1.45,
         fontWeight: FontWeight.w400,
         color: onSurface,
       ),
       bodyMedium: TextStyle(
         fontFamily: uiFont,
-        fontSize: 16,
-        height: 1.5,
+        fontSize: 15,
+        height: 1.45,
         fontWeight: FontWeight.w400,
         color: onSurfaceVariant,
       ),
       labelLarge: TextStyle(
         fontFamily: uiFont,
-        fontSize: 16,
-        height: 1.5,
+        fontSize: 15,
+        height: 1.3,
+        letterSpacing: 0.1,
         fontWeight: FontWeight.w700,
         color: onSurface,
       ),
       labelMedium: TextStyle(
         fontFamily: uiFont,
-        fontSize: 14,
-        height: 1.5,
+        fontSize: 13,
+        height: 1.3,
+        letterSpacing: 0.15,
         fontWeight: FontWeight.w700,
         color: onSurface,
       ),
       bodySmall: TextStyle(
         fontFamily: uiFont,
-        fontSize: 14,
-        height: 1.5,
+        fontSize: 13,
+        height: 1.4,
         fontWeight: FontWeight.w400,
         color: onSurfaceVariant,
       ),
     );
   }
 
-  /// Scripture text style (Lora, 20 sp, height 1.65).
+  /// Scripture text style (Lora) — slightly more open for reading.
   static TextStyle scripture(Color color) => TextStyle(
         fontFamily: scriptureFont,
-        fontSize: 20,
-        height: 1.65,
+        fontSize: 19,
+        height: 1.6,
         fontWeight: FontWeight.w400,
         color: color,
       );

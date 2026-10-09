@@ -47,6 +47,7 @@ class DriftPrayerRepository implements PrayerRepository {
       final id = await _db.into(_db.prayers).insert(
             PrayersCompanion.insert(
               name: input.name.trim(),
+              person: Value(normalizePerson(input.person)),
               request: input.request.trim(),
               createdAt: now,
               updatedAt: now,
@@ -86,6 +87,7 @@ class DriftPrayerRepository implements PrayerRepository {
       await (_db.update(_db.prayers)..where((t) => t.id.equals(id))).write(
         PrayersCompanion(
           name: Value(input.name.trim()),
+          person: Value(normalizePerson(input.person)),
           request: Value(input.request.trim()),
           isAnswered: Value(isAnswered),
           answeredAt: Value(answeredAt),
@@ -139,6 +141,19 @@ class DriftPrayerRepository implements PrayerRepository {
     return labels;
   }
 
+  @override
+  Future<List<String>> allPersonNames() async {
+    final rows = await _db.select(_db.prayers).get();
+    final names = <String>{};
+    for (final row in rows) {
+      final p = normalizePerson(row.person);
+      if (p.isNotEmpty) names.add(p);
+    }
+    final list = names.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return list;
+  }
+
   Future<Prayer> _mapPrayer(PrayerRow row) async {
     final tags = await _tagsFor(row.id);
     final verseIds = await _verseIdsFor(row.id);
@@ -148,6 +163,7 @@ class DriftPrayerRepository implements PrayerRepository {
     return Prayer(
       id: row.id,
       name: row.name,
+      person: row.person,
       request: row.request,
       isAnswered: row.isAnswered,
       answeredAt: row.answeredAt,

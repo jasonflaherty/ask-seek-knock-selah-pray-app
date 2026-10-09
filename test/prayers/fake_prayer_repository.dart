@@ -62,6 +62,7 @@ class FakePrayerRepository implements PrayerRepository {
     _prayers[id] = Prayer(
       id: id,
       name: input.name.trim(),
+      person: normalizePerson(input.person),
       request: input.request.trim(),
       isAnswered: false,
       createdAt: now,
@@ -93,6 +94,7 @@ class FakePrayerRepository implements PrayerRepository {
     }
     _prayers[id] = existing.copyWith(
       name: input.name.trim(),
+      person: normalizePerson(input.person),
       request: input.request.trim(),
       tags: List.of(input.tags),
       verseIds: List.of(input.verseIds),
@@ -156,6 +158,17 @@ class FakePrayerRepository implements PrayerRepository {
       labels.addAll(p.tags);
     }
     final list = labels.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return list;
+  }
+
+  @override
+  Future<List<String>> allPersonNames() async {
+    final names = <String>{};
+    for (final p in _prayers.values) {
+      if (p.hasPerson) names.add(p.person);
+    }
+    final list = names.toList()
       ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     return list;
   }

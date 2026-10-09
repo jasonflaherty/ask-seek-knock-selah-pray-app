@@ -28,7 +28,7 @@ class SortBar extends StatelessWidget {
               showCheckmark: false,
               selected: selected == mode,
               avatar: selected == mode
-                  ? Icon(Icons.check, size: 18, color: theme.colorScheme.primary)
+                  ? Icon(Icons.check, size: 16, color: theme.colorScheme.primary)
                   : null,
               label: Text(mode.label),
               onSelected: (_) => onSelected(mode),
@@ -37,10 +37,9 @@ class SortBar extends StatelessWidget {
                 color: selected == mode
                     ? theme.colorScheme.primary
                     : theme.colorScheme.outline,
-                width: selected == mode ? 1.5 : 1,
               ),
-              labelStyle: theme.textTheme.labelLarge,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              labelStyle: theme.textTheme.labelMedium,
+              visualDensity: VisualDensity.compact,
               materialTapTargetSize: MaterialTapTargetSize.padded,
             ),
           ],

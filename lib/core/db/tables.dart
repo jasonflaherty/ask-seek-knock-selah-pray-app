@@ -4,6 +4,9 @@ import 'package:drift/drift.dart';
 class Prayers extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().withLength(min: 1, max: 100)();
+  /// Who this prayer is for (empty = unassigned).
+  TextColumn get person =>
+      text().withLength(min: 0, max: 100).withDefault(const Constant(''))();
   TextColumn get request => text()();
   BoolColumn get isAnswered => boolean().withDefault(const Constant(false))();
   DateTimeColumn get answeredAt => dateTime().nullable()();
@@ -44,4 +47,17 @@ class PrayerEvents extends Table {
       integer().references(Prayers, #id, onDelete: KeyAction.cascade)();
   TextColumn get type => text()();
   DateTimeColumn get at => dateTime()();
+}
+
+/// User-added Scripture used as a prayer argument (promise / answered prayer).
+class CustomVerses extends Table {
+  TextColumn get id => text()();
+  TextColumn get ref => text().withLength(min: 1, max: 80)();
+  /// Exact Scripture wording (named `body` so it does not shadow Drift's `text()`).
+  TextColumn get body => text()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
