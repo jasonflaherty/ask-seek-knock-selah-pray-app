@@ -10,7 +10,7 @@ Selah is a prayer journal on your phone. You can also join one group so you can 
 ## What the group and church can see
 
 - **Group** prayers are for the people in your reading group.
-- **Church** prayers are for everyone in that church. They appear in the app and on the church page at [selah.psithurismlabs.com](https://selah.psithurismlabs.com).
+- **Church** prayers are for everyone in that church. They appear in the app and on the church web page (the same site as your API base URL).
 - **Study notes** (current study and other notes) are visible to your group.
 
 ## Sign in
@@ -63,7 +63,7 @@ If you are in a group, the same screen lets you write a **current study** note a
 
 ## Church page on the web
 
-1. Open [https://selah.psithurismlabs.com](https://selah.psithurismlabs.com).
+1. Open your Selah site (the HTTPS address of your API / church page).
 2. Sign in with the same email and code.
 3. Add, mark answered, or remove church prayers.
 

@@ -15,5 +15,5 @@ Keep it strictly biblical, orthodox and reformed.
 - Verse text is public-domain KJV, generated from `tool/data/kjv.json`. Do not paste paraphrases into `assets/verses/verses.json`.
 - `assets/verses/strategies.json` is a hidden index for choosing verses. The user only sees and selects Scripture.
 - Layers are presentation, Riverpod application state, pure-Dart domain, then Drift or JSON data.
-- The journal is offline by default. Optional email sign-in and group sync (`https://selah.psithurismlabs.com`) are the only network path. Just me prayers never leave the device.
+- The journal is offline by default. Optional email sign-in and group sync (`SELAH_API_BASE_URL`) are the only network path. Just me prayers never leave the device. Do not hard-code a production hostname in docs or defaults.
 - Prayer asks God according to His will. Do not write copy that treats prayer as a technique that binds God, or that blames the person when an answer is delayed.

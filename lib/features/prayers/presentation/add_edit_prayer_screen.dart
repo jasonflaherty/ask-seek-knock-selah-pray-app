@@ -263,7 +263,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                                     ShareScope.group =>
                                       'Visible to your reading group.',
                                     ShareScope.church =>
-                                      'Visible to your church on the phone and at selah.psithurismlabs.com.',
+                                      'Visible to your church on the phone and on the church web page.',
                                   },
                                   style: theme.textTheme.bodySmall,
                                 ),

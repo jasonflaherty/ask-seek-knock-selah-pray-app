@@ -1,3 +1,4 @@
-selah.psithurismlabs.com {
+# Example site block for your reverse proxy. Replace the hostname.
+your-selah-host.example {
   reverse_proxy selah-api:8080
 }

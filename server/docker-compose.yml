@@ -41,14 +41,16 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://selah.psithurismlabs.com}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://your-selah-host.example}
       PORT: '8080'
     ports:
       - '127.0.0.1:${SELAH_API_HOST_PORT:-8091}:8080'
     networks:
       - selah-network
-      # Shared with son-caddy so HTTPS can reach this API by container name.
-      - son_default
+      # Optional: join your reverse-proxy network so HTTPS can reach this API.
+      # Set SELAH_PROXY_NETWORK in .env to that Docker network name, or remove
+      # this entry if you proxy via host port 8091 instead.
+      - proxy_net
 
 volumes:
   selah-postgres-data:
@@ -58,6 +60,6 @@ networks:
   selah-network:
     name: selah-network
     driver: bridge
-  # Existing Caddy stack on this VPS (/opt/son/deploy/Caddyfile).
-  son_default:
+  proxy_net:
+    name: ${SELAH_PROXY_NETWORK:-son_default}
     external: true

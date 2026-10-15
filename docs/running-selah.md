@@ -1,41 +1,40 @@
 # Running Selah (server)
 
-This page is for the person who keeps the VPS. Members should use [using-selah.md](using-selah.md).
+This page is for the person who keeps the server. Members should use [using-selah.md](using-selah.md).
 
 ## What runs where
 
-- **Shared hosting (Nixihost / cPanel):** website and the mailbox that sends sign-in codes.
-- **Unmanaged VPS:** Docker containers `selah-api` and `selah-postgres`.
-- **Public address:** `https://selah.psithurismlabs.com` (A record already pointed at the VPS).
+- **Mail host:** sends sign-in codes (SMTP, usually port 587).
+- **VPS (Docker):** containers `selah-api` and `selah-postgres`.
+- **Public address:** your HTTPS hostname (set as `PUBLIC_BASE_URL` in `.env` on the VPS only — not in git).
 
 Do not open Postgres to the internet. The phones and the church page talk only to the API.
 
 ## First start
 
-1. On the VPS, copy `server/.env.example` to `server/.env` and fill in passwords, `TOKEN_SECRET`, and SMTP settings for the Nixihost mailbox (port 587). Any password is fine; the API no longer embeds it in a URL.
+1. On the VPS, copy `server/.env.example` to `server/.env` and fill in passwords, `TOKEN_SECRET`, SMTP, and `PUBLIC_BASE_URL` (your real hostname). Any database password is fine; the API does not embed it in a URL.
 2. Confirm port **8091** is free (`docker ps` and `ss -lntp`). If it is taken, set `SELAH_API_HOST_PORT` to the next free port in 8091–8099.
-3. From the `server/` folder:
+3. Set `SELAH_PROXY_NETWORK` to the Docker network your reverse proxy already uses, or remove the `proxy_net` entry from `docker-compose.yml` if you terminate TLS another way.
+4. From the `server/` folder:
 
 ```bash
 docker compose up -d --build
 ```
 
-4. HTTPS uses the existing Caddy container (`son-caddy-1`), not a second Caddy.
-   - `selah-api` joins the external Docker network `son_default` (see `docker-compose.yml`).
-   - In `/opt/son/deploy/Caddyfile` add:
+5. Point your reverse proxy at the API. Example Caddy site block (replace the hostname):
 
 ```
-selah.psithurismlabs.com {
+your-selah-host.example {
 	encode gzip
 	reverse_proxy selah-api:8080
 }
 ```
 
-   - Then: `docker exec son-caddy-1 caddy reload --config /etc/caddy/Caddyfile`
-5. Open `https://selah.psithurismlabs.com/api/health` and confirm `{"ok":true}`.
-6. Request a sign-in code from the app or the website and confirm the email arrives.
+   The proxy container must share a Docker network with `selah-api` (see `SELAH_PROXY_NETWORK`), or proxy to `127.0.0.1:8091` on the host if that fits your setup.
+6. Open `https://your-selah-host.example/api/health` and confirm `{"ok":true}`.
+7. Request a sign-in code from the app or the website and confirm the email arrives.
 
-Containers must stay named `selah-api` and `selah-postgres` so they do not clash with existing `api` and `mcda` containers. Do not publish host port 5432 for Selah (mcda already uses it).
+Containers must stay named `selah-api` and `selah-postgres` so they do not clash with other stacks on the same host. Do not publish host port 5432 for Selah if something else already uses it.
 
 ## Daily backup
 
@@ -68,27 +67,27 @@ The new owner must already be a member, or the command adds them and makes them 
 
 ## GitHub Actions deploy
 
-Pushes to `master` that change `server/` (or a manual **Run workflow**) SSH in as `selahdeploy` and rebuild the containers. Workflow: [`.github/workflows/deploy-server.yml`](../.github/workflows/deploy-server.yml).
+Pushes to `master` that change `server/` (or a manual **Run workflow**) SSH in and rebuild the containers. Workflow: [`.github/workflows/deploy-server.yml`](../.github/workflows/deploy-server.yml).
 
-Repository secrets (already set):
+Repository secrets:
 
 | Secret | Value |
 |--------|---------|
 | `VPS_HOST` | VPS host |
-| `VPS_USER` | `selahdeploy` |
-| `VPS_SSH_KEY` | Private key from `~/.ssh/selah_vps_deploy` |
+| `VPS_USER` | Deploy SSH user |
+| `VPS_SSH_KEY` | Deploy private key |
 | `VPS_PORT` | SSH port |
 
-Keep `server/.env` only on the VPS. Actions does not upload it. The deploy job hard-resets `/opt/selah` to `origin/master` (`.env` is gitignored and stays).
+Keep `server/.env` only on the VPS. Actions does not upload it. The deploy job hard-resets the checkout to `origin/master` (`.env` is gitignored and stays).
 
-On the VPS, `/opt/selah` must be a git checkout that can `git fetch` as `selahdeploy`.
+The checkout path on the VPS must be able to `git fetch` as the deploy user (see the workflow for the path it uses).
 
 ## App build
 
-Build the Flutter app with the API URL:
+Pass your API base URL at build time (required for group sync):
 
 ```bash
-flutter run --dart-define=SELAH_API_BASE_URL=https://selah.psithurismlabs.com
+flutter run --dart-define=SELAH_API_BASE_URL=https://your-selah-host.example
 ```
 
 Google Sheet sync is no longer used.

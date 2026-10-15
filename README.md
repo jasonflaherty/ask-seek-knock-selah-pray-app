@@ -12,14 +12,14 @@ A calm, offline prayer journal. Record prayer requests, pick promise verses that
 ```bash
 flutter pub get
 dart run build_runner build
-flutter run --dart-define=SELAH_API_BASE_URL=https://selah.psithurismlabs.com
+flutter run --dart-define=SELAH_API_BASE_URL=https://your-selah-host.example
 ```
 
-Minimum SDKs: iOS 13+, Android API 24+. The journal is offline by default. Optional email sign-in and group sync need network when the user signs in or syncs. Just me prayers never leave the device.
+Minimum SDKs: iOS 13+, Android API 24+. The journal is offline by default. Optional email sign-in and group sync need network when the user signs in or syncs. Just me prayers never leave the device. Set `SELAH_API_BASE_URL` to your own HTTPS API host; leave it unset to keep the journal fully offline.
 
 ## Group and church sync (optional)
 
-Prayers marked **Just me** never leave the device. Prayers marked **Group** or **Church** sync through PostgreSQL on the VPS behind `https://selah.psithurismlabs.com`. Members sign in with an email one-time code. A signed-in page on that host maintains the church list.
+Prayers marked **Just me** never leave the device. Prayers marked **Group** or **Church** sync through PostgreSQL behind your API host. Members sign in with an email one-time code. A signed-in page on that host maintains the church list.
 
 Server stack: `server/docker-compose.yml` (`selah-api`, `selah-postgres`). See [docs/running-selah.md](docs/running-selah.md).
 
