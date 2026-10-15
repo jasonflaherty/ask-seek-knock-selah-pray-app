@@ -19,6 +19,7 @@ part 'app_database.g.dart';
     CustomVerses,
     SyncTombstones,
     SyncSnapshots,
+    AppSessions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -28,32 +29,35 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (Migrator m) async {
-          await m.createAll();
-        },
-        onUpgrade: (Migrator m, int from, int to) async {
-          if (from < 2) {
-            await m.createTable(customVerses);
-          }
-          if (from < 3) {
-            await m.addColumn(prayers, prayers.person);
-          }
-          if (from < 4) {
-            await m.addColumn(prayers, prayers.syncId);
-            await m.addColumn(prayers, prayers.shared);
-            await m.addColumn(prayers, prayers.authorEmail);
-            await m.createTable(syncTombstones);
-            await m.createTable(syncSnapshots);
-          }
-        },
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    onCreate: (Migrator m) async {
+      await m.createAll();
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 2) {
+        await m.createTable(customVerses);
+      }
+      if (from < 3) {
+        await m.addColumn(prayers, prayers.person);
+      }
+      if (from < 4) {
+        await m.addColumn(prayers, prayers.syncId);
+        await m.addColumn(prayers, prayers.shared);
+        await m.addColumn(prayers, prayers.authorEmail);
+        await m.createTable(syncTombstones);
+        await m.createTable(syncSnapshots);
+      }
+      if (from < 5) {
+        await m.createTable(appSessions);
+      }
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 }
 
 LazyDatabase _openConnection() {

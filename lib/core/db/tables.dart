@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 class Prayers extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().withLength(min: 1, max: 100)();
+
   /// Who this prayer is for (empty = unassigned).
   TextColumn get person =>
       text().withLength(min: 0, max: 100).withDefault(const Constant(''))();
@@ -81,6 +82,7 @@ class PrayerEvents extends Table {
 class CustomVerses extends Table {
   TextColumn get id => text()();
   TextColumn get ref => text().withLength(min: 1, max: 80)();
+
   /// Exact Scripture wording (named `body` so it does not shadow Drift's `text()`).
   TextColumn get body => text()();
   TextColumn get note => text().nullable()();
@@ -88,4 +90,12 @@ class CustomVerses extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Time the app was open in the foreground. [endedAt] advances while it is open.
+@DataClassName('AppSessionRow')
+class AppSessions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get endedAt => dateTime()();
 }

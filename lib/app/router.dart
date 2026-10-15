@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../features/liturgy/presentation/liturgy_screen.dart';
+import '../features/metrics/presentation/metrics_screen.dart';
 import '../features/prayers/presentation/add_edit_prayer_screen.dart';
 import '../features/prayers/presentation/prayer_detail_screen.dart';
 import '../features/prayers/presentation/prayer_list_screen.dart';
@@ -29,6 +30,11 @@ final GoRouter appRouter = GoRouter(
       path: '/settings',
       name: 'settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/metrics',
+      name: 'metrics',
+      builder: (context, state) => const MetricsScreen(),
     ),
     GoRoute(
       path: '/prayers/new',

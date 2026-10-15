@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -30,9 +31,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _sheetLinkController = TextEditingController();
 
   TestDataImporter get _importer => TestDataImporter(
-        ref.read(prayerRepositoryProvider),
-        ref.read(sharedPreferencesProvider),
-      );
+    ref.read(prayerRepositoryProvider),
+    ref.read(sharedPreferencesProvider),
+  );
 
   PrayerBackupService get _backup =>
       PrayerBackupService(ref.read(prayerRepositoryProvider));
@@ -116,9 +117,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await _refreshStatus();
       if (!mounted) return;
       announceForAccessibility(context, 'Deleted $count sample prayers');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Deleted $count sample prayers')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Deleted $count sample prayers')));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -128,8 +129,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (_busy) return;
     setState(() => _busy = true);
     try {
-      final content =
-          format == 'csv' ? await _backup.exportCsv() : await _backup.exportJson();
+      final content = format == 'csv'
+          ? await _backup.exportCsv()
+          : await _backup.exportJson();
       final dir = await getTemporaryDirectory();
       final stamp = DateTime.now().toIso8601String().split('T').first;
       final name = 'selah-backup-$stamp.$format';
@@ -150,9 +152,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       announceForAccessibility(context, 'Backup ready to share');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Export failed: $e')));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -167,9 +168,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setState(() {});
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$e')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -180,9 +179,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final email = await ref.read(churchSyncServiceProvider).signIn();
       if (!mounted) return;
       announceForAccessibility(context, 'Signed in as $email');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signed in as $email')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Signed in as $email')));
     });
   }
 
@@ -209,8 +207,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _createSheet() async {
     await _runSyncAction(() async {
-      final id =
-          await ref.read(churchSyncServiceProvider).createAndLinkSpreadsheet();
+      final id = await ref
+          .read(churchSyncServiceProvider)
+          .createAndLinkSpreadsheet();
       _sheetLinkController.text = id;
       if (!mounted) return;
       announceForAccessibility(context, 'Church spreadsheet created');
@@ -240,9 +239,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final uri = AppConfig.venmoSupportUri;
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open Venmo')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Could not open Venmo')));
     }
   }
 
@@ -261,9 +259,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       raw = String.fromCharCodes(bytes);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not read that file: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not read that file: $e')));
       return;
     }
 
@@ -272,18 +270,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     setState(() => _busy = true);
     try {
-      final count =
-          isCsv ? await _backup.importCsv(raw) : await _backup.importJson(raw);
+      final count = isCsv
+          ? await _backup.importCsv(raw)
+          : await _backup.importJson(raw);
       if (!mounted) return;
       announceForAccessibility(context, 'Imported $count prayers');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Imported $count prayers')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Imported $count prayers')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Import failed: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Import failed: $e')));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -303,7 +300,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppTheme.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppTheme.maxContentWidth,
+            ),
             child: ListView(
               padding: const EdgeInsets.all(AppTheme.screenPadding),
               children: [
@@ -349,6 +348,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onChanged: (value) => ref
                       .read(homeVerseVisibleProvider.notifier)
                       .setVisible(value),
+                ),
+                const SizedBox(height: 32),
+                Text('Metrics', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  'Graphs of active and answered petitions, tags, '
+                  'and time the app is open.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () => context.push('/metrics'),
+                  icon: const Icon(Icons.insights_outlined),
+                  label: const Text('Open metrics'),
                 ),
                 const SizedBox(height: 32),
                 Text('Church spreadsheet', style: theme.textTheme.titleMedium),
@@ -502,8 +515,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     _busy && !_loaded
                         ? 'Importing…'
                         : _loaded
-                            ? 'Test data already loaded'
-                            : 'Import test data',
+                        ? 'Test data already loaded'
+                        : 'Import test data',
                   ),
                 ),
                 const SizedBox(height: 12),

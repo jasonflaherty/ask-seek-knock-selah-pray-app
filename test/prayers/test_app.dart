@@ -8,6 +8,7 @@ import 'package:selah/app/app.dart';
 import 'package:selah/app/router.dart';
 import 'package:selah/core/providers.dart';
 import 'package:selah/core/utils/clock.dart';
+import 'package:selah/features/metrics/application/metrics_providers.dart';
 import 'package:selah/features/silence/application/silence_session_notifier.dart';
 import 'package:selah/features/silence/domain/silence_bell.dart';
 import 'package:selah/features/silence/domain/silence_wake_lock.dart';
@@ -15,6 +16,7 @@ import 'package:selah/features/verses/data/verse_asset_loader.dart';
 import 'package:selah/features/verses/domain/verse.dart';
 import 'package:selah/features/verses/domain/verse_suggester.dart';
 
+import '../metrics/fake_usage_repository.dart';
 import '../silence/fake_silence_deps.dart';
 import 'fake_prayer_repository.dart';
 
@@ -67,11 +69,13 @@ Future<TestApp> pumpSelahApp(
   final bell = silenceBell ?? FakeSilenceBell();
   final wakeLock = silenceWakeLock ?? FakeSilenceWakeLock();
 
+  final usage = FakeUsageRepository();
   final container = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
       clockProvider.overrideWithValue(clock),
       prayerRepositoryProvider.overrideWithValue(repository),
+      usageRepositoryProvider.overrideWithValue(usage),
       verseDatasetProvider.overrideWithValue(_emptyDataset),
       verseSuggesterProvider.overrideWithValue(_NoopSuggester()),
       silenceBellProvider.overrideWithValue(bell),
@@ -91,6 +95,7 @@ Future<TestApp> pumpSelahApp(
     await tester.pump(const Duration(seconds: 1));
     container.dispose();
     repository.dispose();
+    usage.dispose();
   });
 
   return TestApp(container: container, repo: repository, clock: clock);
