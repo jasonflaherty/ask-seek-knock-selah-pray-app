@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/app_config.dart';
 import '../../../app/theme.dart';
@@ -270,17 +271,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ButtonSegment(
                       value: ThemeMode.system,
                       label: Text('System'),
-                      icon: Icon(Icons.brightness_auto_outlined),
+                      icon: Icon(Symbols.brightness_auto),
                     ),
                     ButtonSegment(
                       value: ThemeMode.light,
                       label: Text('Light'),
-                      icon: Icon(Icons.light_mode_outlined),
+                      icon: Icon(Symbols.light_mode),
                     ),
                     ButtonSegment(
                       value: ThemeMode.dark,
                       label: Text('Dark'),
-                      icon: Icon(Icons.dark_mode_outlined),
+                      icon: Icon(Symbols.dark_mode),
                     ),
                   ],
                   selected: {themeMode},
@@ -331,7 +332,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     '${reminder.hour.toString().padLeft(2, '0')}:'
                     '${reminder.minute.toString().padLeft(2, '0')}',
                   ),
-                  trailing: const Icon(Icons.schedule),
+                  trailing: const Icon(Symbols.schedule),
                   onTap: () async {
                     final picked = await showTimePicker(
                       context: context,
@@ -349,7 +350,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 OutlinedButton.icon(
                   onPressed: () => context.push('/read-pray'),
-                  icon: const Icon(Icons.menu_book_outlined),
+                  icon: const Icon(Symbols.menu_book),
                   label: const Text('Open read and pray'),
                 ),
                 const SizedBox(height: 32),
@@ -517,7 +518,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   const SnackBar(content: Text('Synced')),
                                 );
                               }),
-                      icon: const Icon(Icons.sync),
+                      icon: const Icon(Symbols.sync),
                       label: const Text('Sync now'),
                     ),
                     const SizedBox(height: 8),
@@ -623,7 +624,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   .signOut();
                               setState(() => _codeSent = false);
                             }),
-                    icon: const Icon(Icons.logout),
+                    icon: const Icon(Symbols.logout),
                     label: const Text('Sign out'),
                   ),
                 ],
@@ -638,7 +639,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () => context.push('/metrics'),
-                  icon: const Icon(Icons.insights_outlined),
+                  icon: const Icon(Symbols.insights),
                   label: const Text('Open metrics'),
                 ),
                 const SizedBox(height: 32),
@@ -652,19 +653,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 16),
                 FilledButton.icon(
                   onPressed: _busy ? null : () => _export('json'),
-                  icon: const Icon(Icons.upload_outlined),
+                  icon: const Icon(Symbols.upload),
                   label: const Text('Export JSON'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: _busy ? null : () => _export('csv'),
-                  icon: const Icon(Icons.table_chart_outlined),
+                  icon: const Icon(Symbols.table_chart),
                   label: const Text('Export CSV'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: _busy ? null : _importBackup,
-                  icon: const Icon(Icons.download_outlined),
+                  icon: const Icon(Symbols.download),
                   label: const Text('Import JSON or CSV'),
                 ),
                 const SizedBox(height: 32),
@@ -692,7 +693,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.science_outlined),
+                      : const Icon(Symbols.science),
                   label: Text(
                     _busy && !_loaded
                         ? 'Importing…'
@@ -710,7 +711,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.delete_outline),
+                      : const Icon(Symbols.delete),
                   label: Text(
                     _busy && _loaded ? 'Deleting…' : 'Delete test data',
                   ),
@@ -725,7 +726,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: _supportDeveloper,
-                  icon: const Icon(Icons.favorite_outline),
+                  icon: const Icon(Symbols.favorite),
                   label: const Text('Support the developer'),
                 ),
               ],

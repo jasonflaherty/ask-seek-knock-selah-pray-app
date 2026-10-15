@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
@@ -378,10 +379,11 @@ class _CollectCard extends StatelessWidget {
                   key: favoriteKey,
                   tooltip: favorited ? 'Remove favorite' : 'Favorite',
                   icon: Icon(
-                    favorited ? Icons.star : Icons.star_border,
+                    Symbols.star,
                     color: favorited
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurfaceVariant,
+                    fill: favorited ? 1.0 : 0.0,
                   ),
                   onPressed: onToggleFavorite,
                 ),

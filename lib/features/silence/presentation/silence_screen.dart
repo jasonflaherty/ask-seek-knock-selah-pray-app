@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../application/silence_session_notifier.dart';
@@ -116,7 +117,7 @@ class _SetupView extends StatelessWidget {
               IconButton(
                 tooltip: 'Decrease by 5 minutes',
                 onPressed: canDecrease ? onDecrease : null,
-                icon: const Icon(Icons.remove),
+                icon: const Icon(Symbols.remove),
                 constraints: const BoxConstraints(
                   minWidth: AppTheme.minTapTarget,
                   minHeight: AppTheme.minTapTarget,
@@ -137,7 +138,7 @@ class _SetupView extends StatelessWidget {
               IconButton(
                 tooltip: 'Increase by 5 minutes',
                 onPressed: canIncrease ? onIncrease : null,
-                icon: const Icon(Icons.add),
+                icon: const Icon(Symbols.add),
                 constraints: const BoxConstraints(
                   minWidth: AppTheme.minTapTarget,
                   minHeight: AppTheme.minTapTarget,
@@ -293,7 +294,7 @@ class _PaceControls extends StatelessWidget {
         IconButton(
           tooltip: 'Faster names',
           onPressed: canFaster ? onFaster : null,
-          icon: const Icon(Icons.fast_forward_outlined),
+          icon: const Icon(Symbols.fast_forward),
           constraints: const BoxConstraints(
             minWidth: AppTheme.minTapTarget,
             minHeight: AppTheme.minTapTarget,
@@ -315,7 +316,7 @@ class _PaceControls extends StatelessWidget {
         IconButton(
           tooltip: 'Slower names',
           onPressed: canSlower ? onSlower : null,
-          icon: const Icon(Icons.slow_motion_video_outlined),
+          icon: const Icon(Symbols.slow_motion_video),
           constraints: const BoxConstraints(
             minWidth: AppTheme.minTapTarget,
             minHeight: AppTheme.minTapTarget,

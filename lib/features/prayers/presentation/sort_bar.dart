@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../domain/sort_mode.dart';
@@ -28,7 +29,7 @@ class SortBar extends StatelessWidget {
               showCheckmark: false,
               selected: selected == mode,
               avatar: selected == mode
-                  ? Icon(Icons.check, size: 16, color: theme.colorScheme.primary)
+                  ? Icon(Symbols.check, size: 16, color: theme.colorScheme.primary)
                   : null,
               label: Text(mode.label),
               onSelected: (_) => onSelected(mode),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
@@ -48,29 +48,29 @@ class PrayerListScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Read and pray',
-            icon: const Icon(Icons.auto_stories_outlined),
+            icon: const Icon(Symbols.auto_stories),
             onPressed: () => context.push('/read-pray'),
           ),
           IconButton(
             tooltip: 'Prayer timer',
-            icon: const Icon(Icons.timer_outlined),
+            icon: const Icon(Symbols.timer),
             onPressed: () => context.push('/silence'),
           ),
           IconButton(
             tooltip: 'Liturgical prayers',
-            icon: const FaIcon(FontAwesomeIcons.handsPraying, size: 22),
+            icon: const Icon(Symbols.folded_hands),
             onPressed: () => context.push('/liturgy'),
           ),
           IconButton(
             tooltip: 'Settings',
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Symbols.settings),
             onPressed: () => context.push('/settings'),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/prayers/new'),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add),
         label: const Text('Add petition'),
       ),
       body: SafeArea(
@@ -260,7 +260,7 @@ class _EmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.menu_book_outlined,
+            Symbols.menu_book,
             size: 56,
             color: theme.colorScheme.primary,
           ),
@@ -391,7 +391,7 @@ class _SwipeablePrayerCard extends ConsumerWidget {
           color: context.palette.answeredBadgeBg,
           borderRadius: BorderRadius.circular(AppTheme.cardRadius),
         ),
-        child: Icon(Icons.check, color: context.palette.answeredBadgeFg),
+        child: Icon(Symbols.check, color: context.palette.answeredBadgeFg),
       ),
       secondaryBackground: Container(
         alignment: Alignment.centerRight,
@@ -400,7 +400,7 @@ class _SwipeablePrayerCard extends ConsumerWidget {
           color: theme.colorScheme.errorContainer,
           borderRadius: BorderRadius.circular(AppTheme.cardRadius),
         ),
-        child: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+        child: Icon(Symbols.delete, color: theme.colorScheme.error),
       ),
       child: VisibilityDetector(
         key: Key('visibility-prayer-${prayer.id}'),

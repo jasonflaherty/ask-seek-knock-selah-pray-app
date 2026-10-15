@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
@@ -133,7 +134,7 @@ class PrayerCard extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.menu_book_outlined,
+                              Symbols.menu_book,
                               size: 16,
                               color: theme.colorScheme.primary,
                             ),
@@ -256,10 +257,11 @@ class _PrayedButtonState extends State<PrayedButton> {
       icon: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         child: Icon(
-          _justPrayed ? Icons.favorite : Icons.favorite_border,
+          Symbols.favorite,
           key: ValueKey(_justPrayed),
           size: 22,
           color: color,
+          fill: _justPrayed ? 1.0 : 0.0,
         ),
       ),
     );
@@ -277,9 +279,9 @@ class _VisibilityBadge extends StatelessWidget {
     final palette = context.palette;
     final label = scope.label;
     final icon = switch (scope) {
-      ShareScope.justMe => Icons.lock_outline,
-      ShareScope.group => Icons.group_outlined,
-      ShareScope.church => Icons.groups_outlined,
+      ShareScope.justMe => Symbols.lock,
+      ShareScope.group => Symbols.group,
+      ShareScope.church => Symbols.groups,
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -336,7 +338,7 @@ class _StatusBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (answered) ...[
-            Icon(Icons.check, size: 14, color: fg),
+            Icon(Symbols.check, size: 14, color: fg),
             const SizedBox(width: 4),
           ],
           Flexible(

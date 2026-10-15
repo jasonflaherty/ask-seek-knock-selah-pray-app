@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../domain/prayer.dart';
@@ -73,7 +74,7 @@ class PersonFilterMenu extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.person_outline,
+                Symbols.person,
                 size: 20,
                 color: isFiltered
                     ? theme.colorScheme.primary

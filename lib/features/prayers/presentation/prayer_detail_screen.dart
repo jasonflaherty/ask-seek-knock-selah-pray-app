@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
@@ -176,7 +177,7 @@ class _PrayerDetailScreenState extends ConsumerState<PrayerDetailScreen> {
             PopupMenuButton<String>(
               tooltip: 'Share this prayer',
               enabled: !_sharing,
-              icon: const Icon(Icons.share_outlined),
+              icon: const Icon(Symbols.share),
               onSelected: _share,
               itemBuilder: (context) => const [
                 PopupMenuItem(value: 'text', child: Text('Share as text')),
@@ -215,7 +216,7 @@ class _PrayerDetailScreenState extends ConsumerState<PrayerDetailScreen> {
                       Row(
                         children: [
                           Icon(
-                            Icons.person_outline,
+                            Symbols.person,
                             size: 18,
                             color: theme.colorScheme.primary,
                           ),
@@ -387,14 +388,14 @@ class _PrayerDetailScreenState extends ConsumerState<PrayerDetailScreen> {
                     FilledButton.icon(
                       onPressed: _prayed,
                       icon: Icon(
-                        _justPrayed ? Icons.check : Icons.favorite_outline,
+                        _justPrayed ? Symbols.check : Symbols.favorite,
                       ),
                       label: Text(_justPrayed ? 'Prayed' : 'I prayed'),
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: _sharing ? null : () => _share('text'),
-                      icon: const Icon(Icons.share_outlined),
+                      icon: const Icon(Symbols.share),
                       label: const Text('Share this prayer'),
                     ),
                     const SizedBox(height: 12),
@@ -449,7 +450,7 @@ class _StatusChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (answered) ...[
-            Icon(Icons.check, size: 16, color: fg),
+            Icon(Symbols.check, size: 16, color: fg),
             const SizedBox(width: 6),
           ],
           Text(

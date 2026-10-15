@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../domain/prayer.dart';
@@ -52,7 +53,7 @@ class FilterMenu extends StatelessWidget {
             border: Border.all(color: theme.colorScheme.primary, width: 1),
           ),
           child: Icon(
-            Icons.filter_list,
+            Symbols.filter_list,
             color: theme.colorScheme.primary,
             size: 22,
           ),

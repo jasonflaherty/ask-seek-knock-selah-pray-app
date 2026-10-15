@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../../groups/application/group_session_notifier.dart';
@@ -157,7 +158,7 @@ class _StudyNotesSectionState extends ConsumerState<StudyNotesSection> {
                           ? IconButton(
                               tooltip: 'Remove note',
                               onPressed: _busy ? null : () => _delete(note),
-                              icon: const Icon(Icons.delete_outline),
+                              icon: const Icon(Symbols.delete),
                             )
                           : null,
                     ),

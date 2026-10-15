@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 
@@ -108,7 +109,7 @@ class JournalMeditationVerse extends StatelessWidget {
                   tooltip: 'Show another verse',
                   onPressed: onRotate,
                   icon: Icon(
-                    Icons.autorenew,
+                    Symbols.autorenew,
                     size: 20,
                     color: theme.colorScheme.primary,
                   ),

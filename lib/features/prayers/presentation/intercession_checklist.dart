@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../domain/prayer.dart';
@@ -145,7 +146,7 @@ class _ChecklistRow extends StatelessWidget {
             SizedBox(
               width: 28,
               child: Icon(
-                checkedDay == i ? Icons.check : Icons.remove,
+                checkedDay == i ? Symbols.check : Symbols.remove,
                 size: 14,
                 color: checkedDay == i
                     ? theme.colorScheme.primary

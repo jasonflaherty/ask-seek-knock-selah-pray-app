@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
@@ -120,7 +121,7 @@ class _VersePickerSheetState extends ConsumerState<VersePickerSheet> {
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
                     onPressed: _addCustom,
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(Symbols.add),
                     label: const Text('Add my own verse'),
                   ),
                 ],

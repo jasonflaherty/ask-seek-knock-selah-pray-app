@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 
@@ -122,7 +123,7 @@ class TagInputState extends State<TagInput> {
               child: IconButton.filled(
                 tooltip: 'Add tag',
                 onPressed: () => _add(_controller.text),
-                icon: const Icon(Icons.add),
+                icon: const Icon(Symbols.add),
                 style: IconButton.styleFrom(
                   minimumSize: const Size(
                     AppTheme.minTapTarget,
