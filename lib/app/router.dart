@@ -1,9 +1,13 @@
 import 'package:go_router/go_router.dart';
 
+import '../features/liturgy/presentation/liturgy_screen.dart';
+import '../features/metrics/presentation/metrics_screen.dart';
 import '../features/prayers/presentation/add_edit_prayer_screen.dart';
 import '../features/prayers/presentation/prayer_detail_screen.dart';
 import '../features/prayers/presentation/prayer_list_screen.dart';
+import '../features/reading/presentation/read_pray_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/silence/presentation/silence_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -14,9 +18,29 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const PrayerListScreen(),
     ),
     GoRoute(
+      path: '/silence',
+      name: 'silence',
+      builder: (context, state) => const SilenceScreen(),
+    ),
+    GoRoute(
+      path: '/read-pray',
+      name: 'read-pray',
+      builder: (context, state) => const ReadPrayScreen(),
+    ),
+    GoRoute(
+      path: '/liturgy',
+      name: 'liturgy',
+      builder: (context, state) => const LiturgyScreen(),
+    ),
+    GoRoute(
       path: '/settings',
       name: 'settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/metrics',
+      name: 'metrics',
+      builder: (context, state) => const MetricsScreen(),
     ),
     GoRoute(
       path: '/prayers/new',

@@ -11,7 +11,6 @@ import '../../verses/domain/verse.dart';
 import '../../verses/presentation/verse_picker_sheet.dart';
 import '../application/prayer_share.dart';
 import '../domain/prayer.dart';
-import 'prayer_card.dart';
 
 class PrayerDetailScreen extends ConsumerStatefulWidget {
   const PrayerDetailScreen({super.key, required this.prayerId});
@@ -199,21 +198,12 @@ class _PrayerDetailScreenState extends ConsumerState<PrayerDetailScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(AppTheme.screenPadding),
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Semantics(
-                            header: true,
-                            child: Text(
-                              prayer.name,
-                              style: theme.textTheme.headlineLarge,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        PrayedButton(onPressed: () => _prayed()),
-                      ],
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        prayer.name,
+                        style: theme.textTheme.headlineLarge,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -373,7 +363,7 @@ class _PrayerDetailScreenState extends ConsumerState<PrayerDetailScreen> {
                                 if (verse.note.isNotEmpty) ...[
                                   const SizedBox(height: 8),
                                   Text(
-                                    verse.note,
+                                    'NOTE: ${verse.note}',
                                     style: theme.textTheme.bodyMedium,
                                   ),
                                 ],

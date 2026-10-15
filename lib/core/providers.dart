@@ -3,7 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../features/analytics/application/event_logger.dart';
+import '../features/liturgy/application/liturgy_favorites_notifier.dart';
+import '../features/liturgy/data/liturgy_catalog.dart';
+import '../features/liturgy/domain/liturgical_calendar.dart';
+import '../features/liturgy/domain/liturgical_prayer.dart';
+import '../features/prayers/application/home_meditation_offset_notifier.dart';
 import '../features/prayers/data/drift_prayer_repository.dart';
+import '../features/prayers/data/home_meditation_catalog.dart';
+import '../features/prayers/domain/home_meditation.dart';
 import '../features/prayers/domain/prayer_repository.dart';
 import '../features/verses/data/drift_custom_verse_repository.dart';
 import '../features/verses/data/keyword_verse_suggester.dart';
@@ -69,6 +76,31 @@ final verseCatalogProvider = Provider<VerseCatalog>((ref) {
   );
 });
 
+final liturgyCatalogProvider = Provider<LiturgyCatalog>((ref) {
+  return LiturgyCatalog();
+});
+
+final liturgyPrayersProvider = FutureProvider<List<LiturgicalPrayer>>((
+  ref,
+) async {
+  return ref.watch(liturgyCatalogProvider).load();
+});
+
+final liturgicalCalendarProvider = Provider<LiturgicalCalendar>((ref) {
+  return const LiturgicalCalendar();
+});
+
+final liturgyTodayProvider = Provider<TodaySelection>((ref) {
+  final calendar = ref.watch(liturgicalCalendarProvider);
+  final now = ref.watch(clockProvider).now();
+  return calendar.todayAt(now);
+});
+
+final liturgyFavoritesProvider =
+    StateNotifierProvider<LiturgyFavoritesNotifier, Set<String>>((ref) {
+  return LiturgyFavoritesNotifier(ref.watch(sharedPreferencesProvider));
+});
+
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
   ref,
 ) {
@@ -80,6 +112,31 @@ final homeVerseVisibleProvider =
     StateNotifierProvider<HomeVerseVisibleNotifier, bool>((ref) {
       return HomeVerseVisibleNotifier(ref.watch(sharedPreferencesProvider));
     });
+
+final homeMeditationCatalogProvider = Provider<HomeMeditationCatalog>((ref) {
+  return HomeMeditationCatalog();
+});
+
+final homeMeditationVersesProvider =
+    FutureProvider<List<HomeMeditationVerse>>((ref) async {
+  return ref.watch(homeMeditationCatalogProvider).load();
+});
+
+final homeMeditationOffsetProvider = StateNotifierProvider<
+    HomeMeditationOffsetNotifier, HomeMeditationOffset>((ref) {
+  return HomeMeditationOffsetNotifier(ref.watch(sharedPreferencesProvider));
+});
+
+/// Scripture for the journal home banner on the local calendar day.
+final homeMeditationTodayProvider = Provider<HomeMeditationVerse?>((ref) {
+  final verses = ref.watch(homeMeditationVersesProvider).valueOrNull;
+  if (verses == null) return null;
+  final now = ref.watch(clockProvider).now();
+  final stored = ref.watch(homeMeditationOffsetProvider);
+  final offset =
+      stored.dayKey == homeMeditationDayKey(now) ? stored.offset : 0;
+  return homeMeditationForDay(verses, now, offset: offset);
+});
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier(this._prefs) : super(_read(_prefs));

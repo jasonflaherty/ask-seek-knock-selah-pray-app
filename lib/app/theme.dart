@@ -15,20 +15,20 @@ class SelahPalette extends ThemeExtension<SelahPalette> {
   final Color selectedItemBg;
   final Color verseSurface;
 
-  /// Liturgical gold badge; cool selected wash.
+  /// Liturgical gold badge; blue selected wash.
   static const light = SelahPalette(
     answeredBadgeBg: Color(0xFFE8D5A3),
     answeredBadgeFg: Color(0xFF3D2E0A),
-    selectedItemBg: Color(0xFFE8EEF5),
-    verseSurface: Color(0xFFF5F2EB),
+    selectedItemBg: Color(0xFFD6E2F0),
+    verseSurface: Color(0xFFC8D8EB),
   );
 
   /// Deep wine + gold for answered state in dark mode.
   static const dark = SelahPalette(
     answeredBadgeBg: Color(0xFF5C2814),
     answeredBadgeFg: Color(0xFFF5D78E),
-    selectedItemBg: Color(0xFF243044),
-    verseSurface: Color(0xFF141A24),
+    selectedItemBg: Color(0xFF1E3A55),
+    verseSurface: Color(0xFF152536),
   );
 
   @override
@@ -85,29 +85,29 @@ abstract final class AppTheme {
   static const double buttonHeight = 48;
   static const double minTapTarget = 48;
 
-  // Light — Byzantine blue on cooler parchment
-  static const Color lightSurface = Color(0xFFF7F5F0);
-  static const Color lightCard = Color(0xFFFFFFFF);
+  // Light — Byzantine blue field; white cards stand out on it
+  static const Color lightSurface = Color(0xFFD6E2F0);
+  static const Color lightCard = Color(0xFFF8FAFD);
   static const Color lightOnSurface = Color(0xFF1A1F2E);
   static const Color lightOnSurfaceVariant = Color(0xFF4A5163);
   static const Color lightPrimary = Color(0xFF1A3A5C);
   static const Color lightOnPrimary = Color(0xFFFFFFFF);
-  static const Color lightOutline = Color(0xFF6B7280);
-  static const Color lightOutlineVariant = Color(0xFFD4D0C8);
+  static const Color lightOutline = Color(0xFF5C6B7C);
+  static const Color lightOutlineVariant = Color(0xFFB4C4D6);
   static const Color lightError = Color(0xFFB3261E);
   static const Color lightOnError = Color(0xFFFFFFFF);
   static const Color lightErrorContainer = Color(0xFFF9DEDC);
   static const Color lightOnErrorContainer = Color(0xFF410E0B);
 
-  // Dark — deep navy with liturgical gold
-  static const Color darkSurface = Color(0xFF0F141E);
-  static const Color darkCard = Color(0xFF1A2230);
+  // Dark — deeper navy field with liturgical gold
+  static const Color darkSurface = Color(0xFF0A1624);
+  static const Color darkCard = Color(0xFF152536);
   static const Color darkOnSurface = Color(0xFFECE8DC);
   static const Color darkOnSurfaceVariant = Color(0xFFB4B0A4);
   static const Color darkPrimary = Color(0xFFD4AF37);
   static const Color darkOnPrimary = Color(0xFF1A1408);
   static const Color darkOutline = Color(0xFF8C887C);
-  static const Color darkOutlineVariant = Color(0xFF2E3644);
+  static const Color darkOutlineVariant = Color(0xFF2A3C50);
   static const Color darkError = Color(0xFFF2B8B5);
   static const Color darkOnError = Color(0xFF601410);
   static const Color darkErrorContainer = Color(0xFF8C1D18);

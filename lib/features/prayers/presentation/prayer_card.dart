@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../domain/prayer.dart';
+import '../domain/share_scope.dart';
 
 class PrayerCard extends ConsumerWidget {
   const PrayerCard({
@@ -42,15 +43,16 @@ class PrayerCard extends ConsumerWidget {
         .map((v) => v.ref)
         .toList();
 
+    final visibilityLabel = prayer.shareScope.label;
     final label =
-        '$_focus. $statusLabel. $preview. ${verseRefs.join(', ')}. Private.';
+        '$_focus. $statusLabel. $preview. ${verseRefs.join(', ')}. $visibilityLabel.';
 
     return Semantics(
       container: true,
       button: true,
       label: label,
       customSemanticsActions: {
-        const CustomSemanticsAction(label: 'Prayed'): onPrayed,
+        const CustomSemanticsAction(label: 'Prayed for'): onPrayed,
         if (!prayer.isAnswered)
           const CustomSemanticsAction(label: 'Mark answered'): onMarkAnswered,
         const CustomSemanticsAction(label: 'Delete'): onDelete,
@@ -61,168 +63,152 @@ class PrayerCard extends ConsumerWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(AppTheme.cardPadding),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Text(_focus, style: theme.textTheme.titleMedium),
+                if (prayer.hasPerson &&
+                    prayer.name.trim().toLowerCase() !=
+                        prayer.person.trim().toLowerCase()) ...[
+                  const SizedBox(height: 2),
+                  Text(prayer.name, style: theme.textTheme.bodySmall),
+                ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _VisibilityBadge(scope: prayer.shareScope),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: _StatusBadge(
+                        answered: prayer.isAnswered,
+                        label: statusLabel,
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      tooltip: 'Prayer actions',
+                      padding: EdgeInsets.zero,
+                      onSelected: (value) {
+                        if (value == 'answered') onMarkAnswered();
+                        if (value == 'delete') onDelete();
+                      },
+                      itemBuilder: (context) => [
+                        if (!prayer.isAnswered)
+                          const PopupMenuItem(
+                            value: 'answered',
+                            child: Text('Mark answered'),
+                          ),
+                        if (prayer.isAnswered)
+                          const PopupMenuItem(
+                            value: 'answered',
+                            child: Text('Mark unanswered'),
+                          ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '"$preview"',
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontFamily: AppTheme.scriptureFont,
+                    fontStyle: FontStyle.italic,
+                    height: 1.45,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                if (verseRefs.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 6,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      for (final refText in verseRefs.take(3))
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.menu_book_outlined,
+                              size: 16,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              refText,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (verseRefs.length > 3)
+                        Text(
+                          '+${verseRefs.length - 3} more',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                    ],
+                  ),
+                ],
+                if (prayer.isAnswered &&
+                    prayer.answeredNote != null &&
+                    prayer.answeredNote!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: palette.answeredBadgeBg.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+                    ),
+                    child: Text.rich(
+                      TextSpan(
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _focus,
-                                  style: theme.textTheme.titleMedium,
-                                ),
-                                if (prayer.hasPerson &&
-                                    prayer.name.trim().toLowerCase() !=
-                                        prayer.person.trim().toLowerCase()) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    prayer.name,
-                                    style: theme.textTheme.bodySmall,
-                                  ),
-                                ],
-                              ],
+                          TextSpan(
+                            text: 'Praise Answer: ',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: palette.answeredBadgeFg,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          _StatusBadge(
-                            answered: prayer.isAnswered,
-                            label: statusLabel,
-                          ),
-                          PopupMenuButton<String>(
-                            tooltip: 'Prayer actions',
-                            padding: EdgeInsets.zero,
-                            onSelected: (value) {
-                              if (value == 'answered') onMarkAnswered();
-                              if (value == 'delete') onDelete();
-                            },
-                            itemBuilder: (context) => [
-                              if (!prayer.isAnswered)
-                                const PopupMenuItem(
-                                  value: 'answered',
-                                  child: Text('Mark answered'),
-                                ),
-                              if (prayer.isAnswered)
-                                const PopupMenuItem(
-                                  value: 'answered',
-                                  child: Text('Mark unanswered'),
-                                ),
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Text('Delete'),
-                              ),
-                            ],
+                          TextSpan(
+                            text: prayer.answeredNote!.trim(),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        '"$preview"',
-                        maxLines: 4,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontFamily: AppTheme.scriptureFont,
-                          fontStyle: FontStyle.italic,
-                          height: 1.45,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                      if (verseRefs.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 6,
-                          children: [
-                            for (final refText in verseRefs.take(3))
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.menu_book_outlined,
-                                    size: 16,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    refText,
-                                    style: theme.textTheme.labelMedium
-                                        ?.copyWith(
-                                          color: theme.colorScheme.primary,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            if (verseRefs.length > 3)
-                              Text(
-                                '+${verseRefs.length - 3} more',
-                                style: theme.textTheme.bodySmall,
-                              ),
-                          ],
-                        ),
-                      ],
-                      if (prayer.isAnswered &&
-                          prayer.answeredNote != null &&
-                          prayer.answeredNote!.trim().isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: palette.answeredBadgeBg.withValues(
-                              alpha: 0.45,
-                            ),
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.chipRadius,
-                            ),
-                          ),
-                          child: Text.rich(
-                            TextSpan(
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: prayer.tags.isEmpty
+                          ? const SizedBox.shrink()
+                          : Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
                               children: [
-                                TextSpan(
-                                  text: 'Praise Answer: ',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: palette.answeredBadgeFg,
+                                for (final tag in prayer.tags)
+                                  Chip(
+                                    label: Text(tag),
+                                    visualDensity: VisualDensity.compact,
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
-                                ),
-                                TextSpan(
-                                  text: prayer.answeredNote!.trim(),
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                ),
                               ],
                             ),
-                          ),
-                        ),
-                      ],
-                      if (prayer.tags.isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: [
-                            for (final tag in prayer.tags)
-                              Chip(
-                                label: Text(tag),
-                                visualDensity: VisualDensity.compact,
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
+                    ),
+                    PrayedButton(onPressed: onPrayed),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                PrayedButton(onPressed: onPrayed),
               ],
             ),
           ),
@@ -232,6 +218,7 @@ class PrayerCard extends ConsumerWidget {
   }
 }
 
+/// Heart control. Tap records that this petition was prayed for.
 class PrayedButton extends StatefulWidget {
   const PrayedButton({super.key, required this.onPressed});
 
@@ -254,35 +241,74 @@ class _PrayedButtonState extends State<PrayedButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final palette = context.palette;
     final color = _justPrayed
-        ? palette.answeredBadgeFg
-        : theme.colorScheme.primary;
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurfaceVariant;
 
     return IconButton(
-      tooltip: 'Prayed',
+      tooltip: 'Prayed for',
       onPressed: _press,
-      style: IconButton.styleFrom(
-        fixedSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
-        minimumSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
-        maximumSize: const Size(AppTheme.minTapTarget, AppTheme.minTapTarget),
-        padding: EdgeInsets.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.standard,
-        backgroundColor: _justPrayed
-            ? palette.answeredBadgeBg
-            : palette.selectedItemBg,
-        foregroundColor: color,
-        side: BorderSide(
-          color: _justPrayed
-              ? palette.answeredBadgeFg
-              : theme.colorScheme.primary,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(
+        minWidth: AppTheme.minTapTarget,
+        minHeight: AppTheme.minTapTarget,
+      ),
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: Icon(
+          _justPrayed ? Icons.favorite : Icons.favorite_border,
+          key: ValueKey(_justPrayed),
+          size: 22,
+          color: color,
         ),
       ),
-      icon: Icon(_justPrayed ? Icons.check : Icons.favorite_outline, size: 20),
+    );
+  }
+}
+
+class _VisibilityBadge extends StatelessWidget {
+  const _VisibilityBadge({required this.scope});
+
+  final ShareScope scope;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    final label = scope.label;
+    final icon = switch (scope) {
+      ShareScope.justMe => Icons.lock_outline,
+      ShareScope.group => Icons.group_outlined,
+      ShareScope.church => Icons.groups_outlined,
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: palette.selectedItemBg,
+        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              letterSpacing: 0.2,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -301,7 +327,6 @@ class _StatusBadge extends StatelessWidget {
     final fg = answered ? palette.answeredBadgeFg : theme.colorScheme.primary;
 
     return Container(
-      margin: const EdgeInsets.only(top: 2),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
@@ -314,12 +339,16 @@ class _StatusBadge extends StatelessWidget {
             Icon(Icons.check, size: 14, color: fg),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: fg,
-              letterSpacing: 0.4,
-              fontSize: 11,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: fg,
+                letterSpacing: 0.4,
+                fontSize: 11,
+              ),
             ),
           ),
         ],

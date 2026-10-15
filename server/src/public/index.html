@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Selah — Church prayers</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Selah</h1>
+      <p class="lede">Church prayer list. Sign in with the same email you use in the app.</p>
+    </header>
+
+    <section id="auth" class="card">
+      <h2>Sign in</h2>
+      <label>
+        Email
+        <input id="email" type="email" autocomplete="email" />
+      </label>
+      <button id="request-code" type="button">Send code</button>
+      <label class="hidden" id="code-label">
+        Code from email
+        <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" />
+      </label>
+      <button class="hidden" id="verify-code" type="button">Sign in</button>
+      <p id="auth-msg" class="msg" hidden></p>
+    </section>
+
+    <section id="app" class="hidden">
+      <div class="toolbar">
+        <p id="who"></p>
+        <button id="sign-out" type="button" class="ghost">Sign out</button>
+      </div>
+
+      <p id="membership" class="msg"></p>
+
+      <section class="card">
+        <h2>Add a church prayer</h2>
+        <label>
+          Title
+          <input id="new-name" maxlength="100" />
+        </label>
+        <label>
+          For (optional)
+          <input id="new-person" maxlength="100" />
+        </label>
+        <label>
+          Request
+          <textarea id="new-request" rows="4"></textarea>
+        </label>
+        <button id="add-prayer" type="button">Add church prayer</button>
+        <p id="add-msg" class="msg" hidden></p>
+      </section>
+
+      <section class="card">
+        <div class="toolbar">
+          <h2>Church prayers</h2>
+          <button id="refresh" type="button" class="ghost">Refresh</button>
+        </div>
+        <div id="filters" class="filters">
+          <button type="button" data-filter="active" class="chip active">Active</button>
+          <button type="button" data-filter="answered" class="chip">Answered</button>
+          <button type="button" data-filter="all" class="chip">All</button>
+        </div>
+        <ul id="prayer-list" class="list"></ul>
+      </section>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

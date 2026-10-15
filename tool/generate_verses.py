@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 KJV_PATH = ROOT / "tool" / "data" / "kjv.json"
 OUT_PATH = ROOT / "assets" / "verses" / "verses.json"
+HOME_MEDITATION_OUT_PATH = ROOT / "assets" / "verses" / "home_meditation.json"
 
 BOOK_ABBREV = {
     "Genesis": "gen",
@@ -338,6 +339,10 @@ SPECS = [
     ("Psalm 91:4", ["protection", "fear"],
      ["feather", "wing", "refuge", "shield", "buckler", "protect", "truth"],
      "character_of_god", "He shall cover thee with his feathers, and under his wings shalt thou trust."),
+    ("Romans 8:26-27", ["prayer", "hope"],
+     ["spirit", "help", "infirmity", "pray", "intercession", "will", "groaning"],
+     "character_of_god",
+     "The Spirit helps us pray and intercedes according to the will of God."),
     ("Romans 8:28", ["hope", "perseverance", "faith"],
      ["work", "good", "love", "purpose", "called", "all things"],
      "explicit_promise", "All things work together for good to them that love God."),
@@ -544,6 +549,123 @@ SPECS = [
      "answered_prayer", "The Lord stood with me, and strengthened me… and I was delivered out of the mouth of the lion."),
 ]
 
+# Home-screen meditation: God's holiness and a Spirit-led life.
+# Refs only; text is copied from kjv.json. Interleaved holiness / Spirit.
+_HOME_HOLINESS = [
+    "Habakkuk 2:20",
+    "Isaiah 6:3",
+    "Revelation 4:8",
+    "1 Peter 1:15-16",
+    "Leviticus 19:2",
+    "Psalm 99:5",
+    "Psalm 99:9",
+    "Exodus 15:11",
+    "Isaiah 57:15",
+    "Psalm 29:2",
+    "Psalm 96:9",
+    "Revelation 15:4",
+    "1 Samuel 2:2",
+    "Psalm 145:17",
+    "Psalm 93:5",
+    "Psalm 111:9",
+    "Exodus 3:5",
+    "Psalm 22:3",
+    "Isaiah 40:25",
+    "Proverbs 9:10",
+    "Isaiah 8:13",
+    "1 Chronicles 16:29",
+    "Psalm 103:1",
+    "Revelation 4:11",
+    "1 John 1:5",
+    "Psalm 11:4",
+    "Hebrews 12:14",
+    "1 Thessalonians 4:7",
+    "2 Corinthians 7:1",
+    "Romans 12:1",
+    "Hebrews 12:10",
+    "Matthew 5:8",
+    "Psalm 24:3-4",
+    "1 Peter 2:9",
+    "Ephesians 4:23-24",
+]
+
+_HOME_SPIRIT = [
+    "Galatians 5:16",
+    "Galatians 5:22-23",
+    "Galatians 5:25",
+    "Galatians 5:18",
+    "Romans 8:14",
+    "Romans 8:4",
+    "Romans 8:5-6",
+    "Romans 8:9",
+    "Romans 8:2",
+    "Romans 8:26",
+    "Ephesians 5:18",
+    "Ephesians 5:8",
+    "Ezekiel 36:27",
+    "Psalm 143:10",
+    "Psalm 51:10-11",
+    "Proverbs 3:5-6",
+    "John 16:13",
+    "John 14:26",
+    "John 4:24",
+    "John 15:5",
+    "John 3:5-6",
+    "2 Corinthians 3:18",
+    "Zechariah 4:6",
+    "Philippians 2:13",
+    "Isaiah 11:2",
+    "Ephesians 3:16",
+    "Romans 15:13",
+    "2 Timothy 1:7",
+    "Titus 3:5",
+    "1 Peter 1:2",
+    "2 Thessalonians 2:13",
+    "Ephesians 4:30",
+    "1 Thessalonians 5:19",
+    "Isaiah 30:21",
+    "Psalm 119:133",
+    "1 Corinthians 6:19",
+    "Galatians 6:8",
+    "Luke 11:13",
+    "Micah 6:8",
+]
+
+
+def _interleave_home_refs() -> list[str]:
+    out: list[str] = []
+    for i in range(max(len(_HOME_HOLINESS), len(_HOME_SPIRIT))):
+        if i < len(_HOME_HOLINESS):
+            out.append(_HOME_HOLINESS[i])
+        if i < len(_HOME_SPIRIT):
+            out.append(_HOME_SPIRIT[i])
+    return out
+
+
+HOME_MEDITATION_SPECS = _interleave_home_refs()
+
+
+def display_ref(book: str, chapter: int, start: int, end: int) -> str:
+    if start == end:
+        return f"{book} {chapter}:{start}"
+    return f"{book} {chapter}:{start}–{end}"
+
+
+def build_home_meditation(books) -> list[dict]:
+    verses = []
+    seen = set()
+    for ref in HOME_MEDITATION_SPECS:
+        book, chapter, start, end = parse_ref(ref)
+        key = (book, chapter, start, end)
+        if key in seen:
+            raise SystemExit(f"Duplicate home meditation ref {ref}")
+        seen.add(key)
+        verses.append({
+            "ref": display_ref(book, chapter, start, end),
+            "text": verse_text(books, book, chapter, start, end),
+        })
+    return verses
+
 
 def main():
     books = load_kjv()
@@ -564,13 +686,9 @@ def main():
         if not controlled:
             controlled = ["hope"]
         text = verse_text(books, book, chapter, start, end)
-        if start == end:
-            display = f"{book} {chapter}:{start}"
-        else:
-            display = f"{book} {chapter}:{start}–{end}"
         verses.append({
             "id": vid,
-            "ref": display,
+            "ref": display_ref(book, chapter, start, end),
             "text": text,
             "themes": controlled[:4],
             "keywords": keywords[:15],
@@ -581,6 +699,17 @@ def main():
     payload = {"translation": "KJV", "version": 1, "verses": verses}
     OUT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
     print(f"Wrote {len(verses)} verses to {OUT_PATH}")
+
+    home = build_home_meditation(books)
+    home_payload = {
+        "translation": "KJV",
+        "version": 1,
+        "verses": home,
+    }
+    HOME_MEDITATION_OUT_PATH.write_text(
+        json.dumps(home_payload, indent=2, ensure_ascii=False) + "\n"
+    )
+    print(f"Wrote {len(home)} home meditation verses to {HOME_MEDITATION_OUT_PATH}")
 
 
 if __name__ == "__main__":

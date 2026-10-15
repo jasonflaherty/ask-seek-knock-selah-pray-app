@@ -9,17 +9,10 @@ class JournalHeader extends StatelessWidget {
     super.key,
     required this.activeCount,
     required this.answeredCount,
-    this.showMeditationVerse = true,
   });
 
   final int activeCount;
   final int answeredCount;
-  final bool showMeditationVerse;
-
-  static const meditationQuote =
-      'The LORD is in his holy temple; let all the earth be silent before him… '
-      'Trust in the LORD with all your heart and lean not on your own understanding.';
-  static const meditationAttribution = 'Habakkuk 2:20 & Proverbs 3:5';
 
   @override
   Widget build(BuildContext context) {
@@ -59,23 +52,28 @@ class JournalHeader extends StatelessWidget {
           textAlign: TextAlign.center,
           style: theme.textTheme.labelLarge,
         ),
-        if (showMeditationVerse) ...[
-          const SizedBox(height: 16),
-          const JournalMeditationVerse(),
-        ],
       ],
     );
   }
 }
 
 class JournalMeditationVerse extends StatelessWidget {
-  const JournalMeditationVerse({super.key});
+  const JournalMeditationVerse({
+    super.key,
+    required this.text,
+    required this.ref,
+    this.onRotate,
+  });
+
+  final String text;
+  final String ref;
+  final VoidCallback? onRotate;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
       decoration: BoxDecoration(
         color: context.palette.verseSurface,
         borderRadius: BorderRadius.circular(AppTheme.controlRadius),
@@ -83,19 +81,39 @@ class JournalMeditationVerse extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            '"${JournalHeader.meditationQuote}"',
-            textAlign: TextAlign.center,
-            style: AppTheme.scripture(theme.colorScheme.onSurface)
-                .copyWith(fontSize: 16, height: 1.5),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '— ${JournalHeader.meditationAttribution}',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.primary,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '"$text"',
+              textAlign: TextAlign.center,
+              style: AppTheme.scripture(theme.colorScheme.onSurface)
+                  .copyWith(fontSize: 16, height: 1.5),
             ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  '— $ref',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+              if (onRotate != null)
+                IconButton(
+                  tooltip: 'Show another verse',
+                  onPressed: onRotate,
+                  icon: Icon(
+                    Icons.autorenew,
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+            ],
           ),
         ],
       ),

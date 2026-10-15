@@ -7,6 +7,14 @@ abstract class CustomVerseRepository {
     String? note,
   });
 
+  /// Upserts a custom verse with a known id (church sheet import).
+  Future<Verse> importCustom({
+    required String id,
+    required String ref,
+    required String text,
+    String? note,
+  });
+
   Future<Verse?> getById(String id);
 
   Future<List<Verse>> getByIds(List<String> ids);

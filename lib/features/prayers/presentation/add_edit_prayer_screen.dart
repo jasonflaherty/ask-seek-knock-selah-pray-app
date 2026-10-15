@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../../../core/utils/announce.dart';
+import '../../groups/application/group_session_notifier.dart';
 import '../../verses/application/verse_suggest_notifier.dart';
 import '../../verses/presentation/verse_picker_sheet.dart';
 import '../domain/prayer.dart';
+import '../domain/share_scope.dart';
 import 'tag_input.dart';
 
 class AddEditPrayerScreen extends ConsumerStatefulWidget {
@@ -35,6 +37,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
   List<String> _suggestions = [];
   List<String> _personSuggestions = [];
   bool _isAnswered = false;
+  ShareScope _shareScope = ShareScope.justMe;
   bool _loading = true;
   bool _dirty = false;
   bool _saving = false;
@@ -60,6 +63,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
         _tags = List.of(prayer.tags);
         _verseIds = List.of(prayer.verseIds);
         _isAnswered = prayer.isAnswered;
+        _shareScope = prayer.shareScope;
         _answerNoteController.text = prayer.answeredNote ?? '';
       }
     }
@@ -98,6 +102,15 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
     final tags = List<String>.of(_tags);
     try {
       final person = normalizePerson(_personController.text);
+      final group = ref.read(groupSessionProvider);
+      final membership = group.session?.membership;
+      final user = group.session?.user;
+      final canShare = membership != null;
+      final scope = canShare ? _shareScope : ShareScope.justMe;
+      final authorEmail =
+          scope.isShared ? (user?.email ?? '') : '';
+      final authorDisplayName =
+          scope.isShared ? (user?.displayName ?? '') : '';
       if (widget.isEditing) {
         await repo.updatePrayer(
           widget.prayerId!,
@@ -110,6 +123,11 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
             isAnswered: _isAnswered,
             answeredNote:
                 _isAnswered ? _answerNoteController.text.trim() : null,
+            shareScope: scope,
+            groupId: scope == ShareScope.group ? membership?.groupId : null,
+            churchId: scope.isShared ? membership?.churchId : null,
+            authorEmail: scope.isShared ? authorEmail : null,
+            authorDisplayName: scope.isShared ? authorDisplayName : null,
           ),
         );
         await ref.read(eventLoggerProvider).edited(widget.prayerId!);
@@ -121,8 +139,18 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
             request: _requestController.text.trim(),
             tags: tags,
             verseIds: _verseIds,
+            shareScope: scope,
+            groupId: scope == ShareScope.group ? membership?.groupId : null,
+            churchId: scope.isShared ? membership?.churchId : null,
+            authorEmail: authorEmail,
+            authorDisplayName: authorDisplayName,
           ),
         );
+      }
+      if (scope.isShared && group.session != null) {
+        try {
+          await ref.read(groupSessionProvider.notifier).syncNow();
+        } catch (_) {}
       }
       if (!mounted) return;
       announceForAccessibility(context, 'Prayer saved');
@@ -189,6 +217,57 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                Text(
+                                  'Visibility',
+                                  style: theme.textTheme.labelLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                Builder(
+                                  builder: (context) {
+                                    final inGroup = ref
+                                            .watch(groupSessionProvider)
+                                            .session
+                                            ?.membership !=
+                                        null;
+                                    return SegmentedButton<ShareScope>(
+                                      segments: [
+                                        const ButtonSegment(
+                                          value: ShareScope.justMe,
+                                          label: Text('Just me'),
+                                        ),
+                                        ButtonSegment(
+                                          value: ShareScope.group,
+                                          label: const Text('Group'),
+                                          enabled: inGroup,
+                                        ),
+                                        ButtonSegment(
+                                          value: ShareScope.church,
+                                          label: const Text('Church'),
+                                          enabled: inGroup,
+                                        ),
+                                      ],
+                                      selected: {_shareScope},
+                                      onSelectionChanged: (s) {
+                                        setState(() => _shareScope = s.first);
+                                        _markDirty();
+                                      },
+                                      showSelectedIcon: false,
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  switch (_shareScope) {
+                                    ShareScope.justMe =>
+                                      'Stays on this device. Never uploaded.',
+                                    ShareScope.group =>
+                                      'Visible to your reading group.',
+                                    ShareScope.church =>
+                                      'Visible to your church on the phone and at selah.psithurismlabs.com.',
+                                  },
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                                const SizedBox(height: 20),
                                 Text('Title', style: theme.textTheme.labelLarge),
                                 const SizedBox(height: 8),
                                 TextField(

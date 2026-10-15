@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="launch_background">#FBF8F3</color>
-	<color name="ic_launcher_background">#C9A227</color>
+    <!-- Matches the launcher icon field in both light and dark. -->
+    <color name="launch_background">#011538</color>
+	<color name="ic_launcher_background">#1A3A5C</color>
 </resources>

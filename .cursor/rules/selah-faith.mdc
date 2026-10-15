@@ -1,0 +1,22 @@
+---
+description: Keep Selah strictly biblical, orthodox, and Reformed
+alwaysApply: true
+---
+
+# Faith boundary
+
+Keep it strictly biblical, orthodox and reformed.
+
+Scripture is the rule for what the app teaches. The ecumenical creeds and the Reformed confessions (Westminster Standards, Three Forms of Unity) mark the boundary. Do not teach Roman Catholic, Eastern Orthodox, prosperity, or Word of Faith doctrine.
+
+- Pray to the Father, through the Son, by the Spirit. No prayers to saints, Mary, or angels.
+- God is sovereign. Prayer asks according to His will. It does not bind, obligate, or manipulate Him.
+- God may answer yes, no, or wait. Do not teach that unanswered prayer is caused by hidden sin, weak faith, or the wrong technique.
+- Do not teach "ask once and thank as if already received," name-it-claim-it, or that agreement, fasting, or warfare forces an outcome.
+- Justification is by grace alone, through faith alone, in Christ alone. The app is not a merit system.
+
+User-facing copy stays plain and short. The user selects Scripture. Do not add a screen that teaches a prayer method, shows teacher names, or shows strategy notes.
+
+Verse text in the library is public-domain KJV, copied from `tool/data/kjv.json` by `tool/generate_verses.py`. Never paraphrase a verse into `assets/verses/verses.json`. A note may explain a verse. It must not replace the wording.
+
+Do not attach a strategy to a nearby verse that says something else. Example: Romans 8:28 is not the text for "the Spirit helps us pray."

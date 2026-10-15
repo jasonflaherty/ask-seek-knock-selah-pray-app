@@ -2,15 +2,26 @@
 
 A calm, offline prayer journal. Record prayer requests, pick promise verses that speak to the need, and pray through your list each day.
 
+**Guides**
+
+- [Using Selah](docs/using-selah.md) — for people in a group (sign-in, sharing, timers, church page)
+- [Running Selah](docs/running-selah.md) — for the person who keeps the server
+
 ## Setup
 
 ```bash
 flutter pub get
 dart run build_runner build
-flutter run
+flutter run --dart-define=SELAH_API_BASE_URL=https://selah.psithurismlabs.com
 ```
 
-Minimum SDKs: iOS 13+, Android API 24+. The app is fully offline; release builds do not require network permission.
+Minimum SDKs: iOS 13+, Android API 24+. The journal is offline by default. Optional email sign-in and group sync need network when the user signs in or syncs. Just me prayers never leave the device.
+
+## Group and church sync (optional)
+
+Prayers marked **Just me** never leave the device. Prayers marked **Group** or **Church** sync through PostgreSQL on the VPS behind `https://selah.psithurismlabs.com`. Members sign in with an email one-time code. A signed-in page on that host maintains the church list.
+
+Server stack: `server/docker-compose.yml` (`selah-api`, `selah-postgres`). See [docs/running-selah.md](docs/running-selah.md).
 
 ## Architecture
 
@@ -22,8 +33,11 @@ lib/
   core/          database, providers, clock, shuffle helpers
   features/
     prayers/     list, add/edit, detail, repository
+    groups/      email sign-in, membership, sync client
+    reading/     morning reminder, read/pray timers, study notes
     verses/      suggester, picker, asset loader
     analytics/   EventLogger (local only)
+server/          Docker API + Postgres for shared data
 ```
 
 ## Code generation

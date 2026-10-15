@@ -22,6 +22,12 @@ dependencies:
   share_plus: ^13.3.1
   file_picker: ^13.1.0
   pdf: ^3.13.1
+  http: ^1.2.0
+  url_launcher: ^6.3.3
+  audioplayers: ^6.8.1
+  wakelock_plus: ^1.8.1
+  flutter_local_notifications: ^22.3.2
+  timezone: ^0.11.2
 
 dev_dependencies:
   flutter_test:
@@ -36,7 +42,7 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/branding/selah_icon_1024.png
-  adaptive_icon_background: "#C9A227"
+  adaptive_icon_background: "#1A3A5C"
   adaptive_icon_foreground: assets/branding/selah_icon_1024.png
   remove_alpha_ios: true
 
@@ -46,6 +52,8 @@ flutter:
   assets:
     - assets/verses/
     - assets/branding/
+    - assets/liturgy/
+    - assets/sounds/
 
   fonts:
     - family: AtkinsonHyperlegible

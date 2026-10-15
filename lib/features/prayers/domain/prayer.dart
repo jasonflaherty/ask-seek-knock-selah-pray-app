@@ -1,7 +1,10 @@
+import 'share_scope.dart';
+
 /// Immutable prayer entity. Fields `timesViewed` and `lastPrayedAt` are
 /// derived from `prayer_events` in the repository — not stored columns.
 ///
-/// Prayers are private by default (device-local). Sharing is an explicit action.
+/// Prayers are private by default (device-local). Group and Church scopes
+/// sync only after the person joins a group and confirms upload.
 class Prayer {
   const Prayer({
     required this.id,
@@ -17,6 +20,12 @@ class Prayer {
     this.verseIds = const [],
     this.timesViewed = 0,
     this.lastPrayedAt,
+    this.syncId,
+    this.shareScope = ShareScope.justMe,
+    this.groupId,
+    this.churchId,
+    this.authorEmail = '',
+    this.authorDisplayName = '',
   });
 
   final int id;
@@ -35,7 +44,26 @@ class Prayer {
   final int timesViewed;
   final DateTime? lastPrayedAt;
 
+  /// Stable id for group/church sync. Null until first share.
+  final String? syncId;
+
+  final ShareScope shareScope;
+  final String? groupId;
+  final String? churchId;
+
+  /// Account email of the author when shared (not shown in lists).
+  final String authorEmail;
+
+  /// Short name shown on shared lists.
+  final String authorDisplayName;
+
   bool get hasPerson => person.trim().isNotEmpty;
+
+  bool get shared => shareScope.isShared;
+
+  bool get isChurch => shareScope == ShareScope.church;
+
+  bool get isGroup => shareScope == ShareScope.group;
 
   Prayer copyWith({
     int? id,
@@ -51,9 +79,18 @@ class Prayer {
     List<String>? verseIds,
     int? timesViewed,
     DateTime? lastPrayedAt,
+    String? syncId,
+    ShareScope? shareScope,
+    String? groupId,
+    String? churchId,
+    String? authorEmail,
+    String? authorDisplayName,
     bool clearAnsweredAt = false,
     bool clearAnsweredNote = false,
     bool clearLastPrayedAt = false,
+    bool clearSyncId = false,
+    bool clearGroupId = false,
+    bool clearChurchId = false,
   }) {
     return Prayer(
       id: id ?? this.id,
@@ -71,6 +108,12 @@ class Prayer {
       timesViewed: timesViewed ?? this.timesViewed,
       lastPrayedAt:
           clearLastPrayedAt ? null : (lastPrayedAt ?? this.lastPrayedAt),
+      syncId: clearSyncId ? null : (syncId ?? this.syncId),
+      shareScope: shareScope ?? this.shareScope,
+      groupId: clearGroupId ? null : (groupId ?? this.groupId),
+      churchId: clearChurchId ? null : (churchId ?? this.churchId),
+      authorEmail: authorEmail ?? this.authorEmail,
+      authorDisplayName: authorDisplayName ?? this.authorDisplayName,
     );
   }
 
@@ -90,7 +133,13 @@ class Prayer {
           _listEq(other.tags, tags) &&
           _listEq(other.verseIds, verseIds) &&
           other.timesViewed == timesViewed &&
-          other.lastPrayedAt == lastPrayedAt;
+          other.lastPrayedAt == lastPrayedAt &&
+          other.syncId == syncId &&
+          other.shareScope == shareScope &&
+          other.groupId == groupId &&
+          other.churchId == churchId &&
+          other.authorEmail == authorEmail &&
+          other.authorDisplayName == authorDisplayName;
 
   @override
   int get hashCode => Object.hash(
@@ -107,6 +156,12 @@ class Prayer {
         Object.hashAll(verseIds),
         timesViewed,
         lastPrayedAt,
+        syncId,
+        shareScope,
+        groupId,
+        churchId,
+        authorEmail,
+        authorDisplayName,
       );
 }
 
@@ -117,6 +172,12 @@ class NewPrayer {
     required this.request,
     this.tags = const [],
     this.verseIds = const [],
+    this.shareScope = ShareScope.justMe,
+    this.groupId,
+    this.churchId,
+    this.authorEmail = '',
+    this.authorDisplayName = '',
+    this.syncId,
   });
 
   final String name;
@@ -124,6 +185,12 @@ class NewPrayer {
   final String request;
   final List<String> tags;
   final List<String> verseIds;
+  final ShareScope shareScope;
+  final String? groupId;
+  final String? churchId;
+  final String authorEmail;
+  final String authorDisplayName;
+  final String? syncId;
 }
 
 class PrayerUpdate {
@@ -135,6 +202,12 @@ class PrayerUpdate {
     this.verseIds = const [],
     this.isAnswered,
     this.answeredNote,
+    this.shareScope,
+    this.groupId,
+    this.churchId,
+    this.authorEmail,
+    this.authorDisplayName,
+    this.syncId,
   });
 
   final String name;
@@ -144,6 +217,12 @@ class PrayerUpdate {
   final List<String> verseIds;
   final bool? isAnswered;
   final String? answeredNote;
+  final ShareScope? shareScope;
+  final String? groupId;
+  final String? churchId;
+  final String? authorEmail;
+  final String? authorDisplayName;
+  final String? syncId;
 }
 
 enum AnswerFilter { active, answered, all }

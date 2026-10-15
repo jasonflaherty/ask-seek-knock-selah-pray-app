@@ -262,7 +262,11 @@ class VerseSelectCard extends StatelessWidget {
                         style: AppTheme.scripture(theme.colorScheme.onSurface),
                       ),
                       const SizedBox(height: 8),
-                      Text(verse.note, style: theme.textTheme.bodyMedium),
+                      if (verse.note.isNotEmpty)
+                        Text(
+                          'NOTE: ${verse.note}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
                     ],
                   ),
                 ),
