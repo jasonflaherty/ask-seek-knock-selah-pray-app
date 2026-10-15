@@ -31,6 +31,7 @@ class PrayerListScreen extends ConsumerWidget {
         ref.watch(prayerCountsProvider).valueOrNull ??
         const PrayerCounts(active: 0, answered: 0);
     final showHomeVerse = ref.watch(homeVerseVisibleProvider);
+    final homeVerse = ref.watch(homeMeditationTodayProvider);
     final items = notifier.displayItems;
 
     return Scaffold(
@@ -88,23 +89,25 @@ class PrayerListScreen extends ConsumerWidget {
                     child: JournalHeader(
                       activeCount: counts.active,
                       answeredCount: counts.answered,
-                      showMeditationVerse: false,
                     ),
                   ),
                 ),
                 Expanded(
                   child: CustomScrollView(
                     slivers: [
-                      if (showHomeVerse)
-                        const SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
+                      if (showHomeVerse && homeVerse != null)
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(
                             AppTheme.screenPadding,
                             16,
                             AppTheme.screenPadding,
                             0,
                           ),
                           sliver: SliverToBoxAdapter(
-                            child: JournalMeditationVerse(),
+                            child: JournalMeditationVerse(
+                              text: homeVerse.text,
+                              ref: homeVerse.ref,
+                            ),
                           ),
                         ),
                       PinnedHeaderSliver(

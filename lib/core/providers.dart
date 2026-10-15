@@ -12,6 +12,8 @@ import '../features/liturgy/data/liturgy_catalog.dart';
 import '../features/liturgy/domain/liturgical_calendar.dart';
 import '../features/liturgy/domain/liturgical_prayer.dart';
 import '../features/prayers/data/drift_prayer_repository.dart';
+import '../features/prayers/data/home_meditation_catalog.dart';
+import '../features/prayers/domain/home_meditation.dart';
 import '../features/prayers/domain/prayer_repository.dart';
 import '../features/verses/data/drift_custom_verse_repository.dart';
 import '../features/verses/data/keyword_verse_suggester.dart';
@@ -132,6 +134,23 @@ final homeVerseVisibleProvider =
     StateNotifierProvider<HomeVerseVisibleNotifier, bool>((ref) {
       return HomeVerseVisibleNotifier(ref.watch(sharedPreferencesProvider));
     });
+
+final homeMeditationCatalogProvider = Provider<HomeMeditationCatalog>((ref) {
+  return HomeMeditationCatalog();
+});
+
+final homeMeditationVersesProvider =
+    FutureProvider<List<HomeMeditationVerse>>((ref) async {
+  return ref.watch(homeMeditationCatalogProvider).load();
+});
+
+/// Scripture for the journal home banner on the local calendar day.
+final homeMeditationTodayProvider = Provider<HomeMeditationVerse?>((ref) {
+  final verses = ref.watch(homeMeditationVersesProvider).valueOrNull;
+  if (verses == null) return null;
+  final now = ref.watch(clockProvider).now();
+  return homeMeditationForDay(verses, now);
+});
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier(this._prefs) : super(_read(_prefs));

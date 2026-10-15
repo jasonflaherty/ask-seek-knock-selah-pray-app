@@ -9,17 +9,10 @@ class JournalHeader extends StatelessWidget {
     super.key,
     required this.activeCount,
     required this.answeredCount,
-    this.showMeditationVerse = true,
   });
 
   final int activeCount;
   final int answeredCount;
-  final bool showMeditationVerse;
-
-  static const meditationQuote =
-      'The LORD is in his holy temple; let all the earth be silent before him… '
-      'Trust in the LORD with all your heart and lean not on your own understanding.';
-  static const meditationAttribution = 'Habakkuk 2:20 & Proverbs 3:5';
 
   @override
   Widget build(BuildContext context) {
@@ -59,17 +52,20 @@ class JournalHeader extends StatelessWidget {
           textAlign: TextAlign.center,
           style: theme.textTheme.labelLarge,
         ),
-        if (showMeditationVerse) ...[
-          const SizedBox(height: 16),
-          const JournalMeditationVerse(),
-        ],
       ],
     );
   }
 }
 
 class JournalMeditationVerse extends StatelessWidget {
-  const JournalMeditationVerse({super.key});
+  const JournalMeditationVerse({
+    super.key,
+    required this.text,
+    required this.ref,
+  });
+
+  final String text;
+  final String ref;
 
   @override
   Widget build(BuildContext context) {
@@ -84,14 +80,14 @@ class JournalMeditationVerse extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            '"${JournalHeader.meditationQuote}"',
+            '"$text"',
             textAlign: TextAlign.center,
             style: AppTheme.scripture(theme.colorScheme.onSurface)
                 .copyWith(fontSize: 16, height: 1.5),
           ),
           const SizedBox(height: 10),
           Text(
-            '— ${JournalHeader.meditationAttribution}',
+            '— $ref',
             textAlign: TextAlign.center,
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.primary,
