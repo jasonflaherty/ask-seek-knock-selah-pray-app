@@ -30,7 +30,11 @@ services:
       selah-postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-selah}:${POSTGRES_PASSWORD}@selah-postgres:5432/${POSTGRES_DB:-selah}
+      POSTGRES_HOST: selah-postgres
+      POSTGRES_PORT: '5432'
+      POSTGRES_USER: ${POSTGRES_USER:-selah}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-selah}
       TOKEN_SECRET: ${TOKEN_SECRET:?set TOKEN_SECRET in .env}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -43,35 +47,17 @@ services:
       - '127.0.0.1:${SELAH_API_HOST_PORT:-8091}:8080'
     networks:
       - selah-network
-
-  # Include only when host ports 80/443 are free.
-  # If another proxy already binds them, skip this service and forward
-  # selah.psithurismlabs.com to 127.0.0.1:8091 on that proxy instead.
-  # selah-caddy:
-  #   image: caddy:2-alpine
-  #   container_name: selah-caddy
-  #   restart: unless-stopped
-  #   ports:
-  #     - '80:80'
-  #     - '443:443'
-  #   volumes:
-  #     - ./Caddyfile:/etc/caddy/Caddyfile:ro
-  #     - selah-caddy-data:/data
-  #     - selah-caddy-config:/config
-  #   depends_on:
-  #     - selah-api
-  #   networks:
-  #     - selah-network
+      # Shared with son-caddy so HTTPS can reach this API by container name.
+      - son_default
 
 volumes:
   selah-postgres-data:
     name: selah-postgres-data
-  # selah-caddy-data:
-  #   name: selah-caddy-data
-  # selah-caddy-config:
-  #   name: selah-caddy-config
 
 networks:
   selah-network:
     name: selah-network
     driver: bridge
+  # Existing Caddy stack on this VPS (/opt/son/deploy/Caddyfile).
+  son_default:
+    external: true

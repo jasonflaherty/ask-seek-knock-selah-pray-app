@@ -12,7 +12,7 @@ Do not open Postgres to the internet. The phones and the church page talk only t
 
 ## First start
 
-1. On the VPS, copy `server/.env.example` to `server/.env` and fill in passwords, `TOKEN_SECRET`, and SMTP settings for the Nixihost mailbox (port 587).
+1. On the VPS, copy `server/.env.example` to `server/.env` and fill in passwords, `TOKEN_SECRET`, and SMTP settings for the Nixihost mailbox (port 587). Any password is fine; the API no longer embeds it in a URL.
 2. Confirm port **8091** is free (`docker ps` and `ss -lntp`). If it is taken, set `SELAH_API_HOST_PORT` to the next free port in 8091–8099.
 3. From the `server/` folder:
 
@@ -20,9 +20,18 @@ Do not open Postgres to the internet. The phones and the church page talk only t
 docker compose up -d --build
 ```
 
-4. Point HTTPS for `selah.psithurismlabs.com` at `127.0.0.1:8091`.
-   - If something already has ports 80 and 443, add the hostname on that proxy.
-   - If 80 and 443 are free, uncomment the Caddy service in `docker-compose.yml`.
+4. HTTPS uses the existing Caddy container (`son-caddy-1`), not a second Caddy.
+   - `selah-api` joins the external Docker network `son_default` (see `docker-compose.yml`).
+   - In `/opt/son/deploy/Caddyfile` add:
+
+```
+selah.psithurismlabs.com {
+	encode gzip
+	reverse_proxy selah-api:8080
+}
+```
+
+   - Then: `docker exec son-caddy-1 caddy reload --config /etc/caddy/Caddyfile`
 5. Open `https://selah.psithurismlabs.com/api/health` and confirm `{"ok":true}`.
 6. Request a sign-in code from the app or the website and confirm the email arrives.
 

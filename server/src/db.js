@@ -5,11 +5,30 @@ import pg from 'pg';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const pool = new pg.Pool({
-  connectionString:
-    process.env.DATABASE_URL ||
-    'postgresql://selah:selah@localhost:5432/selah',
-});
+// Prefer discrete fields so passwords with /, +, = do not break a URL.
+function poolConfig() {
+  if (process.env.PGHOST || process.env.POSTGRES_HOST) {
+    return {
+      host: process.env.PGHOST || process.env.POSTGRES_HOST || 'selah-postgres',
+      port: Number(process.env.PGPORT || process.env.POSTGRES_PORT || 5432),
+      user: process.env.PGUSER || process.env.POSTGRES_USER || 'selah',
+      password: process.env.PGPASSWORD || process.env.POSTGRES_PASSWORD || '',
+      database: process.env.PGDATABASE || process.env.POSTGRES_DB || 'selah',
+    };
+  }
+  if (process.env.DATABASE_URL) {
+    return { connectionString: process.env.DATABASE_URL };
+  }
+  return {
+    host: 'localhost',
+    port: 5432,
+    user: 'selah',
+    password: 'selah',
+    database: 'selah',
+  };
+}
+
+const pool = new pg.Pool(poolConfig());
 
 export async function query(text, params) {
   return pool.query(text, params);
