@@ -71,4 +71,20 @@ void main() {
       homeMeditationDayIndex(DateTime(2026, 1, 3, 23, 59)),
     );
   });
+
+  test('manual offset advances from the day verse and wraps', () {
+    final day = DateTime(2026, 1, 1);
+    expect(
+      homeMeditationForDay(verses, day, offset: 1)?.ref,
+      verses[1].ref,
+    );
+    expect(
+      homeMeditationForDay(verses, day, offset: verses.length)?.ref,
+      verses[0].ref,
+    );
+  });
+
+  test('day key is yyyy-MM-dd', () {
+    expect(homeMeditationDayKey(DateTime(2026, 3, 9)), '2026-03-09');
+  });
 }

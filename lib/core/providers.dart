@@ -11,6 +11,7 @@ import '../features/liturgy/application/liturgy_favorites_notifier.dart';
 import '../features/liturgy/data/liturgy_catalog.dart';
 import '../features/liturgy/domain/liturgical_calendar.dart';
 import '../features/liturgy/domain/liturgical_prayer.dart';
+import '../features/prayers/application/home_meditation_offset_notifier.dart';
 import '../features/prayers/data/drift_prayer_repository.dart';
 import '../features/prayers/data/home_meditation_catalog.dart';
 import '../features/prayers/domain/home_meditation.dart';
@@ -144,12 +145,20 @@ final homeMeditationVersesProvider =
   return ref.watch(homeMeditationCatalogProvider).load();
 });
 
+final homeMeditationOffsetProvider = StateNotifierProvider<
+    HomeMeditationOffsetNotifier, HomeMeditationOffset>((ref) {
+  return HomeMeditationOffsetNotifier(ref.watch(sharedPreferencesProvider));
+});
+
 /// Scripture for the journal home banner on the local calendar day.
 final homeMeditationTodayProvider = Provider<HomeMeditationVerse?>((ref) {
   final verses = ref.watch(homeMeditationVersesProvider).valueOrNull;
   if (verses == null) return null;
   final now = ref.watch(clockProvider).now();
-  return homeMeditationForDay(verses, now);
+  final stored = ref.watch(homeMeditationOffsetProvider);
+  final offset =
+      stored.dayKey == homeMeditationDayKey(now) ? stored.offset : 0;
+  return homeMeditationForDay(verses, now, offset: offset);
 });
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {

@@ -107,6 +107,13 @@ class PrayerListScreen extends ConsumerWidget {
                             child: JournalMeditationVerse(
                               text: homeVerse.text,
                               ref: homeVerse.ref,
+                              onRotate: () {
+                                ref
+                                    .read(homeMeditationOffsetProvider.notifier)
+                                    .advance(
+                                      ref.read(clockProvider).now(),
+                                    );
+                              },
                             ),
                           ),
                         ),

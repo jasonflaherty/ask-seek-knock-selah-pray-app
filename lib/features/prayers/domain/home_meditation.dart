@@ -31,18 +31,45 @@ int homeMeditationDayIndex(DateTime now, {DateTime? epoch}) {
   return today.difference(origin).inDays;
 }
 
-/// Verse for the local calendar day of [now] from [verses].
+/// Normalized list index for [now] plus a manual [offset].
 ///
-/// Empty [verses] returns null. Index wraps with modulo; negative days
-/// before the epoch still land on a valid entry.
-HomeMeditationVerse? homeMeditationForDay(
+/// Empty [verses] returns null. Day index and offset wrap with modulo;
+/// negative days before the epoch still land on a valid entry.
+int? homeMeditationIndex(
   List<HomeMeditationVerse> verses,
   DateTime now, {
+  int offset = 0,
   DateTime? epoch,
 }) {
   if (verses.isEmpty) return null;
   final day = homeMeditationDayIndex(now, epoch: epoch);
-  final index = day % verses.length;
-  final normalized = index < 0 ? index + verses.length : index;
-  return verses[normalized];
+  final index = (day + offset) % verses.length;
+  return index < 0 ? index + verses.length : index;
+}
+
+/// Verse for the local calendar day of [now] from [verses].
+///
+/// [offset] advances from the day's verse when the user rotates manually.
+HomeMeditationVerse? homeMeditationForDay(
+  List<HomeMeditationVerse> verses,
+  DateTime now, {
+  int offset = 0,
+  DateTime? epoch,
+}) {
+  final index = homeMeditationIndex(
+    verses,
+    now,
+    offset: offset,
+    epoch: epoch,
+  );
+  if (index == null) return null;
+  return verses[index];
+}
+
+/// Local calendar day key `yyyy-MM-dd` for offset persistence.
+String homeMeditationDayKey(DateTime now) {
+  final y = now.year.toString().padLeft(4, '0');
+  final m = now.month.toString().padLeft(2, '0');
+  final d = now.day.toString().padLeft(2, '0');
+  return '$y-$m-$d';
 }

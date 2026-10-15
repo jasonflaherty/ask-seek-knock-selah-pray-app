@@ -62,16 +62,18 @@ class JournalMeditationVerse extends StatelessWidget {
     super.key,
     required this.text,
     required this.ref,
+    this.onRotate,
   });
 
   final String text;
   final String ref;
+  final VoidCallback? onRotate;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
       decoration: BoxDecoration(
         color: context.palette.verseSurface,
         borderRadius: BorderRadius.circular(AppTheme.controlRadius),
@@ -79,19 +81,39 @@ class JournalMeditationVerse extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            '"$text"',
-            textAlign: TextAlign.center,
-            style: AppTheme.scripture(theme.colorScheme.onSurface)
-                .copyWith(fontSize: 16, height: 1.5),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '— $ref',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.primary,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '"$text"',
+              textAlign: TextAlign.center,
+              style: AppTheme.scripture(theme.colorScheme.onSurface)
+                  .copyWith(fontSize: 16, height: 1.5),
             ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  '— $ref',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+              if (onRotate != null)
+                IconButton(
+                  tooltip: 'Show another verse',
+                  onPressed: onRotate,
+                  icon: Icon(
+                    Icons.autorenew,
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+            ],
           ),
         ],
       ),
