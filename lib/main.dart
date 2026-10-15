@@ -9,6 +9,8 @@ import 'core/utils/clock.dart';
 import 'features/metrics/presentation/usage_host.dart';
 import 'features/prayers/data/drift_prayer_repository.dart';
 import 'features/prayers/data/initial_prayers.dart';
+import 'features/reading/application/reminder_prefs.dart';
+import 'features/reading/data/morning_reminder.dart';
 import 'features/verses/data/verse_asset_loader.dart';
 
 Future<void> main() async {
@@ -23,6 +25,13 @@ Future<void> main() async {
   } finally {
     await db.close();
   }
+
+  final reminder = MorningReminder();
+  await reminder.apply(ReminderPrefs(
+    enabled: prefs.getBool('read_pray_reminder_enabled') ?? true,
+    hour: prefs.getInt('read_pray_reminder_hour') ?? 7,
+    minute: prefs.getInt('read_pray_reminder_minute') ?? 0,
+  ));
 
   runApp(
     ProviderScope(

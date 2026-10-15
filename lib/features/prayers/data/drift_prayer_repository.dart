@@ -6,6 +6,7 @@ import '../../../core/utils/sync_id.dart';
 import '../domain/prayer.dart';
 import '../domain/prayer_event.dart';
 import '../domain/prayer_repository.dart';
+import '../domain/share_scope.dart';
 
 class DriftPrayerRepository implements PrayerRepository {
   DriftPrayerRepository(this._db, this._clock);
@@ -53,7 +54,8 @@ class DriftPrayerRepository implements PrayerRepository {
   @override
   Future<int> createPrayer(NewPrayer input) async {
     final now = _clock.now();
-    final shared = input.shared;
+    final scope = input.shareScope;
+    final shared = scope.isShared;
     final syncId = shared ? (input.syncId ?? newSyncId()) : input.syncId;
     return _db.transaction(() async {
       final id = await _db.into(_db.prayers).insert(
@@ -65,8 +67,14 @@ class DriftPrayerRepository implements PrayerRepository {
               updatedAt: now,
               syncId: Value(syncId),
               shared: Value(shared),
+              shareScope: Value(scope.storageValue),
+              groupId: Value(shared ? input.groupId : null),
+              churchId: Value(shared ? input.churchId : null),
               authorEmail: Value(
                 shared ? input.authorEmail.trim().toLowerCase() : '',
+              ),
+              authorDisplayName: Value(
+                shared ? input.authorDisplayName.trim() : '',
               ),
             ),
           );
@@ -80,8 +88,9 @@ class DriftPrayerRepository implements PrayerRepository {
   Future<void> updatePrayer(int id, PrayerUpdate input) async {
     final now = _clock.now();
     await _db.transaction(() async {
-      final existing = await (_db.select(_db.prayers)..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
+      final existing =
+          await (_db.select(_db.prayers)..where((t) => t.id.equals(id)))
+              .getSingleOrNull();
       if (existing == null) return;
 
       var isAnswered = existing.isAnswered;
@@ -101,32 +110,53 @@ class DriftPrayerRepository implements PrayerRepository {
         answeredNote = input.answeredNote;
       }
 
-      var shared = existing.shared;
+      var scope = ShareScopeX.fromStorage(existing.shareScope);
       var syncId = existing.syncId;
       var authorEmail = existing.authorEmail;
+      var authorDisplayName = existing.authorDisplayName;
+      var groupId = existing.groupId;
+      var churchId = existing.churchId;
 
-      if (input.shared != null) {
-        if (input.shared! && !existing.shared) {
-          shared = true;
+      if (input.shareScope != null) {
+        final next = input.shareScope!;
+        if (next.isShared && !scope.isShared) {
+          scope = next;
           final assignedSyncId = syncId ?? input.syncId ?? newSyncId();
           syncId = assignedSyncId;
           final email = (input.authorEmail ?? existing.authorEmail).trim();
           if (email.isNotEmpty) authorEmail = email.toLowerCase();
+          final display =
+              (input.authorDisplayName ?? existing.authorDisplayName).trim();
+          if (display.isNotEmpty) authorDisplayName = display;
+          groupId = input.groupId ?? groupId;
+          churchId = input.churchId ?? churchId;
           await (_db.delete(_db.syncTombstones)
                 ..where((t) => t.syncId.equals(assignedSyncId)))
               .go();
-        } else if (!input.shared! && existing.shared) {
-          shared = false;
+        } else if (!next.isShared && scope.isShared) {
+          scope = ShareScope.justMe;
           if (existing.syncId != null) {
             await _upsertTombstone(existing.syncId!, now);
           }
           authorEmail = '';
+          authorDisplayName = '';
+          groupId = null;
+          churchId = null;
+        } else {
+          scope = next;
+          groupId = input.groupId ?? groupId;
+          churchId = input.churchId ?? churchId;
         }
       }
       if (input.syncId != null) syncId = input.syncId;
-      if (input.authorEmail != null && shared) {
+      if (input.authorEmail != null && scope.isShared) {
         authorEmail = input.authorEmail!.trim().toLowerCase();
       }
+      if (input.authorDisplayName != null && scope.isShared) {
+        authorDisplayName = input.authorDisplayName!.trim();
+      }
+      if (input.groupId != null && scope.isShared) groupId = input.groupId;
+      if (input.churchId != null && scope.isShared) churchId = input.churchId;
 
       await (_db.update(_db.prayers)..where((t) => t.id.equals(id))).write(
         PrayersCompanion(
@@ -138,8 +168,12 @@ class DriftPrayerRepository implements PrayerRepository {
           answeredNote: Value(answeredNote),
           updatedAt: Value(now),
           syncId: Value(syncId),
-          shared: Value(shared),
+          shared: Value(scope.isShared),
+          shareScope: Value(scope.storageValue),
+          groupId: Value(groupId),
+          churchId: Value(churchId),
           authorEmail: Value(authorEmail),
+          authorDisplayName: Value(authorDisplayName),
         ),
       );
       await _replaceTags(id, input.tags);
@@ -150,8 +184,9 @@ class DriftPrayerRepository implements PrayerRepository {
   @override
   Future<void> deletePrayer(int id) async {
     await _db.transaction(() async {
-      final existing = await (_db.select(_db.prayers)..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
+      final existing =
+          await (_db.select(_db.prayers)..where((t) => t.id.equals(id)))
+              .getSingleOrNull();
       if (existing == null) return;
       if (existing.shared && existing.syncId != null) {
         await _upsertTombstone(existing.syncId!, _clock.now());
@@ -166,7 +201,11 @@ class DriftPrayerRepository implements PrayerRepository {
   }
 
   @override
-  Future<void> setAnswered(int id, {required bool answered, String? note}) async {
+  Future<void> setAnswered(
+    int id, {
+    required bool answered,
+    String? note,
+  }) async {
     final now = _clock.now();
     await (_db.update(_db.prayers)..where((t) => t.id.equals(id))).write(
       PrayersCompanion(
@@ -215,7 +254,7 @@ class DriftPrayerRepository implements PrayerRepository {
   }
 
   @override
-  Future<List<Prayer>> churchPrayers() async {
+  Future<List<Prayer>> sharedPrayers() async {
     final rows = await (_db.select(_db.prayers)
           ..where((t) => t.shared.equals(true)))
         .get();
@@ -227,10 +266,13 @@ class DriftPrayerRepository implements PrayerRepository {
   }
 
   @override
-  Future<void> setShared(
+  Future<void> setShareScope(
     int id, {
-    required bool shared,
+    required ShareScope shareScope,
     String? authorEmail,
+    String? authorDisplayName,
+    String? groupId,
+    String? churchId,
   }) async {
     final existing = await getPrayer(id);
     if (existing == null) return;
@@ -244,8 +286,11 @@ class DriftPrayerRepository implements PrayerRepository {
         verseIds: existing.verseIds,
         isAnswered: existing.isAnswered,
         answeredNote: existing.answeredNote,
-        shared: shared,
+        shareScope: shareScope,
         authorEmail: authorEmail,
+        authorDisplayName: authorDisplayName,
+        groupId: groupId,
+        churchId: churchId,
       ),
     );
   }
@@ -280,8 +325,11 @@ class DriftPrayerRepository implements PrayerRepository {
       timesViewed: timesViewed,
       lastPrayedAt: lastPrayedAt,
       syncId: row.syncId,
-      shared: row.shared,
+      shareScope: ShareScopeX.fromStorage(row.shareScope),
+      groupId: row.groupId,
+      churchId: row.churchId,
       authorEmail: row.authorEmail,
+      authorDisplayName: row.authorDisplayName,
     );
   }
 
@@ -330,7 +378,8 @@ class DriftPrayerRepository implements PrayerRepository {
   }
 
   Future<void> _replaceTags(int prayerId, List<String> labels) async {
-    await (_db.delete(_db.prayerTags)..where((t) => t.prayerId.equals(prayerId)))
+    await (_db.delete(_db.prayerTags)
+          ..where((t) => t.prayerId.equals(prayerId)))
         .go();
 
     final seen = <String>{};
@@ -359,7 +408,8 @@ class DriftPrayerRepository implements PrayerRepository {
     List<String> verseIds,
     DateTime selectedAt,
   ) async {
-    await (_db.delete(_db.prayerVerses)..where((t) => t.prayerId.equals(prayerId)))
+    await (_db.delete(_db.prayerVerses)
+          ..where((t) => t.prayerId.equals(prayerId)))
         .go();
     final seen = <String>{};
     for (final verseId in verseIds) {

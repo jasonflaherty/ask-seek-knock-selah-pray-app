@@ -1,0 +1,16 @@
+{
+  "name": "selah-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "appoint-owner": "node scripts/appoint-owner.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "nodemailer": "^6.9.16",
+    "pg": "^8.13.1",
+    "cookie-parser": "^1.4.7"
+  }
+}

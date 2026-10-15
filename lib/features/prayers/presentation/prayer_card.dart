@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../domain/prayer.dart';
+import '../domain/share_scope.dart';
 
 class PrayerCard extends ConsumerWidget {
   const PrayerCard({
@@ -42,7 +43,7 @@ class PrayerCard extends ConsumerWidget {
         .map((v) => v.ref)
         .toList();
 
-    final visibilityLabel = prayer.shared ? 'Church' : 'Just me';
+    final visibilityLabel = prayer.shareScope.label;
     final label =
         '$_focus. $statusLabel. $preview. ${verseRefs.join(', ')}. $visibilityLabel.';
 
@@ -75,7 +76,7 @@ class PrayerCard extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _VisibilityBadge(shared: prayer.shared),
+                    _VisibilityBadge(scope: prayer.shareScope),
                     const SizedBox(width: 6),
                     Flexible(
                       child: _StatusBadge(
@@ -266,15 +267,20 @@ class _PrayedButtonState extends State<PrayedButton> {
 }
 
 class _VisibilityBadge extends StatelessWidget {
-  const _VisibilityBadge({required this.shared});
+  const _VisibilityBadge({required this.scope});
 
-  final bool shared;
+  final ShareScope scope;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final label = shared ? 'Church' : 'Just me';
+    final label = scope.label;
+    final icon = switch (scope) {
+      ShareScope.justMe => Icons.lock_outline,
+      ShareScope.group => Icons.group_outlined,
+      ShareScope.church => Icons.groups_outlined,
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
@@ -288,7 +294,7 @@ class _VisibilityBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            shared ? Icons.groups_outlined : Icons.lock_outline,
+            icon,
             size: 14,
             color: theme.colorScheme.primary,
           ),

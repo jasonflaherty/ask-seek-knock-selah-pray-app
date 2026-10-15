@@ -141,6 +141,44 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _shareScopeMeta = const VerificationMeta(
+    'shareScope',
+  );
+  @override
+  late final GeneratedColumn<String> shareScope = GeneratedColumn<String>(
+    'share_scope',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 16,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('justMe'),
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+    'group_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _churchIdMeta = const VerificationMeta(
+    'churchId',
+  );
+  @override
+  late final GeneratedColumn<String> churchId = GeneratedColumn<String>(
+    'church_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _authorEmailMeta = const VerificationMeta(
     'authorEmail',
   );
@@ -157,6 +195,23 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _authorDisplayNameMeta = const VerificationMeta(
+    'authorDisplayName',
+  );
+  @override
+  late final GeneratedColumn<String> authorDisplayName =
+      GeneratedColumn<String>(
+        'author_display_name',
+        aliasedName,
+        false,
+        additionalChecks: GeneratedColumn.checkTextLength(
+          minTextLength: 0,
+          maxTextLength: 80,
+        ),
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(''),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -170,7 +225,11 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
     updatedAt,
     syncId,
     shared,
+    shareScope,
+    groupId,
+    churchId,
     authorEmail,
+    authorDisplayName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -258,12 +317,39 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
         shared.isAcceptableOrUnknown(data['shared']!, _sharedMeta),
       );
     }
+    if (data.containsKey('share_scope')) {
+      context.handle(
+        _shareScopeMeta,
+        shareScope.isAcceptableOrUnknown(data['share_scope']!, _shareScopeMeta),
+      );
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    }
+    if (data.containsKey('church_id')) {
+      context.handle(
+        _churchIdMeta,
+        churchId.isAcceptableOrUnknown(data['church_id']!, _churchIdMeta),
+      );
+    }
     if (data.containsKey('author_email')) {
       context.handle(
         _authorEmailMeta,
         authorEmail.isAcceptableOrUnknown(
           data['author_email']!,
           _authorEmailMeta,
+        ),
+      );
+    }
+    if (data.containsKey('author_display_name')) {
+      context.handle(
+        _authorDisplayNameMeta,
+        authorDisplayName.isAcceptableOrUnknown(
+          data['author_display_name']!,
+          _authorDisplayNameMeta,
         ),
       );
     }
@@ -320,9 +406,25 @@ class $PrayersTable extends Prayers with TableInfo<$PrayersTable, PrayerRow> {
         DriftSqlType.bool,
         data['${effectivePrefix}shared'],
       )!,
+      shareScope: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}share_scope'],
+      )!,
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      ),
+      churchId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}church_id'],
+      ),
       authorEmail: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}author_email'],
+      )!,
+      authorDisplayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_display_name'],
       )!,
     );
   }
@@ -346,14 +448,20 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  /// Stable id for church spreadsheet sync. Null until first share.
+  /// Stable id for group/church sync. Null until first share.
   final String? syncId;
 
-  /// True when this prayer syncs to the church spreadsheet.
+  /// Legacy flag kept in sync with [shareScope] != justMe.
   final bool shared;
 
-  /// Google account that first shared this row (empty if private).
+  /// justMe | group | church
+  final String shareScope;
+  final String? groupId;
+  final String? churchId;
+
+  /// Account email of the author when shared.
   final String authorEmail;
+  final String authorDisplayName;
   const PrayerRow({
     required this.id,
     required this.name,
@@ -366,7 +474,11 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     required this.updatedAt,
     this.syncId,
     required this.shared,
+    required this.shareScope,
+    this.groupId,
+    this.churchId,
     required this.authorEmail,
+    required this.authorDisplayName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -388,7 +500,15 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
       map['sync_id'] = Variable<String>(syncId);
     }
     map['shared'] = Variable<bool>(shared);
+    map['share_scope'] = Variable<String>(shareScope);
+    if (!nullToAbsent || groupId != null) {
+      map['group_id'] = Variable<String>(groupId);
+    }
+    if (!nullToAbsent || churchId != null) {
+      map['church_id'] = Variable<String>(churchId);
+    }
     map['author_email'] = Variable<String>(authorEmail);
+    map['author_display_name'] = Variable<String>(authorDisplayName);
     return map;
   }
 
@@ -411,7 +531,15 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
           ? const Value.absent()
           : Value(syncId),
       shared: Value(shared),
+      shareScope: Value(shareScope),
+      groupId: groupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(groupId),
+      churchId: churchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(churchId),
       authorEmail: Value(authorEmail),
+      authorDisplayName: Value(authorDisplayName),
     );
   }
 
@@ -432,7 +560,11 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       syncId: serializer.fromJson<String?>(json['syncId']),
       shared: serializer.fromJson<bool>(json['shared']),
+      shareScope: serializer.fromJson<String>(json['shareScope']),
+      groupId: serializer.fromJson<String?>(json['groupId']),
+      churchId: serializer.fromJson<String?>(json['churchId']),
       authorEmail: serializer.fromJson<String>(json['authorEmail']),
+      authorDisplayName: serializer.fromJson<String>(json['authorDisplayName']),
     );
   }
   @override
@@ -450,7 +582,11 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'syncId': serializer.toJson<String?>(syncId),
       'shared': serializer.toJson<bool>(shared),
+      'shareScope': serializer.toJson<String>(shareScope),
+      'groupId': serializer.toJson<String?>(groupId),
+      'churchId': serializer.toJson<String?>(churchId),
       'authorEmail': serializer.toJson<String>(authorEmail),
+      'authorDisplayName': serializer.toJson<String>(authorDisplayName),
     };
   }
 
@@ -466,7 +602,11 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     DateTime? updatedAt,
     Value<String?> syncId = const Value.absent(),
     bool? shared,
+    String? shareScope,
+    Value<String?> groupId = const Value.absent(),
+    Value<String?> churchId = const Value.absent(),
     String? authorEmail,
+    String? authorDisplayName,
   }) => PrayerRow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -479,7 +619,11 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     updatedAt: updatedAt ?? this.updatedAt,
     syncId: syncId.present ? syncId.value : this.syncId,
     shared: shared ?? this.shared,
+    shareScope: shareScope ?? this.shareScope,
+    groupId: groupId.present ? groupId.value : this.groupId,
+    churchId: churchId.present ? churchId.value : this.churchId,
     authorEmail: authorEmail ?? this.authorEmail,
+    authorDisplayName: authorDisplayName ?? this.authorDisplayName,
   );
   PrayerRow copyWithCompanion(PrayersCompanion data) {
     return PrayerRow(
@@ -500,9 +644,17 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       syncId: data.syncId.present ? data.syncId.value : this.syncId,
       shared: data.shared.present ? data.shared.value : this.shared,
+      shareScope: data.shareScope.present
+          ? data.shareScope.value
+          : this.shareScope,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      churchId: data.churchId.present ? data.churchId.value : this.churchId,
       authorEmail: data.authorEmail.present
           ? data.authorEmail.value
           : this.authorEmail,
+      authorDisplayName: data.authorDisplayName.present
+          ? data.authorDisplayName.value
+          : this.authorDisplayName,
     );
   }
 
@@ -520,7 +672,11 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
           ..write('updatedAt: $updatedAt, ')
           ..write('syncId: $syncId, ')
           ..write('shared: $shared, ')
-          ..write('authorEmail: $authorEmail')
+          ..write('shareScope: $shareScope, ')
+          ..write('groupId: $groupId, ')
+          ..write('churchId: $churchId, ')
+          ..write('authorEmail: $authorEmail, ')
+          ..write('authorDisplayName: $authorDisplayName')
           ..write(')'))
         .toString();
   }
@@ -538,7 +694,11 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
     updatedAt,
     syncId,
     shared,
+    shareScope,
+    groupId,
+    churchId,
     authorEmail,
+    authorDisplayName,
   );
   @override
   bool operator ==(Object other) =>
@@ -555,7 +715,11 @@ class PrayerRow extends DataClass implements Insertable<PrayerRow> {
           other.updatedAt == this.updatedAt &&
           other.syncId == this.syncId &&
           other.shared == this.shared &&
-          other.authorEmail == this.authorEmail);
+          other.shareScope == this.shareScope &&
+          other.groupId == this.groupId &&
+          other.churchId == this.churchId &&
+          other.authorEmail == this.authorEmail &&
+          other.authorDisplayName == this.authorDisplayName);
 }
 
 class PrayersCompanion extends UpdateCompanion<PrayerRow> {
@@ -570,7 +734,11 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
   final Value<DateTime> updatedAt;
   final Value<String?> syncId;
   final Value<bool> shared;
+  final Value<String> shareScope;
+  final Value<String?> groupId;
+  final Value<String?> churchId;
   final Value<String> authorEmail;
+  final Value<String> authorDisplayName;
   const PrayersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -583,7 +751,11 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     this.updatedAt = const Value.absent(),
     this.syncId = const Value.absent(),
     this.shared = const Value.absent(),
+    this.shareScope = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.churchId = const Value.absent(),
     this.authorEmail = const Value.absent(),
+    this.authorDisplayName = const Value.absent(),
   });
   PrayersCompanion.insert({
     this.id = const Value.absent(),
@@ -597,7 +769,11 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     required DateTime updatedAt,
     this.syncId = const Value.absent(),
     this.shared = const Value.absent(),
+    this.shareScope = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.churchId = const Value.absent(),
     this.authorEmail = const Value.absent(),
+    this.authorDisplayName = const Value.absent(),
   }) : name = Value(name),
        request = Value(request),
        createdAt = Value(createdAt),
@@ -614,7 +790,11 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     Expression<DateTime>? updatedAt,
     Expression<String>? syncId,
     Expression<bool>? shared,
+    Expression<String>? shareScope,
+    Expression<String>? groupId,
+    Expression<String>? churchId,
     Expression<String>? authorEmail,
+    Expression<String>? authorDisplayName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -628,7 +808,11 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (syncId != null) 'sync_id': syncId,
       if (shared != null) 'shared': shared,
+      if (shareScope != null) 'share_scope': shareScope,
+      if (groupId != null) 'group_id': groupId,
+      if (churchId != null) 'church_id': churchId,
       if (authorEmail != null) 'author_email': authorEmail,
+      if (authorDisplayName != null) 'author_display_name': authorDisplayName,
     });
   }
 
@@ -644,7 +828,11 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     Value<DateTime>? updatedAt,
     Value<String?>? syncId,
     Value<bool>? shared,
+    Value<String>? shareScope,
+    Value<String?>? groupId,
+    Value<String?>? churchId,
     Value<String>? authorEmail,
+    Value<String>? authorDisplayName,
   }) {
     return PrayersCompanion(
       id: id ?? this.id,
@@ -658,7 +846,11 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
       updatedAt: updatedAt ?? this.updatedAt,
       syncId: syncId ?? this.syncId,
       shared: shared ?? this.shared,
+      shareScope: shareScope ?? this.shareScope,
+      groupId: groupId ?? this.groupId,
+      churchId: churchId ?? this.churchId,
       authorEmail: authorEmail ?? this.authorEmail,
+      authorDisplayName: authorDisplayName ?? this.authorDisplayName,
     );
   }
 
@@ -698,8 +890,20 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
     if (shared.present) {
       map['shared'] = Variable<bool>(shared.value);
     }
+    if (shareScope.present) {
+      map['share_scope'] = Variable<String>(shareScope.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (churchId.present) {
+      map['church_id'] = Variable<String>(churchId.value);
+    }
     if (authorEmail.present) {
       map['author_email'] = Variable<String>(authorEmail.value);
+    }
+    if (authorDisplayName.present) {
+      map['author_display_name'] = Variable<String>(authorDisplayName.value);
     }
     return map;
   }
@@ -718,7 +922,11 @@ class PrayersCompanion extends UpdateCompanion<PrayerRow> {
           ..write('updatedAt: $updatedAt, ')
           ..write('syncId: $syncId, ')
           ..write('shared: $shared, ')
-          ..write('authorEmail: $authorEmail')
+          ..write('shareScope: $shareScope, ')
+          ..write('groupId: $groupId, ')
+          ..write('churchId: $churchId, ')
+          ..write('authorEmail: $authorEmail, ')
+          ..write('authorDisplayName: $authorDisplayName')
           ..write(')'))
         .toString();
   }
@@ -2788,6 +2996,531 @@ class AppSessionsCompanion extends UpdateCompanion<AppSessionRow> {
   }
 }
 
+class $StudyNotesTable extends StudyNotes
+    with TableInfo<$StudyNotesTable, StudyNote> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StudyNotesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _authorUserIdMeta = const VerificationMeta(
+    'authorUserId',
+  );
+  @override
+  late final GeneratedColumn<String> authorUserId = GeneratedColumn<String>(
+    'author_user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _authorDisplayNameMeta = const VerificationMeta(
+    'authorDisplayName',
+  );
+  @override
+  late final GeneratedColumn<String> authorDisplayName =
+      GeneratedColumn<String>(
+        'author_display_name',
+        aliasedName,
+        false,
+        additionalChecks: GeneratedColumn.checkTextLength(
+          minTextLength: 0,
+          maxTextLength: 80,
+        ),
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(''),
+      );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 32,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    groupId,
+    authorUserId,
+    authorDisplayName,
+    kind,
+    body,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'study_notes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StudyNote> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('author_user_id')) {
+      context.handle(
+        _authorUserIdMeta,
+        authorUserId.isAcceptableOrUnknown(
+          data['author_user_id']!,
+          _authorUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_authorUserIdMeta);
+    }
+    if (data.containsKey('author_display_name')) {
+      context.handle(
+        _authorDisplayNameMeta,
+        authorDisplayName.isAcceptableOrUnknown(
+          data['author_display_name']!,
+          _authorDisplayNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StudyNote map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StudyNote(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      )!,
+      authorUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_user_id'],
+      )!,
+      authorDisplayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_display_name'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StudyNotesTable createAlias(String alias) {
+    return $StudyNotesTable(attachedDatabase, alias);
+  }
+}
+
+class StudyNote extends DataClass implements Insertable<StudyNote> {
+  final String id;
+  final String groupId;
+  final String authorUserId;
+  final String authorDisplayName;
+  final String kind;
+  final String body;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const StudyNote({
+    required this.id,
+    required this.groupId,
+    required this.authorUserId,
+    required this.authorDisplayName,
+    required this.kind,
+    required this.body,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['group_id'] = Variable<String>(groupId);
+    map['author_user_id'] = Variable<String>(authorUserId);
+    map['author_display_name'] = Variable<String>(authorDisplayName);
+    map['kind'] = Variable<String>(kind);
+    map['body'] = Variable<String>(body);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  StudyNotesCompanion toCompanion(bool nullToAbsent) {
+    return StudyNotesCompanion(
+      id: Value(id),
+      groupId: Value(groupId),
+      authorUserId: Value(authorUserId),
+      authorDisplayName: Value(authorDisplayName),
+      kind: Value(kind),
+      body: Value(body),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory StudyNote.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StudyNote(
+      id: serializer.fromJson<String>(json['id']),
+      groupId: serializer.fromJson<String>(json['groupId']),
+      authorUserId: serializer.fromJson<String>(json['authorUserId']),
+      authorDisplayName: serializer.fromJson<String>(json['authorDisplayName']),
+      kind: serializer.fromJson<String>(json['kind']),
+      body: serializer.fromJson<String>(json['body']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'groupId': serializer.toJson<String>(groupId),
+      'authorUserId': serializer.toJson<String>(authorUserId),
+      'authorDisplayName': serializer.toJson<String>(authorDisplayName),
+      'kind': serializer.toJson<String>(kind),
+      'body': serializer.toJson<String>(body),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  StudyNote copyWith({
+    String? id,
+    String? groupId,
+    String? authorUserId,
+    String? authorDisplayName,
+    String? kind,
+    String? body,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => StudyNote(
+    id: id ?? this.id,
+    groupId: groupId ?? this.groupId,
+    authorUserId: authorUserId ?? this.authorUserId,
+    authorDisplayName: authorDisplayName ?? this.authorDisplayName,
+    kind: kind ?? this.kind,
+    body: body ?? this.body,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  StudyNote copyWithCompanion(StudyNotesCompanion data) {
+    return StudyNote(
+      id: data.id.present ? data.id.value : this.id,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      authorUserId: data.authorUserId.present
+          ? data.authorUserId.value
+          : this.authorUserId,
+      authorDisplayName: data.authorDisplayName.present
+          ? data.authorDisplayName.value
+          : this.authorDisplayName,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      body: data.body.present ? data.body.value : this.body,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudyNote(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('authorUserId: $authorUserId, ')
+          ..write('authorDisplayName: $authorDisplayName, ')
+          ..write('kind: $kind, ')
+          ..write('body: $body, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    groupId,
+    authorUserId,
+    authorDisplayName,
+    kind,
+    body,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StudyNote &&
+          other.id == this.id &&
+          other.groupId == this.groupId &&
+          other.authorUserId == this.authorUserId &&
+          other.authorDisplayName == this.authorDisplayName &&
+          other.kind == this.kind &&
+          other.body == this.body &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class StudyNotesCompanion extends UpdateCompanion<StudyNote> {
+  final Value<String> id;
+  final Value<String> groupId;
+  final Value<String> authorUserId;
+  final Value<String> authorDisplayName;
+  final Value<String> kind;
+  final Value<String> body;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const StudyNotesCompanion({
+    this.id = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.authorUserId = const Value.absent(),
+    this.authorDisplayName = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.body = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StudyNotesCompanion.insert({
+    required String id,
+    required String groupId,
+    required String authorUserId,
+    this.authorDisplayName = const Value.absent(),
+    required String kind,
+    required String body,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       groupId = Value(groupId),
+       authorUserId = Value(authorUserId),
+       kind = Value(kind),
+       body = Value(body),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<StudyNote> custom({
+    Expression<String>? id,
+    Expression<String>? groupId,
+    Expression<String>? authorUserId,
+    Expression<String>? authorDisplayName,
+    Expression<String>? kind,
+    Expression<String>? body,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (groupId != null) 'group_id': groupId,
+      if (authorUserId != null) 'author_user_id': authorUserId,
+      if (authorDisplayName != null) 'author_display_name': authorDisplayName,
+      if (kind != null) 'kind': kind,
+      if (body != null) 'body': body,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StudyNotesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? groupId,
+    Value<String>? authorUserId,
+    Value<String>? authorDisplayName,
+    Value<String>? kind,
+    Value<String>? body,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return StudyNotesCompanion(
+      id: id ?? this.id,
+      groupId: groupId ?? this.groupId,
+      authorUserId: authorUserId ?? this.authorUserId,
+      authorDisplayName: authorDisplayName ?? this.authorDisplayName,
+      kind: kind ?? this.kind,
+      body: body ?? this.body,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (authorUserId.present) {
+      map['author_user_id'] = Variable<String>(authorUserId.value);
+    }
+    if (authorDisplayName.present) {
+      map['author_display_name'] = Variable<String>(authorDisplayName.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudyNotesCompanion(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('authorUserId: $authorUserId, ')
+          ..write('authorDisplayName: $authorDisplayName, ')
+          ..write('kind: $kind, ')
+          ..write('body: $body, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2800,6 +3533,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SyncTombstonesTable syncTombstones = $SyncTombstonesTable(this);
   late final $SyncSnapshotsTable syncSnapshots = $SyncSnapshotsTable(this);
   late final $AppSessionsTable appSessions = $AppSessionsTable(this);
+  late final $StudyNotesTable studyNotes = $StudyNotesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2814,6 +3548,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     syncTombstones,
     syncSnapshots,
     appSessions,
+    studyNotes,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2860,7 +3595,11 @@ typedef $$PrayersTableCreateCompanionBuilder = PrayersCompanion Function({
   required DateTime updatedAt,
   Value<String?> syncId,
   Value<bool> shared,
+  Value<String> shareScope,
+  Value<String?> groupId,
+  Value<String?> churchId,
   Value<String> authorEmail,
+  Value<String> authorDisplayName,
 });
 typedef $$PrayersTableUpdateCompanionBuilder = PrayersCompanion Function({
   Value<int> id,
@@ -2874,7 +3613,11 @@ typedef $$PrayersTableUpdateCompanionBuilder = PrayersCompanion Function({
   Value<DateTime> updatedAt,
   Value<String?> syncId,
   Value<bool> shared,
+  Value<String> shareScope,
+  Value<String?> groupId,
+  Value<String?> churchId,
   Value<String> authorEmail,
+  Value<String> authorDisplayName,
 });
 
 final class $$PrayersTableReferences
@@ -3000,8 +3743,28 @@ class $$PrayersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get shareScope => $composableBuilder(
+    column: $table.shareScope,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get churchId => $composableBuilder(
+    column: $table.churchId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get authorEmail => $composableBuilder(
     column: $table.authorEmail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get authorDisplayName => $composableBuilder(
+    column: $table.authorDisplayName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3145,8 +3908,28 @@ class $$PrayersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get shareScope => $composableBuilder(
+    column: $table.shareScope,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get churchId => $composableBuilder(
+    column: $table.churchId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get authorEmail => $composableBuilder(
     column: $table.authorEmail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get authorDisplayName => $composableBuilder(
+    column: $table.authorDisplayName,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -3199,8 +3982,24 @@ class $$PrayersTableAnnotationComposer
   GeneratedColumn<bool> get shared =>
       $composableBuilder(column: $table.shared, builder: (column) => column);
 
+  GeneratedColumn<String> get shareScope => $composableBuilder(
+    column: $table.shareScope,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get churchId =>
+      $composableBuilder(column: $table.churchId, builder: (column) => column);
+
   GeneratedColumn<String> get authorEmail => $composableBuilder(
     column: $table.authorEmail,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get authorDisplayName => $composableBuilder(
+    column: $table.authorDisplayName,
     builder: (column) => column,
   );
 
@@ -3323,7 +4122,11 @@ class $$PrayersTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String?> syncId = const Value.absent(),
                 Value<bool> shared = const Value.absent(),
+                Value<String> shareScope = const Value.absent(),
+                Value<String?> groupId = const Value.absent(),
+                Value<String?> churchId = const Value.absent(),
                 Value<String> authorEmail = const Value.absent(),
+                Value<String> authorDisplayName = const Value.absent(),
               }) => PrayersCompanion(
                 id: id,
                 name: name,
@@ -3336,7 +4139,11 @@ class $$PrayersTableTableManager
                 updatedAt: updatedAt,
                 syncId: syncId,
                 shared: shared,
+                shareScope: shareScope,
+                groupId: groupId,
+                churchId: churchId,
                 authorEmail: authorEmail,
+                authorDisplayName: authorDisplayName,
               ),
           createCompanionCallback:
               ({
@@ -3351,7 +4158,11 @@ class $$PrayersTableTableManager
                 required DateTime updatedAt,
                 Value<String?> syncId = const Value.absent(),
                 Value<bool> shared = const Value.absent(),
+                Value<String> shareScope = const Value.absent(),
+                Value<String?> groupId = const Value.absent(),
+                Value<String?> churchId = const Value.absent(),
                 Value<String> authorEmail = const Value.absent(),
+                Value<String> authorDisplayName = const Value.absent(),
               }) => PrayersCompanion.insert(
                 id: id,
                 name: name,
@@ -3364,7 +4175,11 @@ class $$PrayersTableTableManager
                 updatedAt: updatedAt,
                 syncId: syncId,
                 shared: shared,
+                shareScope: shareScope,
+                groupId: groupId,
+                churchId: churchId,
                 authorEmail: authorEmail,
+                authorDisplayName: authorDisplayName,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -5307,6 +6122,271 @@ typedef $$AppSessionsTableProcessedTableManager =
       AppSessionRow,
       PrefetchHooks Function()
     >;
+typedef $$StudyNotesTableCreateCompanionBuilder = StudyNotesCompanion Function({
+  required String id,
+  required String groupId,
+  required String authorUserId,
+  Value<String> authorDisplayName,
+  required String kind,
+  required String body,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> rowid,
+});
+typedef $$StudyNotesTableUpdateCompanionBuilder = StudyNotesCompanion Function({
+  Value<String> id,
+  Value<String> groupId,
+  Value<String> authorUserId,
+  Value<String> authorDisplayName,
+  Value<String> kind,
+  Value<String> body,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$StudyNotesTableFilterComposer
+    extends Composer<_$AppDatabase, $StudyNotesTable> {
+  $$StudyNotesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get authorDisplayName => $composableBuilder(
+    column: $table.authorDisplayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StudyNotesTableOrderingComposer
+    extends Composer<_$AppDatabase, $StudyNotesTable> {
+  $$StudyNotesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get authorDisplayName => $composableBuilder(
+    column: $table.authorDisplayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StudyNotesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StudyNotesTable> {
+  $$StudyNotesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get authorDisplayName => $composableBuilder(
+    column: $table.authorDisplayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$StudyNotesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StudyNotesTable,
+          StudyNote,
+          $$StudyNotesTableFilterComposer,
+          $$StudyNotesTableOrderingComposer,
+          $$StudyNotesTableAnnotationComposer,
+          $$StudyNotesTableCreateCompanionBuilder,
+          $$StudyNotesTableUpdateCompanionBuilder,
+          (
+            StudyNote,
+            BaseReferences<_$AppDatabase, $StudyNotesTable, StudyNote>,
+          ),
+          StudyNote,
+          PrefetchHooks Function()
+        > {
+  $$StudyNotesTableTableManager(_$AppDatabase db, $StudyNotesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StudyNotesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StudyNotesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StudyNotesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> groupId = const Value.absent(),
+                Value<String> authorUserId = const Value.absent(),
+                Value<String> authorDisplayName = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StudyNotesCompanion(
+                id: id,
+                groupId: groupId,
+                authorUserId: authorUserId,
+                authorDisplayName: authorDisplayName,
+                kind: kind,
+                body: body,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String groupId,
+                required String authorUserId,
+                Value<String> authorDisplayName = const Value.absent(),
+                required String kind,
+                required String body,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => StudyNotesCompanion.insert(
+                id: id,
+                groupId: groupId,
+                authorUserId: authorUserId,
+                authorDisplayName: authorDisplayName,
+                kind: kind,
+                body: body,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StudyNotesTable, StudyNote>(table),
+                  BaseReferences<_$AppDatabase, $StudyNotesTable, StudyNote>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StudyNotesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StudyNotesTable,
+      StudyNote,
+      $$StudyNotesTableFilterComposer,
+      $$StudyNotesTableOrderingComposer,
+      $$StudyNotesTableAnnotationComposer,
+      $$StudyNotesTableCreateCompanionBuilder,
+      $$StudyNotesTableUpdateCompanionBuilder,
+      (StudyNote, BaseReferences<_$AppDatabase, $StudyNotesTable, StudyNote>),
+      StudyNote,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5328,4 +6408,6 @@ class $AppDatabaseManager {
       $$SyncSnapshotsTableTableManager(_db, _db.syncSnapshots);
   $$AppSessionsTableTableManager get appSessions =>
       $$AppSessionsTableTableManager(_db, _db.appSessions);
+  $$StudyNotesTableTableManager get studyNotes =>
+      $$StudyNotesTableTableManager(_db, _db.studyNotes);
 }

@@ -3,10 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../features/analytics/application/event_logger.dart';
-import '../features/church_sync/application/church_sync_service.dart';
-import '../features/church_sync/data/google_sheets_gateway.dart';
-import '../features/church_sync/data/sync_snapshot_store.dart';
-import '../features/church_sync/domain/sheets_gateway.dart';
 import '../features/liturgy/application/liturgy_favorites_notifier.dart';
 import '../features/liturgy/data/liturgy_catalog.dart';
 import '../features/liturgy/domain/liturgical_calendar.dart';
@@ -70,25 +66,6 @@ final customVerseRepositoryProvider = Provider<CustomVerseRepository>((ref) {
   return DriftCustomVerseRepository(
     ref.watch(databaseProvider),
     ref.watch(clockProvider),
-  );
-});
-
-final sheetsGatewayProvider = Provider<SheetsGateway>((ref) {
-  return GoogleSheetsGateway();
-});
-
-final syncSnapshotStoreProvider = Provider<SyncSnapshotStore>((ref) {
-  return SyncSnapshotStore(ref.watch(databaseProvider));
-});
-
-final churchSyncServiceProvider = Provider<ChurchSyncService>((ref) {
-  return ChurchSyncService(
-    prayers: ref.watch(prayerRepositoryProvider),
-    customVerses: ref.watch(customVerseRepositoryProvider),
-    snapshots: ref.watch(syncSnapshotStoreProvider),
-    gateway: ref.watch(sheetsGatewayProvider),
-    prefs: ref.watch(sharedPreferencesProvider),
-    clock: ref.watch(clockProvider),
   );
 });
 

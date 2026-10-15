@@ -1,8 +1,10 @@
+import 'share_scope.dart';
+
 /// Immutable prayer entity. Fields `timesViewed` and `lastPrayedAt` are
 /// derived from `prayer_events` in the repository — not stored columns.
 ///
-/// Prayers are private by default (device-local). Marking a prayer as church
-/// shared is an explicit action; sync uploads only those rows.
+/// Prayers are private by default (device-local). Group and Church scopes
+/// sync only after the person joins a group and confirms upload.
 class Prayer {
   const Prayer({
     required this.id,
@@ -19,8 +21,11 @@ class Prayer {
     this.timesViewed = 0,
     this.lastPrayedAt,
     this.syncId,
-    this.shared = false,
+    this.shareScope = ShareScope.justMe,
+    this.groupId,
+    this.churchId,
     this.authorEmail = '',
+    this.authorDisplayName = '',
   });
 
   final int id;
@@ -39,18 +44,26 @@ class Prayer {
   final int timesViewed;
   final DateTime? lastPrayedAt;
 
-  /// Stable id for church spreadsheet sync. Null until first share.
+  /// Stable id for group/church sync. Null until first share.
   final String? syncId;
 
-  /// True when this prayer syncs to the church spreadsheet.
-  final bool shared;
+  final ShareScope shareScope;
+  final String? groupId;
+  final String? churchId;
 
-  /// Google account that first shared this row.
+  /// Account email of the author when shared (not shown in lists).
   final String authorEmail;
+
+  /// Short name shown on shared lists.
+  final String authorDisplayName;
 
   bool get hasPerson => person.trim().isNotEmpty;
 
-  bool get isChurch => shared;
+  bool get shared => shareScope.isShared;
+
+  bool get isChurch => shareScope == ShareScope.church;
+
+  bool get isGroup => shareScope == ShareScope.group;
 
   Prayer copyWith({
     int? id,
@@ -67,12 +80,17 @@ class Prayer {
     int? timesViewed,
     DateTime? lastPrayedAt,
     String? syncId,
-    bool? shared,
+    ShareScope? shareScope,
+    String? groupId,
+    String? churchId,
     String? authorEmail,
+    String? authorDisplayName,
     bool clearAnsweredAt = false,
     bool clearAnsweredNote = false,
     bool clearLastPrayedAt = false,
     bool clearSyncId = false,
+    bool clearGroupId = false,
+    bool clearChurchId = false,
   }) {
     return Prayer(
       id: id ?? this.id,
@@ -91,8 +109,11 @@ class Prayer {
       lastPrayedAt:
           clearLastPrayedAt ? null : (lastPrayedAt ?? this.lastPrayedAt),
       syncId: clearSyncId ? null : (syncId ?? this.syncId),
-      shared: shared ?? this.shared,
+      shareScope: shareScope ?? this.shareScope,
+      groupId: clearGroupId ? null : (groupId ?? this.groupId),
+      churchId: clearChurchId ? null : (churchId ?? this.churchId),
       authorEmail: authorEmail ?? this.authorEmail,
+      authorDisplayName: authorDisplayName ?? this.authorDisplayName,
     );
   }
 
@@ -114,8 +135,11 @@ class Prayer {
           other.timesViewed == timesViewed &&
           other.lastPrayedAt == lastPrayedAt &&
           other.syncId == syncId &&
-          other.shared == shared &&
-          other.authorEmail == authorEmail;
+          other.shareScope == shareScope &&
+          other.groupId == groupId &&
+          other.churchId == churchId &&
+          other.authorEmail == authorEmail &&
+          other.authorDisplayName == authorDisplayName;
 
   @override
   int get hashCode => Object.hash(
@@ -133,8 +157,11 @@ class Prayer {
         timesViewed,
         lastPrayedAt,
         syncId,
-        shared,
+        shareScope,
+        groupId,
+        churchId,
         authorEmail,
+        authorDisplayName,
       );
 }
 
@@ -145,8 +172,11 @@ class NewPrayer {
     required this.request,
     this.tags = const [],
     this.verseIds = const [],
-    this.shared = false,
+    this.shareScope = ShareScope.justMe,
+    this.groupId,
+    this.churchId,
     this.authorEmail = '',
+    this.authorDisplayName = '',
     this.syncId,
   });
 
@@ -155,8 +185,11 @@ class NewPrayer {
   final String request;
   final List<String> tags;
   final List<String> verseIds;
-  final bool shared;
+  final ShareScope shareScope;
+  final String? groupId;
+  final String? churchId;
   final String authorEmail;
+  final String authorDisplayName;
   final String? syncId;
 }
 
@@ -169,8 +202,11 @@ class PrayerUpdate {
     this.verseIds = const [],
     this.isAnswered,
     this.answeredNote,
-    this.shared,
+    this.shareScope,
+    this.groupId,
+    this.churchId,
     this.authorEmail,
+    this.authorDisplayName,
     this.syncId,
   });
 
@@ -181,8 +217,11 @@ class PrayerUpdate {
   final List<String> verseIds;
   final bool? isAnswered;
   final String? answeredNote;
-  final bool? shared;
+  final ShareScope? shareScope;
+  final String? groupId;
+  final String? churchId;
   final String? authorEmail;
+  final String? authorDisplayName;
   final String? syncId;
 }
 

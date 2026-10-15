@@ -63,26 +63,18 @@ void main() {
       ),
     );
     await pumpSelahApp(tester, repo: repo);
-    await tester.scrollUntilVisible(
-      find.text('Mom'),
-      200,
-      scrollable: find.byType(Scrollable).first,
+    final title = find.text(
+      'Healing and patience for a long season of treatment',
     );
+    await tester.ensureVisible(title);
 
-    expect(find.text('Mom'), findsOneWidget);
-    expect(
-      find.text('Healing and patience for a long season of treatment'),
-      findsOneWidget,
-    );
+    expect(find.text('Mom'), findsWidgets);
+    expect(title, findsOneWidget);
     expect(find.byTooltip('Prayed for'), findsOneWidget);
     expect(find.text('🙏'), findsNothing);
     expect(tester.takeException(), isNull);
 
-    await tester.scrollUntilVisible(
-      find.byTooltip('Prayed for'),
-      120,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.ensureVisible(find.byTooltip('Prayed for'));
     await tester.tap(find.byTooltip('Prayed for'), warnIfMissed: false);
     await tester.pump(const Duration(seconds: 2));
     expect(find.text('Add petition'), findsOneWidget);

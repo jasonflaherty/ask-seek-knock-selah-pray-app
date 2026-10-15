@@ -2,35 +2,26 @@
 
 A calm, offline prayer journal. Record prayer requests, pick promise verses that speak to the need, and pray through your list each day.
 
+**Guides**
+
+- [Using Selah](docs/using-selah.md) — for people in a group (sign-in, sharing, timers, church page)
+- [Running Selah](docs/running-selah.md) — for the person who keeps the server
+
 ## Setup
 
 ```bash
 flutter pub get
 dart run build_runner build
-flutter run
+flutter run --dart-define=SELAH_API_BASE_URL=https://selah.psithurismlabs.com
 ```
 
-Minimum SDKs: iOS 13+, Android API 24+. The journal is offline by default. Optional church spreadsheet sync uses Google Sign-In and needs network when the user syncs.
+Minimum SDKs: iOS 13+, Android API 24+. The journal is offline by default. Optional email sign-in and group sync need network when the user signs in or syncs. Just me prayers never leave the device.
 
-## Church spreadsheet sync (optional)
+## Group and church sync (optional)
 
-Prayers marked **Just me** never leave the device. Prayers marked **Church** two-way sync with one shared Google Sheet (`Prayers` and `Verses` tabs).
+Prayers marked **Just me** never leave the device. Prayers marked **Group** or **Church** sync through PostgreSQL on the VPS behind `https://selah.psithurismlabs.com`. Members sign in with an email one-time code. A signed-in page on that host maintains the church list.
 
-1. In Google Cloud Console, in one project, enable the Google Sheets API and create three OAuth clients: iOS, Web (this is the server client id), and Android. The Android client uses package `com.psithurismlabs.selahprayerapp` and the SHA-1 of the keystore that signs the build. Debug installs use `~/.android/debug.keystore` (`androiddebugkey`, store password `android`). Do not put the Android client id in the app.
-2. Add test users on the OAuth consent screen while the app is unpublished / unverified.
-3. Share the church spreadsheet (edit access) with each Google account that will sync.
-4. Build with the OAuth client ids (iOS + Web / server client id):
-
-```bash
-flutter run \
-  --dart-define=GOOGLE_IOS_CLIENT_ID=871420508075-o79md62ij2uair87rb6ueaumem20krbm.apps.googleusercontent.com \
-  --dart-define=GOOGLE_SERVER_CLIENT_ID=871420508075-n8h5mh5rmbkr7vqsq4e3h2d5ia5h998q.apps.googleusercontent.com
-```
-
-5. On iOS, the reversed iOS client id is already registered as a URL scheme in `ios/Runner/Info.plist`.
-6. In Settings: Sign in with Google → link or create the church spreadsheet → Sync now.
-
-Public Play / App Store distribution of the `spreadsheets` scope requires Google’s app verification.
+Server stack: `server/docker-compose.yml` (`selah-api`, `selah-postgres`). See [docs/running-selah.md](docs/running-selah.md).
 
 ## Architecture
 
@@ -42,8 +33,11 @@ lib/
   core/          database, providers, clock, shuffle helpers
   features/
     prayers/     list, add/edit, detail, repository
+    groups/      email sign-in, membership, sync client
+    reading/     morning reminder, read/pray timers, study notes
     verses/      suggester, picker, asset loader
     analytics/   EventLogger (local only)
+server/          Docker API + Postgres for shared data
 ```
 
 ## Code generation

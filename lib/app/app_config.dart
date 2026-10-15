@@ -7,4 +7,12 @@ class AppConfig {
 
   static Uri get venmoSupportUri =>
       Uri.parse('https://venmo.com/u/$venmoUsername');
+
+  /// Group/church sync API (empty disables network sync until dart-define is set).
+  static const String selahApiBaseUrl = String.fromEnvironment(
+    'SELAH_API_BASE_URL',
+    defaultValue: 'https://selah.psithurismlabs.com',
+  );
+
+  static bool get selahApiConfigured => selahApiBaseUrl.trim().isNotEmpty;
 }

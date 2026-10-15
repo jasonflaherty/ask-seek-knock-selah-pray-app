@@ -15,18 +15,28 @@ class Prayers extends Table {
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
-  /// Stable id for church spreadsheet sync. Null until first share.
+  /// Stable id for group/church sync. Null until first share.
   TextColumn get syncId => text().nullable().unique()();
 
-  /// True when this prayer syncs to the church spreadsheet.
+  /// Legacy flag kept in sync with [shareScope] != justMe.
   BoolColumn get shared => boolean().withDefault(const Constant(false))();
 
-  /// Google account that first shared this row (empty if private).
+  /// justMe | group | church
+  TextColumn get shareScope =>
+      text().withLength(min: 1, max: 16).withDefault(const Constant('justMe'))();
+
+  TextColumn get groupId => text().nullable()();
+  TextColumn get churchId => text().nullable()();
+
+  /// Account email of the author when shared.
   TextColumn get authorEmail =>
       text().withLength(min: 0, max: 320).withDefault(const Constant(''))();
+
+  TextColumn get authorDisplayName =>
+      text().withLength(min: 0, max: 80).withDefault(const Constant(''))();
 }
 
-/// Church prayers deleted locally that still need a sheet tombstone push.
+/// Shared prayers deleted locally that still need a server tombstone push.
 class SyncTombstones extends Table {
   TextColumn get syncId => text()();
   DateTimeColumn get deletedAt => dateTime()();
@@ -35,7 +45,7 @@ class SyncTombstones extends Table {
   Set<Column> get primaryKey => {syncId};
 }
 
-/// Fingerprint of each church row after the last successful sync.
+/// Fingerprint of each shared row after the last successful sync.
 class SyncSnapshots extends Table {
   TextColumn get syncId => text()();
   TextColumn get fingerprint => text()();
@@ -87,6 +97,22 @@ class CustomVerses extends Table {
   TextColumn get body => text()();
   TextColumn get note => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Cached study notes for the person's group.
+class StudyNotes extends Table {
+  TextColumn get id => text()();
+  TextColumn get groupId => text()();
+  TextColumn get authorUserId => text()();
+  TextColumn get authorDisplayName =>
+      text().withLength(min: 0, max: 80).withDefault(const Constant(''))();
+  TextColumn get kind => text().withLength(min: 1, max: 32)();
+  TextColumn get body => text()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};

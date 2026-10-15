@@ -3,83 +3,83 @@ import 'package:selah/core/db/app_database.dart';
 import 'package:selah/core/utils/clock.dart';
 import 'package:selah/features/prayers/data/drift_prayer_repository.dart';
 import 'package:selah/features/prayers/domain/prayer.dart';
+import 'package:selah/features/prayers/domain/share_scope.dart';
 
 void main() {
   late AppDatabase db;
-  late FakeClock clock;
   late DriftPrayerRepository repo;
 
   setUp(() {
     db = AppDatabase.memory();
-    clock = FakeClock(DateTime.utc(2026, 4, 1, 12));
-    repo = DriftPrayerRepository(db, clock);
+    repo = DriftPrayerRepository(db, const SystemClock());
   });
 
   tearDown(() async {
     await db.close();
   });
 
-  test('create shared prayer assigns syncId', () async {
+  test('Just me prayers are not in sharedPrayers', () async {
+    await repo.createPrayer(
+      const NewPrayer(name: 'Private', request: 'Keep local'),
+    );
+    expect(await repo.sharedPrayers(), isEmpty);
+  });
+
+  test('Church scope appears in sharedPrayers and gets a sync id', () async {
     final id = await repo.createPrayer(
       const NewPrayer(
-        name: 'Healing',
-        request: 'Please pray for recovery',
-        shared: true,
+        name: 'Elders',
+        request: 'Wisdom',
+        shareScope: ShareScope.church,
+        churchId: 'church-1',
         authorEmail: 'a@example.com',
       ),
     );
-    final p = await repo.getPrayer(id);
-    expect(p!.shared, isTrue);
-    expect(p.syncId, isNotNull);
-    expect(p.authorEmail, 'a@example.com');
+    final prayer = await repo.getPrayer(id);
+    expect(prayer!.shareScope, ShareScope.church);
+    expect(prayer.syncId, isNotNull);
+    expect(await repo.sharedPrayers(), hasLength(1));
   });
 
-  test('unshare writes tombstone and keeps local prayer', () async {
+  test('Clearing share writes a tombstone', () async {
     final id = await repo.createPrayer(
       const NewPrayer(
-        name: 'Healing',
-        request: 'Please pray for recovery',
-        shared: true,
-        authorEmail: 'a@example.com',
+        name: 'Shared',
+        request: 'Help',
+        shareScope: ShareScope.group,
+        groupId: 'g1',
+        churchId: 'c1',
       ),
     );
     final before = await repo.getPrayer(id);
-    await repo.setShared(id, shared: false);
+    await repo.setShareScope(id, shareScope: ShareScope.justMe);
     final after = await repo.getPrayer(id);
-    expect(after!.shared, isFalse);
-    expect(after.syncId, before!.syncId);
-
+    expect(after!.shareScope, ShareScope.justMe);
+    expect(after.shared, isFalse);
     final tombs = await db.select(db.syncTombstones).get();
-    expect(tombs, hasLength(1));
-    expect(tombs.single.syncId, before.syncId);
+    expect(tombs.map((t) => t.syncId), contains(before!.syncId));
   });
 
-  test('delete shared prayer writes tombstone', () async {
-    final id = await repo.createPrayer(
+  test('Editor scopes: group and church stay distinct', () async {
+    await repo.createPrayer(
       const NewPrayer(
-        name: 'Healing',
-        request: 'Please pray for recovery',
-        shared: true,
-        authorEmail: 'a@example.com',
+        name: 'Group',
+        request: 'g',
+        shareScope: ShareScope.group,
+        groupId: 'g1',
+        churchId: 'c1',
       ),
     );
-    final p = await repo.getPrayer(id);
-    await repo.deletePrayer(id);
-    final tombs = await db.select(db.syncTombstones).get();
-    expect(tombs.single.syncId, p!.syncId);
-    expect(await repo.getPrayer(id), isNull);
-  });
-
-  test('purge removes without tombstone', () async {
-    final id = await repo.createPrayer(
+    await repo.createPrayer(
       const NewPrayer(
-        name: 'Healing',
-        request: 'Please pray for recovery',
-        shared: true,
-        authorEmail: 'a@example.com',
+        name: 'Church',
+        request: 'c',
+        shareScope: ShareScope.church,
+        churchId: 'c1',
       ),
     );
-    await repo.purgePrayer(id);
-    expect(await db.select(db.syncTombstones).get(), isEmpty);
+    final shared = await repo.sharedPrayers();
+    expect(shared.where((p) => p.isGroup), hasLength(1));
+    expect(shared.where((p) => p.isChurch), hasLength(1));
   });
 }

@@ -5,6 +5,7 @@ import 'package:selah/core/utils/sync_id.dart';
 import 'package:selah/features/prayers/domain/prayer.dart';
 import 'package:selah/features/prayers/domain/prayer_event.dart';
 import 'package:selah/features/prayers/domain/prayer_repository.dart';
+import 'package:selah/features/prayers/domain/share_scope.dart';
 
 class FakePrayerRepository implements PrayerRepository {
   FakePrayerRepository([Clock? clock]) : _clock = clock ?? const SystemClock();
@@ -69,7 +70,7 @@ class FakePrayerRepository implements PrayerRepository {
   Future<int> createPrayer(NewPrayer input) async {
     final id = _nextId++;
     final now = _clock.now();
-    final shared = input.shared;
+    final scope = input.shareScope;
     _prayers[id] = Prayer(
       id: id,
       name: input.name.trim(),
@@ -80,9 +81,12 @@ class FakePrayerRepository implements PrayerRepository {
       updatedAt: now,
       tags: List.of(input.tags),
       verseIds: List.of(input.verseIds),
-      syncId: shared ? (input.syncId ?? newSyncId()) : input.syncId,
-      shared: shared,
-      authorEmail: shared ? input.authorEmail.trim().toLowerCase() : '',
+      syncId: scope.isShared ? (input.syncId ?? newSyncId()) : input.syncId,
+      shareScope: scope,
+      groupId: input.groupId,
+      churchId: input.churchId,
+      authorEmail: scope.isShared ? input.authorEmail.trim().toLowerCase() : '',
+      authorDisplayName: scope.isShared ? input.authorDisplayName.trim() : '',
     );
     _emit();
     return id;
@@ -107,27 +111,46 @@ class FakePrayerRepository implements PrayerRepository {
       }
     }
 
-    var shared = existing.shared;
+    var scope = existing.shareScope;
     var syncId = existing.syncId;
     var authorEmail = existing.authorEmail;
-    if (input.shared != null) {
-      if (input.shared! && !existing.shared) {
-        shared = true;
+    var authorDisplayName = existing.authorDisplayName;
+    var groupId = existing.groupId;
+    var churchId = existing.churchId;
+    if (input.shareScope != null) {
+      final next = input.shareScope!;
+      if (next.isShared && !existing.shareScope.isShared) {
+        scope = next;
         syncId ??= input.syncId ?? newSyncId();
         final email = (input.authorEmail ?? existing.authorEmail).trim();
         if (email.isNotEmpty) authorEmail = email.toLowerCase();
+        final display =
+            (input.authorDisplayName ?? existing.authorDisplayName).trim();
+        if (display.isNotEmpty) authorDisplayName = display;
+        groupId = input.groupId ?? groupId;
+        churchId = input.churchId ?? churchId;
         tombstones.remove(syncId);
-      } else if (!input.shared! && existing.shared) {
-        shared = false;
+      } else if (!next.isShared && existing.shareScope.isShared) {
+        scope = ShareScope.justMe;
         if (existing.syncId != null) {
           tombstones[existing.syncId!] = now;
         }
         authorEmail = '';
+        authorDisplayName = '';
+        groupId = null;
+        churchId = null;
+      } else {
+        scope = next;
+        groupId = input.groupId ?? groupId;
+        churchId = input.churchId ?? churchId;
       }
     }
     if (input.syncId != null) syncId = input.syncId;
-    if (input.authorEmail != null && shared) {
+    if (input.authorEmail != null && scope.isShared) {
       authorEmail = input.authorEmail!.trim().toLowerCase();
+    }
+    if (input.authorDisplayName != null && scope.isShared) {
+      authorDisplayName = input.authorDisplayName!.trim();
     }
 
     _prayers[id] = existing.copyWith(
@@ -141,10 +164,15 @@ class FakePrayerRepository implements PrayerRepository {
       answeredNote: answeredNote,
       updatedAt: now,
       syncId: syncId,
-      shared: shared,
+      shareScope: scope,
+      groupId: groupId,
+      churchId: churchId,
       authorEmail: authorEmail,
+      authorDisplayName: authorDisplayName,
       clearAnsweredAt: !isAnswered,
       clearAnsweredNote: !isAnswered,
+      clearGroupId: groupId == null,
+      clearChurchId: churchId == null,
     );
     _emit();
   }
@@ -192,7 +220,8 @@ class FakePrayerRepository implements PrayerRepository {
     _events.putIfAbsent(prayerId, () => []).add(type);
     final existing = _prayers[prayerId];
     if (existing == null) return;
-    final viewed = _events[prayerId]!.where((e) => e == PrayerEventType.viewed).length;
+    final viewed =
+        _events[prayerId]!.where((e) => e == PrayerEventType.viewed).length;
     final lastPrayed = _events[prayerId]!.contains(PrayerEventType.prayed)
         ? _clock.now()
         : existing.lastPrayedAt;
@@ -226,14 +255,17 @@ class FakePrayerRepository implements PrayerRepository {
   }
 
   @override
-  Future<List<Prayer>> churchPrayers() async =>
+  Future<List<Prayer>> sharedPrayers() async =>
       _prayers.values.where((p) => p.shared).toList();
 
   @override
-  Future<void> setShared(
+  Future<void> setShareScope(
     int id, {
-    required bool shared,
+    required ShareScope shareScope,
     String? authorEmail,
+    String? authorDisplayName,
+    String? groupId,
+    String? churchId,
   }) async {
     final existing = _prayers[id];
     if (existing == null) return;
@@ -247,8 +279,11 @@ class FakePrayerRepository implements PrayerRepository {
         verseIds: existing.verseIds,
         isAnswered: existing.isAnswered,
         answeredNote: existing.answeredNote,
-        shared: shared,
+        shareScope: shareScope,
         authorEmail: authorEmail,
+        authorDisplayName: authorDisplayName,
+        groupId: groupId,
+        churchId: churchId,
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'prayer.dart';
 import 'prayer_event.dart';
+import 'share_scope.dart';
 
 abstract class PrayerRepository {
   Stream<List<Prayer>> watchPrayers({required AnswerFilter filter});
@@ -19,13 +20,16 @@ abstract class PrayerRepository {
   /// Distinct person labels, sorted case-insensitively (excludes empty).
   Future<List<String>> allPersonNames();
 
-  /// Church-shared prayers only (for spreadsheet sync).
-  Future<List<Prayer>> churchPrayers();
+  /// Prayers with group or church scope (for sync).
+  Future<List<Prayer>> sharedPrayers();
 
-  /// Assign a sync id and mark shared, or clear shared and write a tombstone.
-  Future<void> setShared(
+  /// Assign scope and sync id, or clear share and write a tombstone.
+  Future<void> setShareScope(
     int id, {
-    required bool shared,
+    required ShareScope shareScope,
     String? authorEmail,
+    String? authorDisplayName,
+    String? groupId,
+    String? churchId,
   });
 }

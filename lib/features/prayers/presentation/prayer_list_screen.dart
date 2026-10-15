@@ -46,6 +46,11 @@ class PrayerListScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
+            tooltip: 'Read and pray',
+            icon: const Icon(Icons.auto_stories_outlined),
+            onPressed: () => context.push('/read-pray'),
+          ),
+          IconButton(
             tooltip: 'Prayer timer',
             icon: const Icon(Icons.timer_outlined),
             onPressed: () => context.push('/silence'),
