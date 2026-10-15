@@ -57,7 +57,7 @@ class PrayerListScreen extends ConsumerWidget {
           ),
           IconButton(
             tooltip: 'Liturgical prayers',
-            icon: const Icon(Icons.menu_book_outlined),
+            icon: const Icon(Icons.volunteer_activism_outlined),
             onPressed: () => context.push('/liturgy'),
           ),
           IconButton(
