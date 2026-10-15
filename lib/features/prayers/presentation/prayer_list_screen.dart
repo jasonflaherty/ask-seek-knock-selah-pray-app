@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -57,7 +58,7 @@ class PrayerListScreen extends ConsumerWidget {
           ),
           IconButton(
             tooltip: 'Liturgical prayers',
-            icon: const Icon(Icons.volunteer_activism_outlined),
+            icon: const FaIcon(FontAwesomeIcons.handsPraying, size: 22),
             onPressed: () => context.push('/liturgy'),
           ),
           IconButton(
