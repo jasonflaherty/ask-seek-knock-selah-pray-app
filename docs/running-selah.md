@@ -66,6 +66,23 @@ docker exec -it selah-postgres psql -U selah -d selah \
 
 The new owner must already be a member, or the command adds them and makes them owner. Only one owner remains. This is not available in the app or on the public website.
 
+## GitHub Actions deploy
+
+Pushes to `master` that change `server/` (or a manual **Run workflow**) SSH in as `selahdeploy` and rebuild the containers. Workflow: [`.github/workflows/deploy-server.yml`](../.github/workflows/deploy-server.yml).
+
+Repository secrets (already set):
+
+| Secret | Value |
+|--------|---------|
+| `VPS_HOST` | VPS host |
+| `VPS_USER` | `selahdeploy` |
+| `VPS_SSH_KEY` | Private key from `~/.ssh/selah_vps_deploy` |
+| `VPS_PORT` | SSH port |
+
+Keep `server/.env` only on the VPS. Actions does not upload it. The deploy job hard-resets `/opt/selah` to `origin/master` (`.env` is gitignored and stays).
+
+On the VPS, `/opt/selah` must be a git checkout that can `git fetch` as `selahdeploy`.
+
 ## App build
 
 Build the Flutter app with the API URL:

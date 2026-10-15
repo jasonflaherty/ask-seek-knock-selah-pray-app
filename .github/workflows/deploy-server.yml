@@ -1,0 +1,40 @@
+name: Deploy Selah server
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'server/**'
+      - '.github/workflows/deploy-server.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-selah-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd /opt/selah
+            # Keep server/.env; drop manual scp leftover so pull can fast-forward.
+            rm -rf server/tmp_upload
+            git fetch origin
+            git checkout master
+            git reset --hard origin/master
+            cd server
+            test -f .env
+            docker compose up -d --build
+            sleep 3
+            curl -fsS http://127.0.0.1:8091/api/health
+            echo
