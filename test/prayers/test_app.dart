@@ -56,6 +56,7 @@ Future<TestApp> pumpSelahApp(
   FakePrayerRepository? repo,
   SilenceBell? silenceBell,
   SilenceWakeLock? silenceWakeLock,
+  int Function()? silenceShuffleSeed,
 }) async {
   VisibilityDetectorController.instance.updateInterval = Duration.zero;
   SharedPreferences.setMockInitialValues({});
@@ -75,6 +76,8 @@ Future<TestApp> pumpSelahApp(
       verseSuggesterProvider.overrideWithValue(_NoopSuggester()),
       silenceBellProvider.overrideWithValue(bell),
       silenceWakeLockProvider.overrideWithValue(wakeLock),
+      if (silenceShuffleSeed != null)
+        silenceShuffleSeedProvider.overrideWithValue(silenceShuffleSeed),
     ],
   );
 

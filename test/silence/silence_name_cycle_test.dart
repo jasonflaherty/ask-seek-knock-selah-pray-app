@@ -28,23 +28,71 @@ void main() {
     );
   });
 
-  test('cycles through names every 15 seconds', () {
+  test('cycles through names every slot duration', () {
     const names = ['Ada', 'Ben', 'Cara'];
     expect(
       SilenceNameCycle.nameAt(names: names, elapsed: Duration.zero),
       'Ada',
     );
     expect(
-      SilenceNameCycle.nameAt(names: names, elapsed: const Duration(seconds: 14)),
+      SilenceNameCycle.nameAt(
+        names: names,
+        elapsed: const Duration(seconds: 14),
+      ),
       'Ada',
     );
     expect(
-      SilenceNameCycle.nameAt(names: names, elapsed: const Duration(seconds: 15)),
+      SilenceNameCycle.nameAt(
+        names: names,
+        elapsed: const Duration(seconds: 15),
+      ),
       'Ben',
     );
     expect(
-      SilenceNameCycle.nameAt(names: names, elapsed: const Duration(seconds: 45)),
+      SilenceNameCycle.nameAt(
+        names: names,
+        elapsed: const Duration(seconds: 45),
+      ),
       'Ada',
+    );
+  });
+
+  test('custom slot affects cycle and skip', () {
+    const names = ['Ada', 'Ben'];
+    const slot = Duration(seconds: 5);
+    expect(
+      SilenceNameCycle.nameAt(
+        names: names,
+        elapsed: const Duration(seconds: 4),
+        slot: slot,
+      ),
+      'Ada',
+    );
+    expect(
+      SilenceNameCycle.nameAt(
+        names: names,
+        elapsed: const Duration(seconds: 5),
+        slot: slot,
+      ),
+      'Ben',
+    );
+    expect(
+      SilenceNameCycle.skipToNextSlot(
+        const Duration(seconds: 3),
+        slot: slot,
+      ),
+      const Duration(seconds: 5),
+    );
+  });
+
+  test('remapElapsed keeps the current name index under a new slot', () {
+    expect(
+      SilenceNameCycle.remapElapsed(
+        elapsed: const Duration(seconds: 20),
+        oldSlot: const Duration(seconds: 15),
+        newSlot: const Duration(seconds: 5),
+      ),
+      const Duration(seconds: 5),
     );
   });
 
@@ -55,20 +103,5 @@ void main() {
       _p(name: 'Done', answered: true),
     ]);
     expect(names, ['Jordan', 'Solo']);
-  });
-
-  test('skipToNextSlot jumps to the next 15-second boundary', () {
-    expect(
-      SilenceNameCycle.skipToNextSlot(Duration.zero),
-      const Duration(seconds: 15),
-    );
-    expect(
-      SilenceNameCycle.skipToNextSlot(const Duration(seconds: 14)),
-      const Duration(seconds: 15),
-    );
-    expect(
-      SilenceNameCycle.skipToNextSlot(const Duration(seconds: 15)),
-      const Duration(seconds: 30),
-    );
   });
 }

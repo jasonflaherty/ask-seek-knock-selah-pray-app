@@ -5,9 +5,14 @@ import '../../../core/utils/announce.dart';
 
 /// Slowly fades petition names in and out while the silence timer runs.
 class FadingPetitionName extends StatefulWidget {
-  const FadingPetitionName({super.key, required this.name});
+  const FadingPetitionName({
+    super.key,
+    required this.name,
+    this.fadeDuration = const Duration(milliseconds: 1200),
+  });
 
   final String? name;
+  final Duration fadeDuration;
 
   @override
   State<FadingPetitionName> createState() => _FadingPetitionNameState();
@@ -25,7 +30,7 @@ class _FadingPetitionNameState extends State<FadingPetitionName>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: widget.fadeDuration,
     );
     _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
     _shown = widget.name;
@@ -40,6 +45,9 @@ class _FadingPetitionNameState extends State<FadingPetitionName>
   @override
   void didUpdateWidget(FadingPetitionName oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.fadeDuration != oldWidget.fadeDuration) {
+      _controller.duration = widget.fadeDuration;
+    }
     if (widget.name == oldWidget.name) return;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     if (reduceMotion) {

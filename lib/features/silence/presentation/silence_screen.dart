@@ -5,6 +5,7 @@ import '../../../app/theme.dart';
 import '../application/silence_session_notifier.dart';
 import '../application/silence_session_state.dart';
 import '../domain/silence_duration.dart';
+import '../domain/silence_name_pace.dart';
 import 'fading_petition_name.dart';
 
 class SilenceScreen extends ConsumerWidget {
@@ -48,11 +49,16 @@ class SilenceScreen extends ConsumerWidget {
                         notifier.stop();
                       },
                       onSkip: notifier.skipName,
+                      onFaster: notifier.decreasePace,
+                      onSlower: notifier.increasePace,
                     )
                   : _SetupView(
                       minutes: session.durationMinutes,
+                      paceSeconds: session.paceSeconds,
                       onDecrease: notifier.decreaseDuration,
                       onIncrease: notifier.increaseDuration,
+                      onFaster: notifier.decreasePace,
+                      onSlower: notifier.increasePace,
                       onStart: () {
                         notifier.start();
                       },
@@ -68,14 +74,20 @@ class SilenceScreen extends ConsumerWidget {
 class _SetupView extends StatelessWidget {
   const _SetupView({
     required this.minutes,
+    required this.paceSeconds,
     required this.onDecrease,
     required this.onIncrease,
+    required this.onFaster,
+    required this.onSlower,
     required this.onStart,
   });
 
   final int minutes;
+  final int paceSeconds;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
+  final VoidCallback onFaster;
+  final VoidCallback onSlower;
   final VoidCallback onStart;
 
   @override
@@ -133,6 +145,20 @@ class _SetupView extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 32),
+          Text(
+            'Names',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _PaceControls(
+            paceSeconds: paceSeconds,
+            onFaster: onFaster,
+            onSlower: onSlower,
+          ),
           const Spacer(),
           FilledButton(
             onPressed: onStart,
@@ -150,11 +176,15 @@ class _RunningView extends StatelessWidget {
     required this.session,
     required this.onStop,
     required this.onSkip,
+    required this.onFaster,
+    required this.onSlower,
   });
 
   final SilenceSessionState session;
   final VoidCallback onStop;
   final VoidCallback onSkip;
+  final VoidCallback onFaster;
+  final VoidCallback onSlower;
 
   String get _remainingLabel {
     final totalSeconds = session.remaining.inSeconds;
@@ -167,6 +197,10 @@ class _RunningView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final canSkip = session.names.length > 1;
+    final nameWidget = FadingPetitionName(
+      name: session.currentName,
+      fadeDuration: session.nameFade,
+    );
 
     return Padding(
       padding: const EdgeInsets.all(AppTheme.screenPadding),
@@ -205,13 +239,19 @@ class _RunningView extends StatelessWidget {
                             horizontal: 24,
                             vertical: 32,
                           ),
-                          child: FadingPetitionName(name: session.currentName),
+                          child: nameWidget,
                         ),
                       ),
                     )
-                  : FadingPetitionName(name: session.currentName),
+                  : nameWidget,
             ),
           ),
+          _PaceControls(
+            paceSeconds: session.paceSeconds,
+            onFaster: onFaster,
+            onSlower: onSlower,
+          ),
+          const SizedBox(height: 8),
           if (canSkip) ...[
             TextButton(
               onPressed: onSkip,
@@ -226,6 +266,62 @@ class _RunningView extends StatelessWidget {
           const SizedBox(height: 24),
         ],
       ),
+    );
+  }
+}
+
+class _PaceControls extends StatelessWidget {
+  const _PaceControls({
+    required this.paceSeconds,
+    required this.onFaster,
+    required this.onSlower,
+  });
+
+  final int paceSeconds;
+  final VoidCallback onFaster;
+  final VoidCallback onSlower;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final canFaster = SilenceNamePace.canDecrease(paceSeconds);
+    final canSlower = SilenceNamePace.canIncrease(paceSeconds);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          tooltip: 'Faster names',
+          onPressed: canFaster ? onFaster : null,
+          icon: const Icon(Icons.fast_forward_outlined),
+          constraints: const BoxConstraints(
+            minWidth: AppTheme.minTapTarget,
+            minHeight: AppTheme.minTapTarget,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Semantics(
+            liveRegion: true,
+            label: '$paceSeconds seconds per name',
+            child: Text(
+              '$paceSeconds s each',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ),
+        IconButton(
+          tooltip: 'Slower names',
+          onPressed: canSlower ? onSlower : null,
+          icon: const Icon(Icons.slow_motion_video_outlined),
+          constraints: const BoxConstraints(
+            minWidth: AppTheme.minTapTarget,
+            minHeight: AppTheme.minTapTarget,
+          ),
+        ),
+      ],
     );
   }
 }

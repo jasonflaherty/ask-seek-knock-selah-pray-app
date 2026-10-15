@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:selah/core/utils/clock.dart';
+import 'package:selah/core/utils/seeded_shuffle.dart';
 import 'package:selah/features/prayers/domain/prayer.dart';
 
 import '../prayers/fake_prayer_repository.dart';
@@ -33,6 +34,7 @@ void main() {
     expect(find.text('Prayer timer'), findsWidgets);
     expect(find.text('Sit in silence.'), findsOneWidget);
     expect(find.text('Start'), findsOneWidget);
+    expect(find.text('15 s each'), findsOneWidget);
   });
 
   testWidgets('start shows petition name and stop returns to setup', (
@@ -80,7 +82,11 @@ void main() {
     expect(bell.chimeCount, 0);
   });
 
-  testWidgets('next name skips to the following petition', (tester) async {
+  testWidgets('next name skips to the following shuffled petition', (
+    tester,
+  ) async {
+    const seed = 42;
+    final ordered = seededShuffle(const ['Ada', 'Ben'], seed);
     final clock = FakeClock(DateTime(2024, 6, 15, 12));
     final repo = FakePrayerRepository(clock);
     await repo.createPrayer(
@@ -90,7 +96,11 @@ void main() {
       const NewPrayer(name: 'Two', person: 'Ben', request: 'b'),
     );
 
-    await pumpSelahApp(tester, repo: repo);
+    await pumpSelahApp(
+      tester,
+      repo: repo,
+      silenceShuffleSeed: () => seed,
+    );
 
     await tester.tap(find.byTooltip('Prayer timer'));
     await tester.pumpAndSettle();
@@ -98,15 +108,33 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Ada'), findsOneWidget);
+    expect(find.text(ordered[0]), findsOneWidget);
 
     await tester.tap(find.text('Next name'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 1300));
+    // Fade out + fade in at the default 15s pace (~1.9s each).
+    await tester.pump(const Duration(milliseconds: 4000));
 
-    expect(find.text('Ben'), findsOneWidget);
+    expect(find.text(ordered[1]), findsOneWidget);
 
     await tester.tap(find.text('Stop'));
     await tester.pump();
+  });
+
+  testWidgets('faster and slower adjust name pace', (tester) async {
+    await pumpSelahApp(tester);
+
+    await tester.tap(find.byTooltip('Prayer timer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('15 s each'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Faster names'));
+    await tester.pumpAndSettle();
+    expect(find.text('10 s each'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Slower names'));
+    await tester.pumpAndSettle();
+    expect(find.text('15 s each'), findsOneWidget);
   });
 }
