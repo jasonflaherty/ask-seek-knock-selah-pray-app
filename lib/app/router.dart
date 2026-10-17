@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/liturgy/presentation/liturgy_screen.dart';
@@ -10,10 +11,15 @@ import '../features/settings/presentation/settings_screen.dart';
 import '../features/silence/presentation/silence_screen.dart';
 import 'app_shell.dart';
 
+/// Navigator for screens under the bottom bar.
+final GlobalKey<NavigatorState> shellNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shell');
+
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
   routes: [
     ShellRoute(
+      navigatorKey: shellNavigatorKey,
       builder: (context, state, child) => AppShell(child: child),
       routes: [
         GoRoute(

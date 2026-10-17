@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import 'router.dart';
+
 /// Persistent bottom navigation around every routed screen.
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.child});
@@ -62,13 +64,22 @@ class _AppShellState extends State<AppShell> {
     final selected = mainIndex ?? _lastMainIndex;
 
     return Scaffold(
-      body: widget.child,
+      body: NavigatorPopHandler(
+        onPopWithResult: (result) {
+          shellNavigatorKey.currentState?.maybePop(result);
+        },
+        child: PopScope(
+          // Keep the shell on screen when the journal is the only route.
+          canPop: false,
+          child: widget.child,
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selected,
         onDestinationSelected: (index) {
           final path = _destinations[index].path;
-          if (index == selected && location == path) return;
-          context.go(path);
+          if (location == path) return;
+          context.push(path);
         },
         destinations: [
           for (final dest in _destinations)
