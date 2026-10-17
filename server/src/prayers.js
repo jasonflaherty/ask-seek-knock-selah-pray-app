@@ -424,7 +424,9 @@ export async function upsertNote(user, body) {
     );
     if (existing.rows.length) {
       const { rows } = await query(
-        `UPDATE study_notes SET body = $2, author_display_name = $3, updated_at = now()
+        `UPDATE study_notes
+         SET body = $2, author_display_name = $3,
+             created_at = now(), updated_at = now()
          WHERE id = $1 RETURNING *`,
         [existing.rows[0].id, noteBody, displayName],
       );
