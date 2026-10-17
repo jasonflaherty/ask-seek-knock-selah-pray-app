@@ -100,12 +100,25 @@ export async function requestLoginCode(emailRaw) {
   );
 
   const from = process.env.SMTP_FROM || 'Selah <noreply@localhost>';
-  await mailer().sendMail({
-    from,
-    to: email,
-    subject: 'Your Selah sign-in code',
-    text: `Your Selah sign-in code is ${code}. It expires in 10 minutes.`,
-  });
+  try {
+    await mailer().sendMail({
+      from,
+      to: email,
+      subject: 'Your Selah sign-in code',
+      text: `Your Selah sign-in code is ${code}. It expires in 10 minutes.`,
+    });
+  } catch (e) {
+    const raw = String(e?.message || e || '');
+    const authFail =
+      /\b535\b/i.test(raw) || /incorrect authentication/i.test(raw);
+    const err = new Error(
+      authFail
+        ? 'Mail login failed. Check SMTP_USER and SMTP_PASS on the server.'
+        : 'Could not send the sign-in email. Try again later.',
+    );
+    err.status = 502;
+    throw err;
+  }
 
   return { ok: true, cooldownMs: CODE_COOLDOWN_MS };
 }
@@ -224,6 +237,17 @@ export async function setDisplayName(userId, name) {
   return rows[0];
 }
 
+async function assertNoMembership(userId) {
+  const existing = await getMemberships(userId);
+  if (existing.length) {
+    const err = new Error(
+      'You already belong to a group. Leave it before creating or joining another.',
+    );
+    err.status = 409;
+    throw err;
+  }
+}
+
 export async function createGroup({ userId, churchName, groupName }) {
   const church = String(churchName || '').trim().slice(0, 120);
   const group = String(groupName || '').trim().slice(0, 120);
@@ -232,6 +256,8 @@ export async function createGroup({ userId, churchName, groupName }) {
     err.status = 400;
     throw err;
   }
+
+  await assertNoMembership(userId);
 
   await withClient(async (client) => {
     await client.query('BEGIN');
@@ -297,12 +323,14 @@ export async function requestJoinGroup({ userId, inviteCodeRaw }) {
   }
   const group = rows[0];
 
-  const existing = await getMembership(userId, group.id);
-  if (existing) {
+  const existingHere = await getMembership(userId, group.id);
+  if (existingHere) {
     const err = new Error('You already belong to this group.');
     err.status = 409;
     throw err;
   }
+
+  await assertNoMembership(userId);
 
   const pending = await query(
     `SELECT id FROM join_requests
@@ -449,6 +477,15 @@ export async function resolveJoinRequest({
       [requestId],
     );
     return { status: 'allowed', groupId: request.group_id };
+  }
+
+  const elsewhere = await getMemberships(request.user_id);
+  if (elsewhere.length) {
+    const err = new Error(
+      'That person already belongs to another group.',
+    );
+    err.status = 409;
+    throw err;
   }
 
   await withClient(async (client) => {

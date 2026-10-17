@@ -18,7 +18,6 @@ final groupSessionProvider =
 class GroupSessionState {
   const GroupSessionState({
     this.session,
-    this.activeGroupId,
     this.loading = false,
     this.error,
     this.pendingChurchUploadConfirm = false,
@@ -27,7 +26,6 @@ class GroupSessionState {
   });
 
   final AuthSession? session;
-  final String? activeGroupId;
   final bool loading;
   final String? error;
   final bool pendingChurchUploadConfirm;
@@ -37,20 +35,11 @@ class GroupSessionState {
   bool get isSignedIn => session != null;
   bool get hasGroup => session?.hasGroup ?? false;
 
-  GroupMembership? get activeMembership {
-    final session = this.session;
-    if (session == null || session.memberships.isEmpty) return null;
-    if (activeGroupId != null) {
-      final match = session.membershipFor(activeGroupId!);
-      if (match != null) return match;
-    }
-    return session.memberships.first;
-  }
+  /// Sole membership when the person is in a group.
+  GroupMembership? get membership => session?.membership;
 
   GroupSessionState copyWith({
     AuthSession? session,
-    String? activeGroupId,
-    bool clearActiveGroup = false,
     bool? loading,
     String? error,
     bool clearError = false,
@@ -61,9 +50,6 @@ class GroupSessionState {
   }) {
     return GroupSessionState(
       session: clearSession ? null : (session ?? this.session),
-      activeGroupId: clearSession || clearActiveGroup
-          ? (clearSession ? null : activeGroupId)
-          : (activeGroupId ?? this.activeGroupId),
       loading: loading ?? this.loading,
       error: clearError ? null : (error ?? this.error),
       pendingChurchUploadConfirm:
@@ -92,29 +78,11 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
 
   static const _tokenKey = 'selah_session_token';
   static const _churchUploadKey = 'selah_church_upload_confirmed';
-  static const _activeGroupKey = 'selah_active_group_id';
+  static const _legacyActiveGroupKey = 'selah_active_group_id';
 
   final SelahApi _api;
   final SharedPreferences _prefs;
   final GroupSyncService _sync;
-
-  String? _resolveActiveGroup(AuthSession session, {String? prefer}) {
-    final saved = prefer ?? _prefs.getString(_activeGroupKey);
-    if (saved != null && session.membershipFor(saved) != null) {
-      return saved;
-    }
-    return session.memberships.isEmpty
-        ? null
-        : session.memberships.first.groupId;
-  }
-
-  Future<void> _persistActiveGroup(String? groupId) async {
-    if (groupId == null || groupId.isEmpty) {
-      await _prefs.remove(_activeGroupKey);
-    } else {
-      await _prefs.setString(_activeGroupKey, groupId);
-    }
-  }
 
   Future<void> _refreshRequests(AuthSession session) async {
     try {
@@ -130,15 +98,10 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
   Future<AuthSession> _applySession(
     AuthSession session, {
     bool? pendingChurchUpload,
-    String? preferGroupId,
   }) async {
-    final active = _resolveActiveGroup(session, prefer: preferGroupId);
-    await _persistActiveGroup(active);
     final confirmed = _prefs.getBool(_churchUploadKey) ?? false;
     state = state.copyWith(
       session: session,
-      activeGroupId: active,
-      clearActiveGroup: active == null,
       loading: false,
       pendingChurchUploadConfirm:
           pendingChurchUpload ?? (session.hasGroup && !confirmed),
@@ -148,6 +111,7 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
   }
 
   Future<void> _restore() async {
+    await _prefs.remove(_legacyActiveGroupKey);
     final token = _prefs.getString(_tokenKey);
     if (token == null || token.isEmpty) return;
     state = state.copyWith(loading: true, clearError: true);
@@ -159,13 +123,6 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
       await _prefs.remove(_tokenKey);
       state = state.copyWith(clearSession: true, loading: false);
     }
-  }
-
-  Future<void> setActiveGroup(String groupId) async {
-    final session = state.session;
-    if (session == null || session.membershipFor(groupId) == null) return;
-    await _persistActiveGroup(groupId);
-    state = state.copyWith(activeGroupId: groupId);
   }
 
   Future<void> requestCode(String email) async {
@@ -200,7 +157,7 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
       } catch (_) {}
     }
     await _prefs.remove(_tokenKey);
-    await _prefs.remove(_activeGroupKey);
+    await _prefs.remove(_legacyActiveGroupKey);
     state = state.copyWith(
       clearSession: true,
       pendingChurchUploadConfirm: false,
@@ -213,7 +170,10 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
     state = state.copyWith(loading: true, clearError: true);
     try {
       final next = await _api.setDisplayName(session.token, name);
-      await _applySession(next, pendingChurchUpload: state.pendingChurchUploadConfirm);
+      await _applySession(
+        next,
+        pendingChurchUpload: state.pendingChurchUploadConfirm,
+      );
     } catch (e) {
       state = state.copyWith(loading: false, error: '$e');
       rethrow;
@@ -234,14 +194,7 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
         groupName: groupName,
       );
       await _prefs.setBool(_churchUploadKey, false);
-      final created = next.memberships.isEmpty
-          ? null
-          : next.memberships.last.groupId;
-      await _applySession(
-        next,
-        pendingChurchUpload: true,
-        preferGroupId: created,
-      );
+      await _applySession(next, pendingChurchUpload: true);
       await _sync.syncNow(next);
     } catch (e) {
       state = state.copyWith(loading: false, error: '$e');
@@ -277,7 +230,8 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
       }
       await _applySession(
         next,
-        pendingChurchUpload: next.hasGroup ? state.pendingChurchUploadConfirm : false,
+        pendingChurchUpload:
+            next.hasGroup ? state.pendingChurchUploadConfirm : false,
       );
     } catch (e) {
       state = state.copyWith(loading: false, error: '$e');
@@ -296,7 +250,8 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
       }
       await _applySession(
         next,
-        pendingChurchUpload: next.hasGroup ? state.pendingChurchUploadConfirm : false,
+        pendingChurchUpload:
+            next.hasGroup ? state.pendingChurchUploadConfirm : false,
       );
     } catch (e) {
       state = state.copyWith(loading: false, error: '$e');

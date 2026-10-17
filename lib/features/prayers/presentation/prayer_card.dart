@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
-import '../../groups/application/group_session_notifier.dart';
 import '../domain/prayer.dart';
 import '../domain/share_scope.dart';
 
@@ -45,11 +44,7 @@ class PrayerCard extends ConsumerWidget {
         .map((v) => v.ref)
         .toList();
 
-    final groupState = ref.watch(groupSessionProvider);
-    final groupLabel = _groupLabel(prayer, groupState);
-    final visibilityLabel = groupLabel == null
-        ? prayer.shareScope.label
-        : '${prayer.shareScope.label} · $groupLabel';
+    final visibilityLabel = prayer.shareScope.label;
     final label =
         '$_focus. $statusLabel. $preview. ${verseRefs.join(', ')}. $visibilityLabel.';
 
@@ -84,7 +79,6 @@ class PrayerCard extends ConsumerWidget {
                   children: [
                     _VisibilityBadge(
                       scope: prayer.shareScope,
-                      extra: groupLabel,
                     ),
                     const SizedBox(width: 6),
                     Flexible(
@@ -276,35 +270,16 @@ class _PrayedButtonState extends State<PrayedButton> {
   }
 }
 
-String? _groupLabel(Prayer prayer, GroupSessionState groupState) {
-  if (!prayer.shareScope.isShared) return null;
-  if ((groupState.session?.memberships.length ?? 0) <= 1) return null;
-  final gid = prayer.groupId;
-  if (gid != null && gid.isNotEmpty) {
-    final m = groupState.session?.membershipFor(gid);
-    if (m != null) return m.groupName;
-  }
-  final cid = prayer.churchId;
-  if (cid != null && cid.isNotEmpty) {
-    for (final m in groupState.session?.memberships ?? const []) {
-      if (m.churchId == cid) return m.churchName;
-    }
-  }
-  return null;
-}
-
 class _VisibilityBadge extends StatelessWidget {
-  const _VisibilityBadge({required this.scope, this.extra});
+  const _VisibilityBadge({required this.scope});
 
   final ShareScope scope;
-  final String? extra;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final label =
-        extra == null || extra!.isEmpty ? scope.label : '${scope.label} · $extra';
+    final label = scope.label;
     final icon = switch (scope) {
       ShareScope.justMe => Symbols.lock,
       ShareScope.group => Symbols.group,

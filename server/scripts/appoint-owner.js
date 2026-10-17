@@ -6,8 +6,8 @@
  *   node scripts/appoint-owner.js --group-id <uuid> --email person@example.com
  *
  * The person must already have signed in at least once (user row exists),
- * or this script creates the user and membership. They may already belong
- * to another group — that is fine.
+ * or this script creates the user and membership. One group per person:
+ * they must not already belong to a different group.
  */
 import { query, closePool, migrate, withClient } from '../src/db.js';
 import { normalizeEmail } from '../src/auth.js';
@@ -48,6 +48,17 @@ if (existing.rows.length) {
   );
   user = inserted.rows[0];
   console.log(`Created user ${email}`);
+}
+
+const other = await query(
+  `SELECT group_id FROM memberships WHERE user_id = $1 AND group_id <> $2`,
+  [user.id, groupId],
+);
+if (other.rows.length) {
+  console.error(
+    'That person already belongs to another group. Leave that group first.',
+  );
+  process.exit(1);
 }
 
 await withClient(async (client) => {

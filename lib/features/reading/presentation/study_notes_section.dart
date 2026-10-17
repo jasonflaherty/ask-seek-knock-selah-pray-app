@@ -12,11 +12,11 @@ final studyNotesProvider = FutureProvider.autoDispose<List<StudyNote>>((
 ) async {
   final group = ref.watch(groupSessionProvider);
   final session = group.session;
-  final active = group.activeMembership;
-  if (session == null || active == null) return const [];
+  final membership = group.membership;
+  if (session == null || membership == null) return const [];
   return ref.watch(selahApiProvider).listNotes(
         session.token,
-        groupId: active.groupId,
+        groupId: membership.groupId,
       );
 });
 
@@ -42,15 +42,15 @@ class _StudyNotesSectionState extends ConsumerState<StudyNotesSection> {
   Future<void> _save({required String kind, required String body}) async {
     final group = ref.read(groupSessionProvider);
     final session = group.session;
-    final active = group.activeMembership;
-    if (session == null || active == null || body.trim().isEmpty) return;
+    final membership = group.membership;
+    if (session == null || membership == null || body.trim().isEmpty) return;
     setState(() => _busy = true);
     try {
       await ref.read(selahApiProvider).upsertNote(
             session.token,
             kind: kind,
             body: body.trim(),
-            groupId: active.groupId,
+            groupId: membership.groupId,
           );
       ref.invalidate(studyNotesProvider);
       if (kind == 'other') _otherController.clear();
@@ -95,7 +95,7 @@ class _StudyNotesSectionState extends ConsumerState<StudyNotesSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Study notes', style: theme.textTheme.titleMedium),
+        Text('Reading notes', style: theme.textTheme.titleMedium),
         const SizedBox(height: 4),
         Text(
           'Your group can read these. Only you can edit or remove your own.',
@@ -106,8 +106,8 @@ class _StudyNotesSectionState extends ConsumerState<StudyNotesSection> {
           controller: _currentController,
           maxLines: 3,
           decoration: const InputDecoration(
-            labelText: 'Current study',
-            hintText: 'What you are reading now',
+            labelText: 'What I\'m reading',
+            hintText: 'Book or passage for today',
           ),
         ),
         const SizedBox(height: 8),
@@ -118,7 +118,7 @@ class _StudyNotesSectionState extends ConsumerState<StudyNotesSection> {
                     kind: 'current_study',
                     body: _currentController.text,
                   ),
-          child: const Text('Save current study'),
+          child: const Text('Save what I\'m reading'),
         ),
         const SizedBox(height: 16),
         TextField(
@@ -155,7 +155,7 @@ class _StudyNotesSectionState extends ConsumerState<StudyNotesSection> {
                       contentPadding: const EdgeInsets.all(AppTheme.cardPadding),
                       title: Text(
                         note.isCurrentStudy
-                            ? 'Current study · ${note.authorDisplayName}'
+                            ? 'Reading · ${note.authorDisplayName}'
                             : note.authorDisplayName,
                       ),
                       subtitle: Padding(

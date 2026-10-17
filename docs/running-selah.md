@@ -21,7 +21,23 @@ Do not open Postgres to the internet. The phones and the church page talk only t
 docker compose up -d --build
 ```
 
-5. Point your reverse proxy at the API. Example Caddy site block (replace the hostname):
+5. If sign-in mail fails with **535** / incorrect authentication, fix the mailbox password in cPanel and match `.env`:
+
+```env
+SMTP_HOST=mail.yourdomain.com
+SMTP_PORT=587
+SMTP_USER=noreply@yourdomain.com
+SMTP_PASS=the_email_account_password
+SMTP_FROM=Selah <noreply@yourdomain.com>
+```
+
+Use the full email as `SMTP_USER` and the **email account** password (not the cPanel login). Then recreate the API container:
+
+```bash
+docker compose up -d --force-recreate selah-api
+```
+
+6. Point your reverse proxy at the API. Example Caddy site block (replace the hostname):
 
 ```
 your-selah-host.example {
@@ -31,8 +47,8 @@ your-selah-host.example {
 ```
 
    The proxy container must share a Docker network with `selah-api` (see `SELAH_PROXY_NETWORK`), or proxy to `127.0.0.1:8091` on the host if that fits your setup.
-6. Open `https://your-selah-host.example/api/health` and confirm `{"ok":true}`.
-7. Request a sign-in code from the app or the website and confirm the email arrives.
+7. Open `https://your-selah-host.example/api/health` and confirm `{"ok":true}`.
+8. Request a sign-in code from the app or the website and confirm the email arrives.
 
 Containers must stay named `selah-api` and `selah-postgres` so they do not clash with other stacks on the same host. Do not publish host port 5432 for Selah if something else already uses it.
 
@@ -63,7 +79,7 @@ docker exec -it selah-postgres psql -U selah -d selah \
   -c "SELECT id, name, invite_code FROM groups;"
 ```
 
-The new owner may already belong to another group. The command adds them to this group if needed and makes them owner. Only one owner remains for that group. This is not available in the app or on the public website.
+The person must not already belong to a different group (one group per person). The command adds them to this group if needed and makes them owner. Only one owner remains for that group. This is not available in the app or on the public website.
 
 ## GitHub Actions deploy
 

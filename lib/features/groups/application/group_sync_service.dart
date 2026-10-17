@@ -84,31 +84,19 @@ class GroupSyncService {
   }
 
   bool _canPush(Prayer p, AuthSession session) {
+    final membership = session.membership;
+    if (membership == null) return false;
     if (p.shareScope == ShareScope.group) {
       final gid = p.groupId;
       if (gid == null || gid.isEmpty) return false;
-      return session.membershipFor(gid) != null;
+      return gid == membership.groupId;
     }
     if (p.shareScope == ShareScope.church) {
       final cid = p.churchId;
       if (cid == null || cid.isEmpty) return false;
-      return session.memberships.any((m) => m.churchId == cid);
+      return cid == membership.churchId;
     }
     return false;
-  }
-
-  GroupMembership? _membershipForPrayer(Prayer p, AuthSession session) {
-    if (p.shareScope == ShareScope.group &&
-        p.groupId != null &&
-        p.groupId!.isNotEmpty) {
-      return session.membershipFor(p.groupId!);
-    }
-    if (p.churchId != null && p.churchId!.isNotEmpty) {
-      for (final m in session.memberships) {
-        if (m.churchId == p.churchId) return m;
-      }
-    }
-    return session.membership;
   }
 
   Future<void> uploadLocalChurchPrayers(AuthSession session) async {
@@ -220,7 +208,7 @@ class GroupSyncService {
     Prayer p,
     AuthSession session,
   ) async {
-    final membership = _membershipForPrayer(p, session);
+    final membership = session.membership;
     if (membership == null) return;
     final syncId = p.syncId ?? newSyncId();
     final custom = <Map<String, dynamic>>[];
@@ -285,17 +273,18 @@ class GroupSyncService {
   }
 
   Future<void> _syncNotes(AuthSession session) async {
-    if (!session.hasGroup) return;
-    final notes = await _api.listNotes(session.token);
-    final groupIds = session.memberships.map((m) => m.groupId).toSet();
-    for (final gid in groupIds) {
-      await (_db.delete(_db.studyNotes)..where((t) => t.groupId.equals(gid)))
-          .go();
-    }
+    final membership = session.membership;
+    if (membership == null) return;
+    final notes = await _api.listNotes(
+      session.token,
+      groupId: membership.groupId,
+    );
+    await (_db.delete(_db.studyNotes)
+          ..where((t) => t.groupId.equals(membership.groupId)))
+        .go();
     for (final n in notes) {
-      final gid = n.groupId.isNotEmpty
-          ? n.groupId
-          : session.membership!.groupId;
+      final gid =
+          n.groupId.isNotEmpty ? n.groupId : membership.groupId;
       await _db.into(_db.studyNotes).insertOnConflictUpdate(
             StudyNotesCompanion.insert(
               id: n.id,

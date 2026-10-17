@@ -2,13 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:selah/features/groups/domain/group_models.dart';
 
 void main() {
-  test('AuthSession can hold more than one membership', () {
+  test('AuthSession exposes a single membership', () {
     const user = SelahUser(
       id: 'u1',
       email: 'a@example.com',
       displayName: 'Ada',
     );
-    const morning = GroupMembership(
+    const membership = GroupMembership(
       role: 'owner',
       groupId: 'g1',
       groupName: 'Morning',
@@ -16,24 +16,28 @@ void main() {
       churchId: 'c1',
       churchName: 'First',
     );
-    const evening = GroupMembership(
-      role: 'member',
-      groupId: 'g2',
-      groupName: 'Evening',
-      inviteCode: '',
-      churchId: 'c2',
-      churchName: 'Second',
-    );
     const session = AuthSession(
       token: 't',
       user: user,
-      memberships: [morning, evening],
+      memberships: [membership],
     );
     expect(session.hasGroup, isTrue);
-    expect(session.memberships, hasLength(2));
-    expect(session.membershipFor('g1')?.isOwner, isTrue);
-    expect(session.membershipFor('g2')?.isOwner, isFalse);
+    expect(session.memberships, hasLength(1));
     expect(session.membership?.groupId, 'g1');
+    expect(session.membership?.isOwner, isTrue);
+    expect(session.membershipFor('g1')?.groupName, 'Morning');
+    expect(session.membershipFor('other'), isNull);
+  });
+
+  test('AuthSession with no membership', () {
+    const user = SelahUser(
+      id: 'u1',
+      email: 'a@example.com',
+      displayName: 'Ada',
+    );
+    const session = AuthSession(token: 't', user: user);
+    expect(session.hasGroup, isFalse);
+    expect(session.membership, isNull);
   });
 
   test('member invite code is empty on the client model', () {

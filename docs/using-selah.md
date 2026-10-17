@@ -1,6 +1,6 @@
 # Using Selah
 
-Selah is a prayer journal on your phone. You can join one or more groups so you can share some prayers and study notes.
+Selah is a prayer journal on your phone. You can join one group so you can share some prayers and reading notes.
 
 ## What stays private
 
@@ -9,9 +9,9 @@ Selah is a prayer journal on your phone. You can join one or more groups so you 
 
 ## What the group and church can see
 
-- **Group** prayers are for the people in that reading group.
+- **Group** prayers are for the people in your reading group.
 - **Church** prayers are for everyone in that church. They appear in the app and on the church web page (the same site as your API base URL).
-- **Study notes** (current study and other notes) are visible to your active group.
+- **Reading notes** (what you are reading and other notes) are visible to your group.
 
 ## Sign in
 
@@ -24,7 +24,7 @@ You do not need a password.
 
 ## Create or ask to join a group
 
-You may belong to **more than one** group. You can be the owner of one group and a member of another.
+Each person belongs to **one** group.
 
 **To create a group**
 
@@ -38,19 +38,19 @@ You may belong to **more than one** group. You can be the owner of one group and
 1. Sign in and set a display name.
 2. Enter the invite code from the group owner.
 3. Tap **Ask to join**.
-4. Wait until the owner taps **Allow**. Until then you are not a member and sync does not start for that group.
+4. Wait until the owner taps **Allow**. Until then you are not a member and sync does not start.
 
-The owner opens **People and requests** on that group in Settings. There they see who is waiting and can **Allow** or **Do not allow**. They also see the member list (names and emails).
+The owner opens **People and requests** in Settings. There they see who is waiting and can **Allow** or **Do not allow**. They also see the member list (names and emails).
 
 If you already had prayers marked Church on this phone, Selah will ask whether to share them with this church. Choose carefully. Private (Just me) prayers are never part of that question.
 
-When you belong to more than one group, tap **Use** next to the group you want active. New group or church prayers and study notes use the active group. The share form also lets you pick which group when you have more than one.
+To change groups, leave (or delete, if you are the owner) your current group first, then create or ask to join another.
 
 ## Add a prayer
 
 1. Tap **Add petition**.
 2. Write the title and the request.
-3. Choose **Just me**, **Group**, or **Church**. Group and Church are available after you belong to a group.
+3. Choose **Just me**, **Group**, or **Church**. Group and Church are available after you join a group.
 4. You may attach Scripture.
 5. Save.
 
@@ -65,16 +65,15 @@ Open **Read and pray** from the bottom bar (Read) or from Settings:
 3. When the pray time ends, another ding plays.
 4. You may pause or stop at any time.
 
-If you are in a group, the same screen lets you write a **current study** note and other notes for the active group.
+If you are in a group, the same screen lets you write **what you are reading** and other notes for the group. Each person posts their own; there is no single assigned book.
 
 ## Church page on the web
 
 1. Open your Selah site (the HTTPS address of your API / church page).
 2. Sign in with the same email and code.
-3. If you belong to more than one church, pick the church from the list.
-4. Add, mark answered, or remove church prayers.
+3. Add, mark answered, or remove church prayers.
 
-The person who wrote a church prayer, or a group owner in that church, can remove it. Changes show up in the app after sync. Allowing people into a group is done only in the phone app.
+The person who wrote a church prayer, or the group owner, can remove it. Changes show up in the app after sync. Allowing people into a group is done only in the phone app.
 
 ## New phone
 
