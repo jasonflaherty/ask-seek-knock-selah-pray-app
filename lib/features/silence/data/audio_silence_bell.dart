@@ -6,7 +6,7 @@ class AudioSilenceBell implements SilenceBell {
   AudioSilenceBell({AudioPlayer? player}) : _player = player ?? AudioPlayer();
 
   final AudioPlayer _player;
-  static const _asset = 'sounds/bell.wav';
+  static const _asset = 'sounds/ding.wav';
 
   @override
   Future<void> chime() async {

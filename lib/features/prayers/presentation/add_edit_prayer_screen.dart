@@ -103,7 +103,7 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
     try {
       final person = normalizePerson(_personController.text);
       final group = ref.read(groupSessionProvider);
-      final membership = group.session?.membership;
+      final membership = group.activeMembership;
       final user = group.session?.user;
       final canShare = membership != null;
       final scope = canShare ? _shareScope : ShareScope.justMe;
@@ -224,34 +224,81 @@ class _AddEditPrayerScreenState extends ConsumerState<AddEditPrayerScreen> {
                                 const SizedBox(height: 8),
                                 Builder(
                                   builder: (context) {
-                                    final inGroup = ref
-                                            .watch(groupSessionProvider)
-                                            .session
-                                            ?.membership !=
-                                        null;
-                                    return SegmentedButton<ShareScope>(
-                                      segments: [
-                                        const ButtonSegment(
-                                          value: ShareScope.justMe,
-                                          label: Text('Just me'),
+                                    final groupState =
+                                        ref.watch(groupSessionProvider);
+                                    final inGroup = groupState.hasGroup;
+                                    final active = groupState.activeMembership;
+                                    final many =
+                                        (groupState.session?.memberships.length ??
+                                                0) >
+                                            1;
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        SegmentedButton<ShareScope>(
+                                          segments: [
+                                            const ButtonSegment(
+                                              value: ShareScope.justMe,
+                                              label: Text('Just me'),
+                                            ),
+                                            ButtonSegment(
+                                              value: ShareScope.group,
+                                              label: const Text('Group'),
+                                              enabled: inGroup,
+                                            ),
+                                            ButtonSegment(
+                                              value: ShareScope.church,
+                                              label: const Text('Church'),
+                                              enabled: inGroup,
+                                            ),
+                                          ],
+                                          selected: {_shareScope},
+                                          onSelectionChanged: (s) {
+                                            setState(
+                                              () => _shareScope = s.first,
+                                            );
+                                            _markDirty();
+                                          },
+                                          showSelectedIcon: false,
                                         ),
-                                        ButtonSegment(
-                                          value: ShareScope.group,
-                                          label: const Text('Group'),
-                                          enabled: inGroup,
-                                        ),
-                                        ButtonSegment(
-                                          value: ShareScope.church,
-                                          label: const Text('Church'),
-                                          enabled: inGroup,
-                                        ),
+                                        if (many &&
+                                            _shareScope.isShared &&
+                                            active != null) ...[
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Share with',
+                                            style: theme.textTheme.labelLarge,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Wrap(
+                                            spacing: 8,
+                                            runSpacing: 8,
+                                            children: [
+                                              for (final m in groupState
+                                                  .session!.memberships)
+                                                ChoiceChip(
+                                                  label: Text(
+                                                    '${m.churchName} · ${m.groupName}',
+                                                  ),
+                                                  selected: m.groupId ==
+                                                      active.groupId,
+                                                  onSelected: (_) {
+                                                    ref
+                                                        .read(
+                                                          groupSessionProvider
+                                                              .notifier,
+                                                        )
+                                                        .setActiveGroup(
+                                                          m.groupId,
+                                                        );
+                                                    _markDirty();
+                                                  },
+                                                ),
+                                            ],
+                                          ),
+                                        ],
                                       ],
-                                      selected: {_shareScope},
-                                      onSelectionChanged: (s) {
-                                        setState(() => _shareScope = s.first);
-                                        _markDirty();
-                                      },
-                                      showSelectedIcon: false,
                                     );
                                   },
                                 ),

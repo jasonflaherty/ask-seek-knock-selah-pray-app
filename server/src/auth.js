@@ -60,6 +60,17 @@ export function normalizeEmail(email) {
     .toLowerCase();
 }
 
+export function mapMembership(row) {
+  return {
+    role: row.role,
+    groupId: row.group_id,
+    groupName: row.group_name,
+    inviteCode: row.role === 'owner' ? row.invite_code : '',
+    churchId: row.church_id,
+    churchName: row.church_name,
+  };
+}
+
 export async function requestLoginCode(emailRaw) {
   const email = normalizeEmail(emailRaw);
   if (!email || !email.includes('@')) {
@@ -161,7 +172,7 @@ export async function revokeToken(token) {
   await query('DELETE FROM sessions WHERE token_hash = $1', [hash(token)]);
 }
 
-export async function getMembership(userId) {
+export async function getMemberships(userId) {
   const { rows } = await query(
     `SELECT m.role, m.group_id, m.joined_at,
             g.name AS group_name, g.invite_code, g.church_id,
@@ -169,8 +180,28 @@ export async function getMembership(userId) {
      FROM memberships m
      JOIN groups g ON g.id = m.group_id
      JOIN churches c ON c.id = g.church_id
-     WHERE m.user_id = $1`,
+     WHERE m.user_id = $1
+     ORDER BY m.joined_at ASC`,
     [userId],
+  );
+  return rows;
+}
+
+/** @deprecated use getMemberships — kept for single-group lookups by group id */
+export async function getMembership(userId, groupId) {
+  if (!groupId) {
+    const rows = await getMemberships(userId);
+    return rows[0] || null;
+  }
+  const { rows } = await query(
+    `SELECT m.role, m.group_id, m.joined_at,
+            g.name AS group_name, g.invite_code, g.church_id,
+            c.name AS church_name
+     FROM memberships m
+     JOIN groups g ON g.id = m.group_id
+     JOIN churches c ON c.id = g.church_id
+     WHERE m.user_id = $1 AND m.group_id = $2`,
+    [userId, groupId],
   );
   return rows[0] || null;
 }
@@ -194,12 +225,6 @@ export async function setDisplayName(userId, name) {
 }
 
 export async function createGroup({ userId, churchName, groupName }) {
-  const membership = await getMembership(userId);
-  if (membership) {
-    const err = new Error('You already belong to a group.');
-    err.status = 409;
-    throw err;
-  }
   const church = String(churchName || '').trim().slice(0, 120);
   const group = String(groupName || '').trim().slice(0, 120);
   if (!church || !group) {
@@ -233,6 +258,9 @@ export async function createGroup({ userId, churchName, groupName }) {
           throw e;
         }
       }
+      if (!g) {
+        throw new Error('Could not create a unique invite code.');
+      }
       await client.query(
         `INSERT INTO memberships (user_id, group_id, role)
          VALUES ($1, $2, 'owner')`,
@@ -244,16 +272,17 @@ export async function createGroup({ userId, churchName, groupName }) {
       throw err;
     }
   });
-  return getMembership(userId);
+  return getMemberships(userId);
 }
 
-export async function joinGroup({ userId, inviteCodeRaw }) {
-  const membership = await getMembership(userId);
-  if (membership) {
-    const err = new Error('You already belong to a group.');
-    err.status = 409;
+export async function requestJoinGroup({ userId, inviteCodeRaw }) {
+  const user = await query('SELECT * FROM users WHERE id = $1', [userId]);
+  if (!user.rows.length || !String(user.rows[0].display_name || '').trim()) {
+    const err = new Error('Set a short display name before asking to join.');
+    err.status = 400;
     throw err;
   }
+
   const code = String(inviteCodeRaw || '')
     .trim()
     .toUpperCase();
@@ -266,18 +295,214 @@ export async function joinGroup({ userId, inviteCodeRaw }) {
     err.status = 404;
     throw err;
   }
-  await query(
-    `INSERT INTO memberships (user_id, group_id, role)
-     VALUES ($1, $2, 'member')`,
-    [userId, rows[0].id],
+  const group = rows[0];
+
+  const existing = await getMembership(userId, group.id);
+  if (existing) {
+    const err = new Error('You already belong to this group.');
+    err.status = 409;
+    throw err;
+  }
+
+  const pending = await query(
+    `SELECT id FROM join_requests
+     WHERE group_id = $1 AND user_id = $2 AND status = 'pending'`,
+    [group.id, userId],
   );
-  return getMembership(userId);
+  if (pending.rows.length) {
+    return {
+      status: 'pending',
+      groupId: group.id,
+      groupName: group.name,
+    };
+  }
+
+  await query(
+    `INSERT INTO join_requests (group_id, user_id, status)
+     VALUES ($1, $2, 'pending')`,
+    [group.id, userId],
+  );
+
+  return {
+    status: 'pending',
+    groupId: group.id,
+    groupName: group.name,
+  };
 }
 
-export async function leaveGroup(userId) {
-  const membership = await getMembership(userId);
+export async function listPendingJoinRequests(userId) {
+  const { rows } = await query(
+    `SELECT jr.id, jr.group_id, jr.user_id, jr.created_at,
+            u.email, u.display_name,
+            g.name AS group_name
+     FROM join_requests jr
+     JOIN memberships m ON m.group_id = jr.group_id AND m.user_id = $1
+     JOIN users u ON u.id = jr.user_id
+     JOIN groups g ON g.id = jr.group_id
+     WHERE m.role = 'owner' AND jr.status = 'pending'
+     ORDER BY jr.created_at ASC`,
+    [userId],
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    groupId: r.group_id,
+    groupName: r.group_name,
+    userId: r.user_id,
+    email: r.email,
+    displayName: r.display_name,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function listMyJoinRequests(userId) {
+  const { rows } = await query(
+    `SELECT jr.id, jr.group_id, jr.status, jr.created_at,
+            g.name AS group_name, c.name AS church_name
+     FROM join_requests jr
+     JOIN groups g ON g.id = jr.group_id
+     JOIN churches c ON c.id = g.church_id
+     WHERE jr.user_id = $1 AND jr.status = 'pending'
+     ORDER BY jr.created_at ASC`,
+    [userId],
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    groupId: r.group_id,
+    groupName: r.group_name,
+    churchName: r.church_name,
+    status: r.status,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function listGroupMembers(userId, groupId) {
+  const membership = await getMembership(userId, groupId);
+  if (!membership || membership.role !== 'owner') {
+    const err = new Error('Only the group owner can see the member list.');
+    err.status = 403;
+    throw err;
+  }
+  const { rows } = await query(
+    `SELECT u.id, u.email, u.display_name, m.role, m.joined_at
+     FROM memberships m
+     JOIN users u ON u.id = m.user_id
+     WHERE m.group_id = $1
+     ORDER BY m.role DESC, m.joined_at ASC`,
+    [groupId],
+  );
+  return rows.map((r) => ({
+    userId: r.id,
+    email: r.email,
+    displayName: r.display_name,
+    role: r.role,
+    joinedAt: r.joined_at,
+  }));
+}
+
+export async function resolveJoinRequest({
+  ownerUserId,
+  requestId,
+  allow,
+}) {
+  const { rows } = await query(
+    `SELECT jr.*, g.name AS group_name
+     FROM join_requests jr
+     JOIN groups g ON g.id = jr.group_id
+     WHERE jr.id = $1`,
+    [requestId],
+  );
+  if (!rows.length) {
+    const err = new Error('That request was not found.');
+    err.status = 404;
+    throw err;
+  }
+  const request = rows[0];
+  if (request.status !== 'pending') {
+    const err = new Error('That request was already decided.');
+    err.status = 409;
+    throw err;
+  }
+
+  const ownership = await getMembership(ownerUserId, request.group_id);
+  if (!ownership || ownership.role !== 'owner') {
+    const err = new Error('Only the group owner can decide this request.');
+    err.status = 403;
+    throw err;
+  }
+
+  if (!allow) {
+    await query(
+      `UPDATE join_requests
+       SET status = 'denied', resolved_at = now()
+       WHERE id = $1`,
+      [requestId],
+    );
+    return { status: 'denied', groupId: request.group_id };
+  }
+
+  const already = await getMembership(request.user_id, request.group_id);
+  if (already) {
+    await query(
+      `UPDATE join_requests
+       SET status = 'allowed', resolved_at = now()
+       WHERE id = $1`,
+      [requestId],
+    );
+    return { status: 'allowed', groupId: request.group_id };
+  }
+
+  await withClient(async (client) => {
+    await client.query('BEGIN');
+    try {
+      await client.query(
+        `INSERT INTO memberships (user_id, group_id, role)
+         VALUES ($1, $2, 'member')`,
+        [request.user_id, request.group_id],
+      );
+      await client.query(
+        `UPDATE join_requests
+         SET status = 'allowed', resolved_at = now()
+         WHERE id = $1`,
+        [requestId],
+      );
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    }
+  });
+
+  return { status: 'allowed', groupId: request.group_id };
+}
+
+export async function removeMember({ ownerUserId, groupId, memberUserId }) {
+  const ownership = await getMembership(ownerUserId, groupId);
+  if (!ownership || ownership.role !== 'owner') {
+    const err = new Error('Only the group owner can remove a member.');
+    err.status = 403;
+    throw err;
+  }
+  if (memberUserId === ownerUserId) {
+    const err = new Error('You cannot remove yourself. Delete the group instead.');
+    err.status = 409;
+    throw err;
+  }
+  const target = await getMembership(memberUserId, groupId);
+  if (!target) {
+    const err = new Error('That person is not in this group.');
+    err.status = 404;
+    throw err;
+  }
+  await query(
+    `DELETE FROM memberships WHERE user_id = $1 AND group_id = $2`,
+    [memberUserId, groupId],
+  );
+}
+
+export async function leaveGroup(userId, groupId) {
+  const membership = await getMembership(userId, groupId);
   if (!membership) {
-    const err = new Error('You are not in a group.');
+    const err = new Error('You are not in that group.');
     err.status = 404;
     throw err;
   }
@@ -288,18 +513,32 @@ export async function leaveGroup(userId) {
     err.status = 409;
     throw err;
   }
-  await query('DELETE FROM memberships WHERE user_id = $1', [userId]);
+  await query(
+    `DELETE FROM memberships WHERE user_id = $1 AND group_id = $2`,
+    [userId, groupId],
+  );
+  return getMemberships(userId);
 }
 
-export async function deleteGroup(userId) {
-  const membership = await getMembership(userId);
+export async function deleteGroup(userId, groupId) {
+  const membership = await getMembership(userId, groupId);
   if (!membership || membership.role !== 'owner') {
     const err = new Error('Only the group owner can delete the group.');
     err.status = 403;
     throw err;
   }
+  // Delete only this group. Keep the church row if other groups share it
+  // (today each create makes its own church, but stay safe).
   const churchId = membership.church_id;
-  await query('DELETE FROM churches WHERE id = $1', [churchId]);
+  await query('DELETE FROM groups WHERE id = $1', [groupId]);
+  const remaining = await query(
+    `SELECT id FROM groups WHERE church_id = $1`,
+    [churchId],
+  );
+  if (!remaining.rows.length) {
+    await query('DELETE FROM churches WHERE id = $1', [churchId]);
+  }
+  return getMemberships(userId);
 }
 
 export { inviteCode, hash };

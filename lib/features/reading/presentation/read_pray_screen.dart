@@ -15,8 +15,7 @@ class ReadPrayScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final session = ref.watch(readPraySessionProvider);
     final notifier = ref.read(readPraySessionProvider.notifier);
-    final inGroup =
-        ref.watch(groupSessionProvider).session?.membership != null;
+    final inGroup = ref.watch(groupSessionProvider).hasGroup;
 
     return PopScope(
       onPopInvokedWithResult: (didPop, _) {

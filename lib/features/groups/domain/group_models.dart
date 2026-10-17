@@ -51,27 +51,99 @@ class GroupMembership {
   }
 }
 
+class JoinRequestSummary {
+  const JoinRequestSummary({
+    required this.id,
+    required this.groupId,
+    required this.groupName,
+    this.churchName = '',
+    this.userId = '',
+    this.email = '',
+    this.displayName = '',
+    this.status = 'pending',
+  });
+
+  final String id;
+  final String groupId;
+  final String groupName;
+  final String churchName;
+  final String userId;
+  final String email;
+  final String displayName;
+  final String status;
+
+  factory JoinRequestSummary.fromJson(Map<String, dynamic> json) {
+    return JoinRequestSummary(
+      id: json['id'] as String,
+      groupId: json['groupId'] as String? ?? '',
+      groupName: json['groupName'] as String? ?? '',
+      churchName: json['churchName'] as String? ?? '',
+      userId: json['userId'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      displayName: json['displayName'] as String? ?? '',
+      status: json['status'] as String? ?? 'pending',
+    );
+  }
+}
+
+class GroupMember {
+  const GroupMember({
+    required this.userId,
+    required this.email,
+    required this.displayName,
+    required this.role,
+  });
+
+  final String userId;
+  final String email;
+  final String displayName;
+  final String role;
+
+  bool get isOwner => role == 'owner';
+
+  factory GroupMember.fromJson(Map<String, dynamic> json) {
+    return GroupMember(
+      userId: json['userId'] as String,
+      email: json['email'] as String? ?? '',
+      displayName: json['displayName'] as String? ?? '',
+      role: json['role'] as String? ?? 'member',
+    );
+  }
+}
+
 class AuthSession {
   const AuthSession({
     required this.token,
     required this.user,
-    this.membership,
+    this.memberships = const [],
   });
 
   final String token;
   final SelahUser user;
-  final GroupMembership? membership;
+  final List<GroupMembership> memberships;
+
+  bool get hasGroup => memberships.isNotEmpty;
+
+  /// First membership, for callers that only need "any group".
+  GroupMembership? get membership =>
+      memberships.isEmpty ? null : memberships.first;
+
+  GroupMembership? membershipFor(String groupId) {
+    for (final m in memberships) {
+      if (m.groupId == groupId) return m;
+    }
+    return null;
+  }
 
   AuthSession copyWith({
     String? token,
     SelahUser? user,
-    GroupMembership? membership,
-    bool clearMembership = false,
+    List<GroupMembership>? memberships,
   }) {
     return AuthSession(
       token: token ?? this.token,
       user: user ?? this.user,
-      membership: clearMembership ? null : (membership ?? this.membership),
+      memberships: memberships ?? this.memberships,
     );
   }
 }
@@ -171,6 +243,7 @@ class StudyNote {
     required this.authorDisplayName,
     required this.createdAt,
     required this.updatedAt,
+    this.groupId = '',
   });
 
   final String id;
@@ -180,6 +253,7 @@ class StudyNote {
   final String authorDisplayName;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String groupId;
 
   bool get isCurrentStudy => kind == 'current_study';
 
@@ -194,6 +268,7 @@ class StudyNote {
       authorDisplayName: json['authorDisplayName'] as String? ?? '',
       createdAt: parse(json['createdAt']) ?? DateTime.now(),
       updatedAt: parse(json['updatedAt']) ?? DateTime.now(),
+      groupId: json['groupId'] as String? ?? '',
     );
   }
 }

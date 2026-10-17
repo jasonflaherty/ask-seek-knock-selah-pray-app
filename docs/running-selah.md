@@ -63,7 +63,7 @@ docker exec -it selah-postgres psql -U selah -d selah \
   -c "SELECT id, name, invite_code FROM groups;"
 ```
 
-The new owner must already be a member, or the command adds them and makes them owner. Only one owner remains. This is not available in the app or on the public website.
+The new owner may already belong to another group. The command adds them to this group if needed and makes them owner. Only one owner remains for that group. This is not available in the app or on the public website.
 
 ## GitHub Actions deploy
 

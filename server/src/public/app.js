@@ -5,10 +5,35 @@ const addMsg = document.getElementById('add-msg');
 const prayerList = document.getElementById('prayer-list');
 const who = document.getElementById('who');
 const membershipEl = document.getElementById('membership');
+const churchPickerWrap = document.getElementById('church-picker-wrap');
+const churchPicker = document.getElementById('church-picker');
 
 let filter = 'active';
 let me = null;
 let prayers = [];
+let selectedChurchId = null;
+
+function membershipsOf(data) {
+  if (Array.isArray(data.memberships) && data.memberships.length) {
+    return data.memberships;
+  }
+  if (data.membership) return [data.membership];
+  return [];
+}
+
+function churchesOf(list) {
+  const map = new Map();
+  for (const m of list) {
+    if (!map.has(m.churchId)) {
+      map.set(m.churchId, m.churchName);
+    }
+  }
+  return [...map.entries()].map(([id, name]) => ({ id, name }));
+}
+
+function isOwnerOfChurch(list, churchId) {
+  return list.some((m) => m.churchId === churchId && m.role === 'owner');
+}
 
 function showMsg(el, text, isError) {
   el.hidden = !text;
@@ -36,22 +61,50 @@ async function api(path, options = {}) {
   return data;
 }
 
+function renderChurchPicker(list) {
+  const churches = churchesOf(list);
+  churchPicker.innerHTML = '';
+  if (churches.length <= 1) {
+    churchPickerWrap.classList.add('hidden');
+    selectedChurchId = churches[0]?.id || null;
+    return;
+  }
+  churchPickerWrap.classList.remove('hidden');
+  for (const c of churches) {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    churchPicker.appendChild(opt);
+  }
+  if (!selectedChurchId || !churches.some((c) => c.id === selectedChurchId)) {
+    selectedChurchId = churches[0].id;
+  }
+  churchPicker.value = selectedChurchId;
+}
+
 async function refreshMe() {
   try {
     me = await api('/api/me');
+    me.memberships = membershipsOf(me);
     authEl.classList.add('hidden');
     appEl.classList.remove('hidden');
     who.textContent = me.user.displayName
       ? `${me.user.displayName} (${me.user.email})`
       : me.user.email;
-    if (!me.membership) {
+    if (!me.memberships.length) {
       membershipEl.textContent =
-        'You are not in a group yet. Create or join a group in the Selah app first.';
+        'You are not in a group yet. Create or ask to join a group in the Selah app first.';
+      churchPickerWrap.classList.add('hidden');
       prayers = [];
       renderPrayers();
       return;
     }
-    membershipEl.textContent = `${me.membership.churchName} · ${me.membership.groupName}`;
+    renderChurchPicker(me.memberships);
+    const churches = churchesOf(me.memberships);
+    membershipEl.textContent =
+      churches.length === 1
+        ? churches[0].name
+        : `${churches.length} churches · pick one below`;
     await loadPrayers();
   } catch {
     authEl.classList.remove('hidden');
@@ -61,7 +114,10 @@ async function refreshMe() {
 
 async function loadPrayers() {
   const data = await api('/api/prayers?scope=church');
-  prayers = data.prayers || [];
+  const all = data.prayers || [];
+  prayers = selectedChurchId
+    ? all.filter((p) => p.churchId === selectedChurchId)
+    : all;
   renderPrayers();
 }
 
@@ -78,6 +134,7 @@ function renderPrayers() {
     prayerList.appendChild(li);
     return;
   }
+  const list = membershipsOf(me || {});
   for (const p of visible) {
     const li = document.createElement('li');
     const title = document.createElement('strong');
@@ -104,7 +161,8 @@ function renderPrayers() {
     actions.className = 'actions';
     const canRemove =
       me &&
-      (p.authorUserId === me.user.id || me.membership?.role === 'owner');
+      (p.authorUserId === me.user.id ||
+        isOwnerOfChurch(list, p.churchId));
     if (!p.isAnswered) {
       const ans = document.createElement('button');
       ans.type = 'button';
@@ -193,9 +251,15 @@ document.getElementById('sign-out').addEventListener('click', async () => {
 
 document.getElementById('refresh').addEventListener('click', () => loadPrayers());
 
+churchPicker.addEventListener('change', () => {
+  selectedChurchId = churchPicker.value;
+  loadPrayers();
+});
+
 document.getElementById('add-prayer').addEventListener('click', async () => {
   showMsg(addMsg, '');
-  if (!me?.membership) {
+  const list = membershipsOf(me || {});
+  if (!list.length) {
     showMsg(addMsg, 'Join a group in the app first.', true);
     return;
   }
@@ -206,6 +270,7 @@ document.getElementById('add-prayer').addEventListener('click', async () => {
     showMsg(addMsg, 'Title and request are required.', true);
     return;
   }
+  const churchId = selectedChurchId || list[0].churchId;
   const syncId = uuid();
   const now = new Date().toISOString();
   try {
@@ -214,6 +279,7 @@ document.getElementById('add-prayer').addEventListener('click', async () => {
       body: JSON.stringify({
         syncId,
         shareScope: 'church',
+        churchId,
         name,
         person,
         request,

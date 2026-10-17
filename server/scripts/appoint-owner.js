@@ -6,7 +6,8 @@
  *   node scripts/appoint-owner.js --group-id <uuid> --email person@example.com
  *
  * The person must already have signed in at least once (user row exists),
- * or this script creates the user and membership.
+ * or this script creates the user and membership. They may already belong
+ * to another group — that is fine.
  */
 import { query, closePool, migrate, withClient } from '../src/db.js';
 import { normalizeEmail } from '../src/auth.js';
@@ -49,15 +50,6 @@ if (existing.rows.length) {
   console.log(`Created user ${email}`);
 }
 
-const otherMembership = await query(
-  `SELECT * FROM memberships WHERE user_id = $1 AND group_id <> $2`,
-  [user.id, groupId],
-);
-if (otherMembership.rows.length) {
-  console.error('That person already belongs to a different group.');
-  process.exit(1);
-}
-
 await withClient(async (client) => {
   await client.query('BEGIN');
   try {
@@ -69,8 +61,8 @@ await withClient(async (client) => {
     await client.query(
       `INSERT INTO memberships (user_id, group_id, role)
        VALUES ($1, $2, 'owner')
-       ON CONFLICT (user_id) DO UPDATE
-         SET group_id = EXCLUDED.group_id, role = 'owner'`,
+       ON CONFLICT (user_id, group_id) DO UPDATE
+         SET role = 'owner'`,
       [user.id, groupId],
     );
     await client.query('COMMIT');

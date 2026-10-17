@@ -21,7 +21,12 @@ void main() {
 
     await tester.tap(find.byTooltip('Settings'));
     await pumpFrames(tester, 20);
-    await tester.ensureVisible(find.text('Open metrics'));
+    await tester.dragUntilVisible(
+      find.text('Open metrics', skipOffstage: false),
+      find.byType(Scrollable).first,
+      const Offset(0, -240),
+    );
+    await pumpFrames(tester, 5);
     await tester.tap(find.text('Open metrics'));
     await pumpFrames(tester, 20);
 

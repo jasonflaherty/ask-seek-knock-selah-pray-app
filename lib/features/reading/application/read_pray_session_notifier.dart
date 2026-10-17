@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../silence/application/silence_session_notifier.dart';
 import '../../silence/data/wakelock_silence_wake_lock.dart';
+import '../../silence/domain/silence_bell.dart';
 import '../../silence/domain/silence_wake_lock.dart';
 import '../domain/read_pray_phase.dart';
 
@@ -12,7 +15,10 @@ final readPrayWakeLockProvider = Provider<SilenceWakeLock>((ref) {
 
 final readPraySessionProvider =
     StateNotifierProvider<ReadPraySessionNotifier, ReadPraySessionState>((ref) {
-  return ReadPraySessionNotifier(ref.watch(readPrayWakeLockProvider));
+  return ReadPraySessionNotifier(
+    wakeLock: ref.watch(readPrayWakeLockProvider),
+    bell: ref.watch(silenceBellProvider),
+  );
 });
 
 class ReadPraySessionState {
@@ -40,9 +46,13 @@ class ReadPraySessionState {
 }
 
 class ReadPraySessionNotifier extends StateNotifier<ReadPraySessionState> {
-  ReadPraySessionNotifier(this._wakeLock) : super(const ReadPraySessionState());
+  ReadPraySessionNotifier({
+    required SilenceWakeLock this._wakeLock,
+    required SilenceBell this._bell,
+  }) : super(const ReadPraySessionState());
 
   final SilenceWakeLock _wakeLock;
+  final SilenceBell _bell;
   Timer? _tick;
 
   void startReading() {
@@ -75,7 +85,7 @@ class ReadPraySessionNotifier extends StateNotifier<ReadPraySessionState> {
   }
 
   void skipToPray() {
-    _beginPray();
+    _beginPray(chime: false);
   }
 
   void stop() {
@@ -85,11 +95,11 @@ class ReadPraySessionNotifier extends StateNotifier<ReadPraySessionState> {
     state = const ReadPraySessionState();
   }
 
-  void _onTick() {
+  Future<void> _onTick() async {
     if (!state.running) return;
     if (state.remainingSeconds <= 1) {
       if (state.phase == ReadPrayPhase.read) {
-        _beginPray();
+        await _beginPray(chime: true);
       } else {
         _tick?.cancel();
         _tick = null;
@@ -99,13 +109,22 @@ class ReadPraySessionNotifier extends StateNotifier<ReadPraySessionState> {
           remainingSeconds: 0,
           running: false,
         );
+        try {
+          await _bell.chime();
+        } catch (_) {}
       }
       return;
     }
     state = state.copyWith(remainingSeconds: state.remainingSeconds - 1);
   }
 
-  void _beginPray() {
+  @visibleForTesting
+  Future<void> debugForceOneSecondLeftAndTick() async {
+    state = state.copyWith(remainingSeconds: 1, running: true);
+    await _onTick();
+  }
+
+  Future<void> _beginPray({required bool chime}) async {
     _tick?.cancel();
     state = const ReadPraySessionState(
       phase: ReadPrayPhase.pray,
@@ -114,6 +133,11 @@ class ReadPraySessionNotifier extends StateNotifier<ReadPraySessionState> {
     );
     _wakeLock.enable();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
+    if (chime) {
+      try {
+        await _bell.chime();
+      } catch (_) {}
+    }
   }
 
   @override

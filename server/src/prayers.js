@@ -1,5 +1,5 @@
 import { query } from './db.js';
-import { getMembership } from './auth.js';
+import { getMemberships } from './auth.js';
 
 function mapPrayer(row) {
   return {
@@ -23,24 +23,61 @@ function mapPrayer(row) {
   };
 }
 
-export async function listSharedPrayers(user, { scope } = {}) {
-  const membership = await getMembership(user.id);
-  if (!membership) {
+function churchIds(memberships) {
+  return [...new Set(memberships.map((m) => m.church_id))];
+}
+
+function groupIds(memberships) {
+  return memberships.map((m) => m.group_id);
+}
+
+function isOwnerOfChurch(memberships, churchId) {
+  return memberships.some(
+    (m) => m.church_id === churchId && m.role === 'owner',
+  );
+}
+
+function belongsToGroup(memberships, groupId) {
+  return memberships.some((m) => m.group_id === groupId);
+}
+
+function belongsToChurch(memberships, churchId) {
+  return memberships.some((m) => m.church_id === churchId);
+}
+
+export async function listSharedPrayers(user, { scope, groupId } = {}) {
+  const memberships = await getMemberships(user.id);
+  if (!memberships.length) {
     const err = new Error('Join a group to see shared prayers.');
     err.status = 403;
     throw err;
   }
 
-  let sql = `SELECT * FROM shared_prayers WHERE church_id = $1`;
-  const params = [membership.church_id];
-  if (scope === 'church') {
+  const churches = churchIds(memberships);
+  const groups = groupIds(memberships);
+
+  let sql = `SELECT * FROM shared_prayers WHERE church_id = ANY($1::uuid[])`;
+  const params = [churches];
+
+  if (groupId) {
+    if (!belongsToGroup(memberships, groupId)) {
+      const err = new Error('You are not in that group.');
+      err.status = 403;
+      throw err;
+    }
+    const m = memberships.find((x) => x.group_id === groupId);
+    sql = `SELECT * FROM shared_prayers WHERE church_id = $1
+           AND (share_scope = 'church' OR (share_scope = 'group' AND group_id = $2))`;
+    params.length = 0;
+    params.push(m.church_id, groupId);
+  } else if (scope === 'church') {
     sql += ` AND share_scope = 'church'`;
   } else if (scope === 'group') {
-    sql += ` AND share_scope = 'group' AND group_id = $2`;
-    params.push(membership.group_id);
+    sql += ` AND share_scope = 'group' AND group_id = ANY($2::uuid[])`;
+    params.push(groups);
   } else {
-    sql += ` AND (share_scope = 'church' OR (share_scope = 'group' AND group_id = $2))`;
-    params.push(membership.group_id);
+    sql += ` AND (share_scope = 'church' OR (share_scope = 'group' AND group_id = ANY($2::uuid[])))`;
+    params.push(groups);
   }
   sql += ` ORDER BY updated_at DESC`;
 
@@ -48,8 +85,8 @@ export async function listSharedPrayers(user, { scope } = {}) {
   const tombs = await query(
     `SELECT sync_id, deleted_at, share_scope, church_id, group_id
      FROM prayer_tombstones
-     WHERE church_id = $1`,
-    [membership.church_id],
+     WHERE church_id = ANY($1::uuid[])`,
+    [churches],
   );
   return {
     prayers: rows.map(mapPrayer),
@@ -60,13 +97,13 @@ export async function listSharedPrayers(user, { scope } = {}) {
       churchId: t.church_id,
       groupId: t.group_id,
     })),
-    membership,
+    memberships,
   };
 }
 
 export async function upsertSharedPrayer(user, body) {
-  const membership = await getMembership(user.id);
-  if (!membership) {
+  const memberships = await getMemberships(user.id);
+  if (!memberships.length) {
     const err = new Error('Join a group before sharing a prayer.');
     err.status = 403;
     throw err;
@@ -88,7 +125,42 @@ export async function upsertSharedPrayer(user, body) {
     throw err;
   }
 
-  const groupId = shareScope === 'group' ? membership.group_id : null;
+  let targetGroupId =
+    body.groupId != null && String(body.groupId).trim()
+      ? String(body.groupId).trim()
+      : null;
+  let targetChurchId =
+    body.churchId != null && String(body.churchId).trim()
+      ? String(body.churchId).trim()
+      : null;
+
+  if (shareScope === 'group') {
+    if (!targetGroupId) {
+      targetGroupId = memberships[0].group_id;
+    }
+    if (!belongsToGroup(memberships, targetGroupId)) {
+      const err = new Error('You can only share with a group you belong to.');
+      err.status = 403;
+      throw err;
+    }
+    const m = memberships.find((x) => x.group_id === targetGroupId);
+    targetChurchId = m.church_id;
+  } else {
+    if (targetGroupId && belongsToGroup(memberships, targetGroupId)) {
+      const m = memberships.find((x) => x.group_id === targetGroupId);
+      targetChurchId = m.church_id;
+    } else if (targetChurchId) {
+      if (!belongsToChurch(memberships, targetChurchId)) {
+        const err = new Error('You can only share with a church you belong to.');
+        err.status = 403;
+        throw err;
+      }
+    } else {
+      targetChurchId = memberships[0].church_id;
+    }
+    targetGroupId = null;
+  }
+
   const displayName = user.display_name || '';
   const person = String(body.person || '').trim().slice(0, 100);
   const tags = Array.isArray(body.tags) ? body.tags : [];
@@ -110,27 +182,40 @@ export async function upsertSharedPrayer(user, body) {
 
   if (existing.rows.length) {
     const row = existing.rows[0];
+    if (!belongsToChurch(memberships, row.church_id)) {
+      const err = new Error('You cannot edit this prayer.');
+      err.status = 403;
+      throw err;
+    }
     const canEdit =
       row.author_user_id === user.id ||
-      (shareScope === 'church' && membership.role === 'owner');
-    if (!canEdit && row.author_user_id !== user.id) {
-      // Authors always edit their own; owner may edit church prayers for answered state via web.
-      if (!(membership.role === 'owner' && row.share_scope === 'church')) {
-        const err = new Error('You can only edit your own prayer.');
-        err.status = 403;
-        throw err;
-      }
+      (row.share_scope === 'church' &&
+        isOwnerOfChurch(memberships, row.church_id));
+    if (!canEdit) {
+      const err = new Error('You can only edit your own prayer.');
+      err.status = 403;
+      throw err;
     }
     if (new Date(row.updated_at) > clientUpdatedAt) {
       return mapPrayer(row);
+    }
+    // Keep original church/group unless author is rewriting scope within their memberships.
+    const nextScope = shareScope;
+    const nextGroupId = shareScope === 'group' ? targetGroupId : null;
+    const nextChurchId =
+      shareScope === 'group' ? targetChurchId : row.church_id;
+    if (!belongsToChurch(memberships, nextChurchId)) {
+      const err = new Error('You cannot move this prayer outside your church.');
+      err.status = 403;
+      throw err;
     }
     const { rows } = await query(
       `UPDATE shared_prayers SET
          name = $2, person = $3, request = $4,
          is_answered = $5, answered_at = $6, answered_note = $7,
          tags = $8::jsonb, verse_ids = $9::jsonb, custom_verses = $10::jsonb,
-         share_scope = $11, group_id = $12,
-         author_display_name = $13, updated_at = $14
+         share_scope = $11, group_id = $12, church_id = $13,
+         author_display_name = $14, updated_at = $15
        WHERE sync_id = $1
        RETURNING *`,
       [
@@ -144,8 +229,9 @@ export async function upsertSharedPrayer(user, body) {
         JSON.stringify(tags),
         JSON.stringify(verseIds),
         JSON.stringify(customVerses),
-        shareScope,
-        groupId,
+        nextScope,
+        nextGroupId,
+        nextChurchId,
         displayName || row.author_display_name,
         clientUpdatedAt.toISOString(),
       ],
@@ -154,15 +240,22 @@ export async function upsertSharedPrayer(user, body) {
     return mapPrayer(rows[0]);
   }
 
-  // Revive from tombstone only if client is newer — else refuse.
   const tomb = await query(
     `SELECT * FROM prayer_tombstones WHERE sync_id = $1`,
     [syncId],
   );
-  if (tomb.rows.length && new Date(tomb.rows[0].deleted_at) >= clientUpdatedAt) {
-    const err = new Error('This prayer was removed.');
-    err.status = 410;
-    throw err;
+  if (tomb.rows.length) {
+    const t = tomb.rows[0];
+    if (!belongsToChurch(memberships, t.church_id)) {
+      const err = new Error('This prayer was removed.');
+      err.status = 410;
+      throw err;
+    }
+    if (new Date(t.deleted_at) >= clientUpdatedAt) {
+      const err = new Error('This prayer was removed.');
+      err.status = 410;
+      throw err;
+    }
   }
 
   const { rows } = await query(
@@ -177,8 +270,8 @@ export async function upsertSharedPrayer(user, body) {
       syncId,
       user.id,
       displayName,
-      membership.church_id,
-      groupId,
+      targetChurchId,
+      shareScope === 'group' ? targetGroupId : null,
       shareScope,
       name,
       person,
@@ -197,8 +290,8 @@ export async function upsertSharedPrayer(user, body) {
 }
 
 export async function deleteSharedPrayer(user, syncId) {
-  const membership = await getMembership(user.id);
-  if (!membership) {
+  const memberships = await getMemberships(user.id);
+  if (!memberships.length) {
     const err = new Error('Join a group first.');
     err.status = 403;
     throw err;
@@ -209,19 +302,20 @@ export async function deleteSharedPrayer(user, syncId) {
     [syncId],
   );
   if (!rows.length) {
-    await query(
-      `INSERT INTO prayer_tombstones (sync_id, church_id, group_id, share_scope)
-       VALUES ($1, $2, $3, 'church')
-       ON CONFLICT (sync_id) DO UPDATE SET deleted_at = now()`,
-      [syncId, membership.church_id, membership.group_id],
-    );
+    // Do not invent a tombstone for an unknown id outside the caller's churches.
     return { ok: true };
   }
 
   const row = rows[0];
+  if (!belongsToChurch(memberships, row.church_id)) {
+    const err = new Error('You cannot remove this prayer.');
+    err.status = 403;
+    throw err;
+  }
   const allowed =
     row.author_user_id === user.id ||
-    (row.share_scope === 'church' && membership.role === 'owner');
+    (row.share_scope === 'church' &&
+      isOwnerOfChurch(memberships, row.church_id));
   if (!allowed) {
     const err = new Error('You cannot remove this prayer.');
     err.status = 403;
@@ -238,19 +332,32 @@ export async function deleteSharedPrayer(user, syncId) {
   return { ok: true };
 }
 
-export async function listNotes(user) {
-  const membership = await getMembership(user.id);
-  if (!membership) {
+export async function listNotes(user, { groupId } = {}) {
+  const memberships = await getMemberships(user.id);
+  if (!memberships.length) {
     const err = new Error('Join a group to see notes.');
     err.status = 403;
     throw err;
   }
+
+  let groups = groupIds(memberships);
+  if (groupId) {
+    if (!belongsToGroup(memberships, groupId)) {
+      const err = new Error('You are not in that group.');
+      err.status = 403;
+      throw err;
+    }
+    groups = [groupId];
+  }
+
   const { rows } = await query(
-    `SELECT * FROM study_notes WHERE group_id = $1 ORDER BY updated_at DESC`,
-    [membership.group_id],
+    `SELECT * FROM study_notes WHERE group_id = ANY($1::uuid[])
+     ORDER BY updated_at DESC`,
+    [groups],
   );
   return rows.map((r) => ({
     id: r.id,
+    groupId: r.group_id,
     kind: r.kind,
     body: r.body,
     authorUserId: r.author_user_id,
@@ -261,8 +368,8 @@ export async function listNotes(user) {
 }
 
 export async function upsertNote(user, body) {
-  const membership = await getMembership(user.id);
-  if (!membership) {
+  const memberships = await getMemberships(user.id);
+  if (!memberships.length) {
     const err = new Error('Join a group first.');
     err.status = 403;
     throw err;
@@ -276,12 +383,27 @@ export async function upsertNote(user, body) {
   }
   const displayName = user.display_name || '';
 
+  let targetGroupId =
+    body.groupId != null && String(body.groupId).trim()
+      ? String(body.groupId).trim()
+      : memberships[0].group_id;
+  if (!belongsToGroup(memberships, targetGroupId)) {
+    const err = new Error('You can only write notes in a group you belong to.');
+    err.status = 403;
+    throw err;
+  }
+
   if (body.id) {
     const existing = await query(`SELECT * FROM study_notes WHERE id = $1`, [
       body.id,
     ]);
     if (!existing.rows.length || existing.rows[0].author_user_id !== user.id) {
       const err = new Error('You can only edit your own note.');
+      err.status = 403;
+      throw err;
+    }
+    if (!belongsToGroup(memberships, existing.rows[0].group_id)) {
+      const err = new Error('You can only edit notes in a group you belong to.');
       err.status = 403;
       throw err;
     }
@@ -298,7 +420,7 @@ export async function upsertNote(user, body) {
     const existing = await query(
       `SELECT id FROM study_notes
        WHERE group_id = $1 AND author_user_id = $2 AND kind = 'current_study'`,
-      [membership.group_id, user.id],
+      [targetGroupId, user.id],
     );
     if (existing.rows.length) {
       const { rows } = await query(
@@ -314,17 +436,23 @@ export async function upsertNote(user, body) {
     `INSERT INTO study_notes
        (group_id, author_user_id, author_display_name, kind, body)
      VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [membership.group_id, user.id, displayName, kind, noteBody],
+    [targetGroupId, user.id, displayName, kind, noteBody],
   );
   return rows[0];
 }
 
 export async function deleteNote(user, noteId) {
+  const memberships = await getMemberships(user.id);
   const { rows } = await query(`SELECT * FROM study_notes WHERE id = $1`, [
     noteId,
   ]);
   if (!rows.length || rows[0].author_user_id !== user.id) {
     const err = new Error('You can only remove your own note.');
+    err.status = 403;
+    throw err;
+  }
+  if (!belongsToGroup(memberships, rows[0].group_id)) {
+    const err = new Error('You can only remove notes in a group you belong to.');
     err.status = 403;
     throw err;
   }

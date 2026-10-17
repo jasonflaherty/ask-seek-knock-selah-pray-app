@@ -87,6 +87,103 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _showOwnerPanel(String groupId) async {
+    final notifier = ref.read(groupSessionProvider.notifier);
+    await notifier.syncNow();
+    if (!mounted) return;
+    final members = await notifier.listMembers(groupId);
+    if (!mounted) return;
+    final group = ref.read(groupSessionProvider);
+    final incoming = group.incomingJoinRequests
+        .where((r) => r.groupId == groupId)
+        .toList();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.screenPadding),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('People', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                if (members.isEmpty)
+                  const Text('No members yet.')
+                else
+                  for (final m in members)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        m.displayName.isEmpty ? m.email : m.displayName,
+                      ),
+                      subtitle: Text(
+                        '${m.email}${m.isOwner ? ' · Owner' : ''}',
+                      ),
+                      trailing: m.isOwner
+                          ? null
+                          : IconButton(
+                              tooltip: 'Remove',
+                              icon: const Icon(Symbols.person_remove),
+                              onPressed: () async {
+                                await notifier.removeMember(
+                                  groupId: groupId,
+                                  userId: m.userId,
+                                );
+                                if (context.mounted) Navigator.pop(context);
+                                await _showOwnerPanel(groupId);
+                              },
+                            ),
+                    ),
+                const SizedBox(height: 16),
+                Text(
+                  'Requests',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                if (incoming.isEmpty)
+                  const Text('No one is waiting.')
+                else
+                  for (final r in incoming)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        r.displayName.isEmpty ? r.email : r.displayName,
+                      ),
+                      subtitle: Text(r.email),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              await notifier.denyJoinRequest(r.id);
+                              if (context.mounted) Navigator.pop(context);
+                              await _showOwnerPanel(groupId);
+                            },
+                            child: const Text('Do not allow'),
+                          ),
+                          FilledButton(
+                            onPressed: () async {
+                              await notifier.allowJoinRequest(r.id);
+                              if (context.mounted) Navigator.pop(context);
+                              await _showOwnerPanel(groupId);
+                            },
+                            child: const Text('Allow'),
+                          ),
+                        ],
+                      ),
+                    ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _importTestData() async {
     if (_busy || _loaded) return;
     setState(() => _busy = true);
@@ -354,10 +451,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: const Text('Open read and pray'),
                 ),
                 const SizedBox(height: 32),
-                Text('Account and group', style: theme.textTheme.titleMedium),
+                Text('Account and groups', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text(
-                  'Sign in with email to join one group. Group and church '
+                  'Sign in with email to create or ask to join groups. '
+                  'You may belong to more than one. Group and church '
                   'prayers sync. Just me prayers never leave this phone.',
                   style: theme.textTheme.bodyMedium,
                 ),
@@ -443,67 +541,213 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: const Text('Save display name'),
                   ),
                   const SizedBox(height: 16),
-                  if (session.membership == null) ...[
-                    TextField(
-                      controller: _churchNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Church name',
-                      ),
-                      enabled: !_busy,
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _groupNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Group name',
-                      ),
-                      enabled: !_busy,
-                    ),
-                    const SizedBox(height: 8),
-                    FilledButton(
-                      onPressed: _busy
-                          ? null
-                          : () => _run(() async {
-                                await ref
-                                    .read(groupSessionProvider.notifier)
-                                    .createGroup(
-                                      churchName: _churchNameController.text,
-                                      groupName: _groupNameController.text,
-                                    );
-                              }),
-                      child: const Text('Create group'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _inviteController,
-                      decoration: const InputDecoration(
-                        labelText: 'Invite code',
-                      ),
-                      textCapitalization: TextCapitalization.characters,
-                      enabled: !_busy,
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: _busy
-                          ? null
-                          : () => _run(() async {
-                                await ref
-                                    .read(groupSessionProvider.notifier)
-                                    .joinGroup(_inviteController.text);
-                              }),
-                      child: const Text('Join group'),
-                    ),
-                  ] else ...[
+                  Text('Your groups', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  if (session.memberships.isEmpty)
                     Text(
-                      '${session.membership!.churchName} · '
-                      '${session.membership!.groupName}',
-                      style: theme.textTheme.bodyMedium,
+                      'You are not in a group yet.',
+                      style: theme.textTheme.bodySmall,
+                    )
+                  else
+                    for (final m in session.memberships)
+                      Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppTheme.cardPadding),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${m.churchName} · ${m.groupName}',
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ),
+                                  if (group.activeMembership?.groupId ==
+                                      m.groupId)
+                                    Text(
+                                      'Active',
+                                      style: theme.textTheme.labelSmall,
+                                    )
+                                  else
+                                    TextButton(
+                                      onPressed: _busy
+                                          ? null
+                                          : () => ref
+                                              .read(
+                                                groupSessionProvider.notifier,
+                                              )
+                                              .setActiveGroup(m.groupId),
+                                      child: const Text('Use'),
+                                    ),
+                                ],
+                              ),
+                              Text(
+                                m.isOwner ? 'Owner' : 'Member',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                              if (m.isOwner && m.inviteCode.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                SelectableText(
+                                  'Invite code: ${m.inviteCode}',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                              ],
+                              const SizedBox(height: 8),
+                              if (m.isOwner)
+                                OutlinedButton(
+                                  onPressed: _busy
+                                      ? null
+                                      : () => _showOwnerPanel(m.groupId),
+                                  child: const Text('People and requests'),
+                                )
+                              else
+                                OutlinedButton(
+                                  onPressed: _busy
+                                      ? null
+                                      : () => _run(() async {
+                                            await ref
+                                                .read(
+                                                  groupSessionProvider
+                                                      .notifier,
+                                                )
+                                                .leaveGroup(m.groupId);
+                                          }),
+                                  child: const Text('Leave group'),
+                                ),
+                              if (m.isOwner)
+                                TextButton(
+                                  onPressed: _busy
+                                      ? null
+                                      : () async {
+                                          final ok = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title:
+                                                  const Text('Delete group?'),
+                                              content: const Text(
+                                                'This removes the group and '
+                                                'its shared prayers from the '
+                                                'server.',
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                    context,
+                                                    false,
+                                                  ),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                FilledButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                    context,
+                                                    true,
+                                                  ),
+                                                  child: const Text('Delete'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                          if (ok != true) return;
+                                          await _run(() async {
+                                            await ref
+                                                .read(
+                                                  groupSessionProvider
+                                                      .notifier,
+                                                )
+                                                .deleteGroup(m.groupId);
+                                          });
+                                        },
+                                  child: Text(
+                                    'Delete group',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.error,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  if (group.myJoinRequests.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Waiting for the group owner',
+                      style: theme.textTheme.titleSmall,
                     ),
                     const SizedBox(height: 4),
-                    SelectableText(
-                      'Invite code: ${session.membership!.inviteCode}',
-                      style: theme.textTheme.bodySmall,
+                    for (final r in group.myJoinRequests)
+                      Text(
+                        '${r.churchName.isEmpty ? '' : '${r.churchName} · '}'
+                        '${r.groupName}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                  ],
+                  const SizedBox(height: 16),
+                  Text('Create or ask to join', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _churchNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Church name',
                     ),
+                    enabled: !_busy,
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _groupNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Group name',
+                    ),
+                    enabled: !_busy,
+                  ),
+                  const SizedBox(height: 8),
+                  FilledButton(
+                    onPressed: _busy
+                        ? null
+                        : () => _run(() async {
+                              await ref
+                                  .read(groupSessionProvider.notifier)
+                                  .createGroup(
+                                    churchName: _churchNameController.text,
+                                    groupName: _groupNameController.text,
+                                  );
+                            }),
+                    child: const Text('Create group'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _inviteController,
+                    decoration: const InputDecoration(
+                      labelText: 'Invite code',
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                    enabled: !_busy,
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: _busy
+                        ? null
+                        : () => _run(() async {
+                              await ref
+                                  .read(groupSessionProvider.notifier)
+                                  .requestJoin(_inviteController.text);
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Waiting for the group owner.',
+                                  ),
+                                ),
+                              );
+                            }),
+                    child: const Text('Ask to join'),
+                  ),
+                  if (session.hasGroup) ...[
                     const SizedBox(height: 12),
                     FilledButton.icon(
                       onPressed: _busy
@@ -521,54 +765,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       icon: const Icon(Symbols.sync),
                       label: const Text('Sync now'),
                     ),
-                    const SizedBox(height: 8),
-                    if (session.membership!.isOwner)
-                      OutlinedButton(
-                        onPressed: _busy
-                            ? null
-                            : () async {
-                                final ok = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Delete group?'),
-                                    content: const Text(
-                                      'This removes the group and its shared '
-                                      'prayers from the server.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      FilledButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (ok != true) return;
-                                await _run(() async {
-                                  await ref
-                                      .read(groupSessionProvider.notifier)
-                                      .deleteGroup();
-                                });
-                              },
-                        child: const Text('Delete group'),
-                      )
-                    else
-                      OutlinedButton(
-                        onPressed: _busy
-                            ? null
-                            : () => _run(() async {
-                                  await ref
-                                      .read(groupSessionProvider.notifier)
-                                      .leaveGroup();
-                                }),
-                        child: const Text('Leave group'),
-                      ),
                   ],
                   if (group.pendingChurchUploadConfirm) ...[
                     const SizedBox(height: 16),

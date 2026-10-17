@@ -10,9 +10,14 @@ import '../../groups/domain/group_models.dart';
 final studyNotesProvider = FutureProvider.autoDispose<List<StudyNote>>((
   ref,
 ) async {
-  final session = ref.watch(groupSessionProvider).session;
-  if (session?.membership == null) return const [];
-  return ref.watch(selahApiProvider).listNotes(session!.token);
+  final group = ref.watch(groupSessionProvider);
+  final session = group.session;
+  final active = group.activeMembership;
+  if (session == null || active == null) return const [];
+  return ref.watch(selahApiProvider).listNotes(
+        session.token,
+        groupId: active.groupId,
+      );
 });
 
 class StudyNotesSection extends ConsumerStatefulWidget {
@@ -35,14 +40,17 @@ class _StudyNotesSectionState extends ConsumerState<StudyNotesSection> {
   }
 
   Future<void> _save({required String kind, required String body}) async {
-    final session = ref.read(groupSessionProvider).session;
-    if (session == null || body.trim().isEmpty) return;
+    final group = ref.read(groupSessionProvider);
+    final session = group.session;
+    final active = group.activeMembership;
+    if (session == null || active == null || body.trim().isEmpty) return;
     setState(() => _busy = true);
     try {
       await ref.read(selahApiProvider).upsertNote(
             session.token,
             kind: kind,
             body: body.trim(),
+            groupId: active.groupId,
           );
       ref.invalidate(studyNotesProvider);
       if (kind == 'other') _otherController.clear();

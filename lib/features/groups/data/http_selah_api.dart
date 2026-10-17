@@ -61,7 +61,11 @@ class HttpSelahApi implements SelahApi {
           body: body == null ? null : jsonEncode(body),
         );
       case 'DELETE':
-        res = await _client.delete(uri, headers: headers);
+        res = await _client.delete(
+          uri,
+          headers: headers,
+          body: body == null ? null : jsonEncode(body),
+        );
       default:
         throw SelahApiException('Unsupported method $method');
     }
@@ -81,12 +85,21 @@ class HttpSelahApi implements SelahApi {
 
   AuthSession _session(Map<String, dynamic> data, {String? token}) {
     final user = SelahUser.fromJson(data['user'] as Map<String, dynamic>);
-    final membershipJson = data['membership'];
-    final membership = membershipJson is Map<String, dynamic>
-        ? GroupMembership.fromJson(membershipJson)
-        : null;
+    final list = data['memberships'];
+    List<GroupMembership> memberships = const [];
+    if (list is List) {
+      memberships = list
+          .whereType<Map>()
+          .map((e) => GroupMembership.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } else {
+      final single = data['membership'];
+      if (single is Map<String, dynamic>) {
+        memberships = [GroupMembership.fromJson(single)];
+      }
+    }
     final t = token ?? data['token'] as String? ?? '';
-    return AuthSession(token: t, user: user, membership: membership);
+    return AuthSession(token: t, user: user, memberships: memberships);
   }
 
   @override
@@ -142,26 +155,115 @@ class HttpSelahApi implements SelahApi {
   }
 
   @override
-  Future<AuthSession> joinGroup(String token, String inviteCode) async {
+  Future<({AuthSession session, JoinRequestSummary? request})> requestJoin(
+    String token,
+    String inviteCode,
+  ) async {
     final data = await _json(
       'POST',
       '/api/groups/join',
       token: token,
       body: {'inviteCode': inviteCode},
     );
+    final session = _session(data, token: token);
+    JoinRequestSummary? request;
+    final jr = data['joinRequest'];
+    if (jr is Map<String, dynamic>) {
+      request = JoinRequestSummary(
+        id: jr['id'] as String? ?? '',
+        groupId: jr['groupId'] as String? ?? '',
+        groupName: jr['groupName'] as String? ?? '',
+        status: jr['status'] as String? ?? 'pending',
+      );
+    }
+    return (session: session, request: request);
+  }
+
+  @override
+  Future<AuthSession> leaveGroup(String token, String groupId) async {
+    final data = await _json(
+      'POST',
+      '/api/groups/leave',
+      token: token,
+      body: {'groupId': groupId},
+    );
     return _session(data, token: token);
   }
 
   @override
-  Future<AuthSession> leaveGroup(String token) async {
-    final data = await _json('POST', '/api/groups/leave', token: token);
+  Future<AuthSession> deleteGroup(String token, String groupId) async {
+    final data = await _json(
+      'DELETE',
+      '/api/groups',
+      token: token,
+      body: {'groupId': groupId},
+      query: {'groupId': groupId},
+    );
     return _session(data, token: token);
   }
 
   @override
-  Future<AuthSession> deleteGroup(String token) async {
-    final data = await _json('DELETE', '/api/groups', token: token);
-    return _session(data, token: token);
+  Future<List<JoinRequestSummary>> listIncomingJoinRequests(
+    String token,
+  ) async {
+    final data = await _json('GET', '/api/join-requests', token: token);
+    return (data['incoming'] as List? ?? [])
+        .whereType<Map>()
+        .map((e) => JoinRequestSummary.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  @override
+  Future<List<JoinRequestSummary>> listMyJoinRequests(String token) async {
+    final data = await _json('GET', '/api/join-requests', token: token);
+    return (data['mine'] as List? ?? [])
+        .whereType<Map>()
+        .map((e) => JoinRequestSummary.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  @override
+  Future<void> allowJoinRequest(String token, String requestId) async {
+    await _json(
+      'POST',
+      '/api/join-requests/$requestId/allow',
+      token: token,
+    );
+  }
+
+  @override
+  Future<void> denyJoinRequest(String token, String requestId) async {
+    await _json(
+      'POST',
+      '/api/join-requests/$requestId/deny',
+      token: token,
+    );
+  }
+
+  @override
+  Future<List<GroupMember>> listMembers(String token, String groupId) async {
+    final data = await _json(
+      'GET',
+      '/api/groups/$groupId/members',
+      token: token,
+    );
+    return (data['members'] as List? ?? [])
+        .whereType<Map>()
+        .map((e) => GroupMember.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  @override
+  Future<void> removeMember(
+    String token, {
+    required String groupId,
+    required String userId,
+  }) async {
+    await _json(
+      'DELETE',
+      '/api/groups/$groupId/members/$userId',
+      token: token,
+    );
   }
 
   @override
@@ -202,8 +304,13 @@ class HttpSelahApi implements SelahApi {
   }
 
   @override
-  Future<List<StudyNote>> listNotes(String token) async {
-    final data = await _json('GET', '/api/notes', token: token);
+  Future<List<StudyNote>> listNotes(String token, {String? groupId}) async {
+    final data = await _json(
+      'GET',
+      '/api/notes',
+      token: token,
+      query: groupId == null ? null : {'groupId': groupId},
+    );
     return (data['notes'] as List? ?? [])
         .whereType<Map>()
         .map((e) => StudyNote.fromJson(Map<String, dynamic>.from(e)))
@@ -216,6 +323,7 @@ class HttpSelahApi implements SelahApi {
     String? id,
     required String kind,
     required String body,
+    String? groupId,
   }) async {
     final data = await _json(
       'POST',
@@ -225,6 +333,7 @@ class HttpSelahApi implements SelahApi {
         if (id != null) 'id': id,
         'kind': kind,
         'body': body,
+        if (groupId != null) 'groupId': groupId,
       },
     );
     return StudyNote.fromJson(data['note'] as Map<String, dynamic>);
