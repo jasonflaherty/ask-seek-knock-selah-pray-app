@@ -241,6 +241,36 @@ class HttpSelahApi implements SelahApi {
   }
 
   @override
+  Future<void> sendEmailInvite(
+    String token, {
+    required String groupId,
+    required String email,
+  }) async {
+    await _json(
+      'POST',
+      '/api/groups/$groupId/email-invites',
+      token: token,
+      body: {'email': email},
+    );
+  }
+
+  @override
+  Future<List<EmailInviteSummary>> listEmailInvites(
+    String token,
+    String groupId,
+  ) async {
+    final data = await _json(
+      'GET',
+      '/api/groups/$groupId/email-invites',
+      token: token,
+    );
+    return (data['invites'] as List? ?? [])
+        .whereType<Map>()
+        .map((e) => EmailInviteSummary.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  @override
   Future<List<GroupMember>> listMembers(String token, String groupId) async {
     final data = await _json(
       'GET',

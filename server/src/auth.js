@@ -5,6 +5,8 @@ import { query, withClient } from './db.js';
 const CODE_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const CODE_COOLDOWN_MS = 60 * 1000;
+const EMAIL_INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+const EMAIL_INVITE_SEND_COOLDOWN_MS = 60 * 1000;
 
 function hash(value) {
   const secret = process.env.TOKEN_SECRET || 'dev-secret';
@@ -99,14 +101,19 @@ export async function requestLoginCode(emailRaw) {
     [email, hash(code), expires.toISOString()],
   );
 
+  await sendMail({
+    to: email,
+    subject: 'Your Selah sign-in code',
+    text: `Your Selah sign-in code is ${code}. It expires in 10 minutes.`,
+  });
+
+  return { ok: true, cooldownMs: CODE_COOLDOWN_MS };
+}
+
+async function sendMail({ to, subject, text }) {
   const from = process.env.SMTP_FROM || 'Selah <noreply@localhost>';
   try {
-    await mailer().sendMail({
-      from,
-      to: email,
-      subject: 'Your Selah sign-in code',
-      text: `Your Selah sign-in code is ${code}. It expires in 10 minutes.`,
-    });
+    await mailer().sendMail({ from, to, subject, text });
   } catch (e) {
     const raw = String(e?.message || e || '');
     const authFail =
@@ -114,13 +121,17 @@ export async function requestLoginCode(emailRaw) {
     const err = new Error(
       authFail
         ? 'Mail login failed. Check SMTP_USER and SMTP_PASS on the server.'
-        : 'Could not send the sign-in email. Try again later.',
+        : 'Could not send the email. Try again later.',
     );
     err.status = 502;
     throw err;
   }
+}
 
-  return { ok: true, cooldownMs: CODE_COOLDOWN_MS };
+function publicBaseUrl() {
+  return String(process.env.PUBLIC_BASE_URL || '')
+    .trim()
+    .replace(/\/+$/, '');
 }
 
 export async function verifyLoginCode(emailRaw, codeRaw) {
@@ -166,7 +177,65 @@ export async function verifyLoginCode(emailRaw, codeRaw) {
     [user.id, hash(token), expires.toISOString()],
   );
 
+  await applyPendingEmailInvites(user.id, email);
+
   return { token, user, expiresAt: expires.toISOString() };
+}
+
+/** Join any pending email invites for this address (one group max). */
+export async function applyPendingEmailInvites(userId, emailRaw) {
+  const email = normalizeEmail(emailRaw);
+  if (!email) return { joined: false };
+
+  const existing = await getMemberships(userId);
+  if (existing.length) return { joined: false, alreadyMember: true };
+
+  const { rows } = await query(
+    `SELECT ei.id, ei.group_id, g.name AS group_name
+     FROM email_invites ei
+     JOIN groups g ON g.id = ei.group_id
+     WHERE ei.email = $1
+       AND ei.status = 'pending'
+       AND ei.expires_at > now()
+     ORDER BY ei.created_at ASC
+     LIMIT 1`,
+    [email],
+  );
+  if (!rows.length) return { joined: false };
+
+  const invite = rows[0];
+  await withClient(async (client) => {
+    await client.query('BEGIN');
+    try {
+      await client.query(
+        `INSERT INTO memberships (user_id, group_id, role)
+         VALUES ($1, $2, 'member')`,
+        [userId, invite.group_id],
+      );
+      await client.query(
+        `UPDATE email_invites
+         SET status = 'accepted', accepted_at = now()
+         WHERE id = $1`,
+        [invite.id],
+      );
+      await client.query(
+        `UPDATE join_requests
+         SET status = 'allowed', resolved_at = now()
+         WHERE group_id = $1 AND user_id = $2 AND status = 'pending'`,
+        [invite.group_id, userId],
+      );
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    }
+  });
+
+  return {
+    joined: true,
+    groupId: invite.group_id,
+    groupName: invite.group_name,
+  };
 }
 
 export async function userFromToken(token) {
@@ -302,12 +371,14 @@ export async function createGroup({ userId, churchName, groupName }) {
 }
 
 export async function requestJoinGroup({ userId, inviteCodeRaw }) {
-  const user = await query('SELECT * FROM users WHERE id = $1', [userId]);
-  if (!user.rows.length || !String(user.rows[0].display_name || '').trim()) {
-    const err = new Error('Set a short display name before asking to join.');
-    err.status = 400;
+  const userRes = await query('SELECT * FROM users WHERE id = $1', [userId]);
+  if (!userRes.rows.length) {
+    const err = new Error('Sign in first.');
+    err.status = 401;
     throw err;
   }
+  const user = userRes.rows[0];
+  const email = normalizeEmail(user.email);
 
   const code = String(inviteCodeRaw || '')
     .trim()
@@ -325,12 +396,61 @@ export async function requestJoinGroup({ userId, inviteCodeRaw }) {
 
   const existingHere = await getMembership(userId, group.id);
   if (existingHere) {
-    const err = new Error('You already belong to this group.');
-    err.status = 409;
-    throw err;
+    return {
+      status: 'joined',
+      groupId: group.id,
+      groupName: group.name,
+    };
   }
 
   await assertNoMembership(userId);
+
+  // Pre-approved email invite → join immediately (no owner wait).
+  const emailInvite = await query(
+    `SELECT id FROM email_invites
+     WHERE group_id = $1 AND email = $2
+       AND status = 'pending' AND expires_at > now()
+     LIMIT 1`,
+    [group.id, email],
+  );
+  if (emailInvite.rows.length) {
+    if (!String(user.display_name || '').trim()) {
+      const err = new Error('Set a short display name before joining.');
+      err.status = 400;
+      throw err;
+    }
+    await withClient(async (client) => {
+      await client.query('BEGIN');
+      try {
+        await client.query(
+          `INSERT INTO memberships (user_id, group_id, role)
+           VALUES ($1, $2, 'member')`,
+          [userId, group.id],
+        );
+        await client.query(
+          `UPDATE email_invites
+           SET status = 'accepted', accepted_at = now()
+           WHERE id = $1`,
+          [emailInvite.rows[0].id],
+        );
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      }
+    });
+    return {
+      status: 'joined',
+      groupId: group.id,
+      groupName: group.name,
+    };
+  }
+
+  if (!String(user.display_name || '').trim()) {
+    const err = new Error('Set a short display name before asking to join.');
+    err.status = 400;
+    throw err;
+  }
 
   const pending = await query(
     `SELECT id FROM join_requests
@@ -356,6 +476,149 @@ export async function requestJoinGroup({ userId, inviteCodeRaw }) {
     groupId: group.id,
     groupName: group.name,
   };
+}
+
+export async function previewInviteCode(inviteCodeRaw) {
+  const code = String(inviteCodeRaw || '')
+    .trim()
+    .toUpperCase();
+  if (!code) {
+    const err = new Error('Invite code is required.');
+    err.status = 400;
+    throw err;
+  }
+  const { rows } = await query(
+    `SELECT g.name AS group_name, c.name AS church_name, g.invite_code
+     FROM groups g
+     JOIN churches c ON c.id = g.church_id
+     WHERE g.invite_code = $1`,
+    [code],
+  );
+  if (!rows.length) {
+    const err = new Error('That invite code was not found.');
+    err.status = 404;
+    throw err;
+  }
+  return {
+    inviteCode: rows[0].invite_code,
+    groupName: rows[0].group_name,
+    churchName: rows[0].church_name,
+  };
+}
+
+export async function sendEmailInvite({ ownerUserId, groupId, emailRaw }) {
+  const ownership = await getMembership(ownerUserId, groupId);
+  if (!ownership || ownership.role !== 'owner') {
+    const err = new Error('Only the group owner can send invites.');
+    err.status = 403;
+    throw err;
+  }
+
+  const email = normalizeEmail(emailRaw);
+  if (!email || !email.includes('@')) {
+    const err = new Error('Enter a valid email address.');
+    err.status = 400;
+    throw err;
+  }
+
+  const recent = await query(
+    `SELECT created_at FROM email_invites
+     WHERE group_id = $1 AND email = $2
+       AND created_at > now() - interval '1 minute'
+     ORDER BY created_at DESC LIMIT 1`,
+    [groupId, email],
+  );
+  if (recent.rows.length) {
+    const err = new Error('Wait a minute before sending another invite to that address.');
+    err.status = 429;
+    throw err;
+  }
+
+  const alreadyMember = await query(
+    `SELECT m.user_id FROM memberships m
+     JOIN users u ON u.id = m.user_id
+     WHERE m.group_id = $1 AND u.email = $2`,
+    [groupId, email],
+  );
+  if (alreadyMember.rows.length) {
+    const err = new Error('That person is already in this group.');
+    err.status = 409;
+    throw err;
+  }
+
+  const expires = new Date(Date.now() + EMAIL_INVITE_TTL_MS);
+  await query(
+    `UPDATE email_invites
+     SET status = 'revoked'
+     WHERE group_id = $1 AND email = $2 AND status = 'pending'`,
+    [groupId, email],
+  );
+  await query(
+    `INSERT INTO email_invites (group_id, email, invited_by, status, expires_at)
+     VALUES ($1, $2, $3, 'pending', $4)`,
+    [groupId, email, ownerUserId, expires.toISOString()],
+  );
+
+  const base = publicBaseUrl();
+  const invitePath = `/invite.html?code=${encodeURIComponent(ownership.invite_code)}`;
+  const link = base ? `${base}${invitePath}` : invitePath;
+  const ownerName =
+    (
+      await query('SELECT display_name, email FROM users WHERE id = $1', [
+        ownerUserId,
+      ])
+    ).rows[0] || {};
+  const who = String(ownerName.display_name || '').trim() || ownerName.email;
+
+  await sendMail({
+    to: email,
+    subject: `You're invited to ${ownership.group_name} on Selah`,
+    text: [
+      `${who} invited you to join ${ownership.group_name} (${ownership.church_name}) on Selah.`,
+      '',
+      '1. Open this link on your phone or computer:',
+      link,
+      '',
+      '2. Sign in with THIS email address (we will send a one-time code).',
+      '3. You will join the group automatically after you sign in.',
+      '',
+      `Invite code (if you use the Selah app): ${ownership.invite_code}`,
+      '',
+      'This invitation expires in 14 days.',
+    ].join('\n'),
+  });
+
+  return {
+    ok: true,
+    email,
+    inviteCode: ownership.invite_code,
+    inviteUrl: link,
+    expiresAt: expires.toISOString(),
+    cooldownMs: EMAIL_INVITE_SEND_COOLDOWN_MS,
+  };
+}
+
+export async function listEmailInvites(ownerUserId, groupId) {
+  const ownership = await getMembership(ownerUserId, groupId);
+  if (!ownership || ownership.role !== 'owner') {
+    const err = new Error('Only the group owner can see email invites.');
+    err.status = 403;
+    throw err;
+  }
+  const { rows } = await query(
+    `SELECT id, email, status, created_at, expires_at, accepted_at
+     FROM email_invites
+     WHERE group_id = $1 AND status = 'pending' AND expires_at > now()
+     ORDER BY created_at DESC`,
+    [groupId],
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    email: r.email,
+    status: r.status,
+    createdAt: r.created_at,
+    expiresAt: r.expires_at,
+  }));
 }
 
 export async function listPendingJoinRequests(userId) {

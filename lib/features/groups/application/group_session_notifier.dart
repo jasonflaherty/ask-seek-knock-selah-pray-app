@@ -202,21 +202,59 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
     }
   }
 
-  Future<void> requestJoin(String inviteCode) async {
+  Future<JoinRequestSummary?> requestJoin(String inviteCode) async {
+    final session = state.session;
+    if (session == null) return null;
+    state = state.copyWith(loading: true, clearError: true);
+    try {
+      final result = await _api.requestJoin(session.token, inviteCode);
+      final joined = result.request?.status == 'joined';
+      if (joined) {
+        await _prefs.setBool(_churchUploadKey, false);
+      }
+      await _applySession(
+        result.session,
+        pendingChurchUpload: joined
+            ? true
+            : (result.session.hasGroup
+                ? state.pendingChurchUploadConfirm
+                : false),
+      );
+      if (result.session.hasGroup) {
+        await _sync.syncNow(result.session);
+      }
+      state = state.copyWith(loading: false);
+      return result.request;
+    } catch (e) {
+      state = state.copyWith(loading: false, error: '$e');
+      rethrow;
+    }
+  }
+
+  Future<void> sendEmailInvite({
+    required String groupId,
+    required String email,
+  }) async {
     final session = state.session;
     if (session == null) return;
     state = state.copyWith(loading: true, clearError: true);
     try {
-      final result = await _api.requestJoin(session.token, inviteCode);
-      await _applySession(
-        result.session,
-        pendingChurchUpload: state.pendingChurchUploadConfirm,
+      await _api.sendEmailInvite(
+        session.token,
+        groupId: groupId,
+        email: email.trim(),
       );
       state = state.copyWith(loading: false);
     } catch (e) {
       state = state.copyWith(loading: false, error: '$e');
       rethrow;
     }
+  }
+
+  Future<List<EmailInviteSummary>> listEmailInvites(String groupId) async {
+    final session = state.session;
+    if (session == null) return const [];
+    return _api.listEmailInvites(session.token, groupId);
   }
 
   Future<void> leaveGroup(String groupId) async {

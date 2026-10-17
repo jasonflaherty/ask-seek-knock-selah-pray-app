@@ -23,7 +23,7 @@ abstract class SelahApi {
     required String groupName,
   });
 
-  /// Asks to join; does not create membership until the owner allows.
+  /// Asks to join, or joins immediately if this email was pre-approved.
   Future<({AuthSession session, JoinRequestSummary? request})> requestJoin(
     String token,
     String inviteCode,
@@ -35,6 +35,16 @@ abstract class SelahApi {
   Future<List<JoinRequestSummary>> listMyJoinRequests(String token);
   Future<void> allowJoinRequest(String token, String requestId);
   Future<void> denyJoinRequest(String token, String requestId);
+
+  Future<void> sendEmailInvite(
+    String token, {
+    required String groupId,
+    required String email,
+  });
+  Future<List<EmailInviteSummary>> listEmailInvites(
+    String token,
+    String groupId,
+  );
 
   Future<List<GroupMember>> listMembers(String token, String groupId);
   Future<void> removeMember(

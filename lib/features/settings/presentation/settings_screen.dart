@@ -93,10 +93,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (!mounted) return;
     final members = await notifier.listMembers(groupId);
     if (!mounted) return;
+    final emailInvites = await notifier.listEmailInvites(groupId);
+    if (!mounted) return;
     final group = ref.read(groupSessionProvider);
     final incoming = group.incomingJoinRequests
         .where((r) => r.groupId == groupId)
         .toList();
+    final inviteEmailController = TextEditingController();
 
     await showModalBottomSheet<void>(
       context: context,
@@ -104,84 +107,153 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(AppTheme.screenPadding),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('People', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                if (members.isEmpty)
-                  const Text('No members yet.')
-                else
-                  for (final m in members)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        m.displayName.isEmpty ? m.email : m.displayName,
+            padding: EdgeInsets.only(
+              left: AppTheme.screenPadding,
+              right: AppTheme.screenPadding,
+              top: AppTheme.screenPadding,
+              bottom:
+                  MediaQuery.viewInsetsOf(context).bottom + AppTheme.screenPadding,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'People',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  if (members.isEmpty)
+                    const Text('No members yet.')
+                  else
+                    for (final m in members)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          m.displayName.isEmpty ? m.email : m.displayName,
+                        ),
+                        subtitle: Text(
+                          '${m.email}${m.isOwner ? ' · Owner' : ''}',
+                        ),
+                        trailing: m.isOwner
+                            ? null
+                            : IconButton(
+                                tooltip: 'Remove',
+                                icon: const Icon(Symbols.person_remove),
+                                onPressed: () async {
+                                  await notifier.removeMember(
+                                    groupId: groupId,
+                                    userId: m.userId,
+                                  );
+                                  if (context.mounted) Navigator.pop(context);
+                                  await _showOwnerPanel(groupId);
+                                },
+                              ),
                       ),
-                      subtitle: Text(
-                        '${m.email}${m.isOwner ? ' · Owner' : ''}',
+                  const SizedBox(height: 16),
+                  Text(
+                    'Invite by email',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'They sign in with that email (web link or app) and join '
+                    'automatically. No extra approval step.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: inviteEmailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email to invite',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  FilledButton(
+                    onPressed: () async {
+                      try {
+                        await notifier.sendEmailInvite(
+                          groupId: groupId,
+                          email: inviteEmailController.text,
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Invitation email sent'),
+                            ),
+                          );
+                          Navigator.pop(context);
+                        }
+                        await _showOwnerPanel(groupId);
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('$e')),
+                          );
+                        }
+                      }
+                    },
+                    child: const Text('Send invitation'),
+                  ),
+                  if (emailInvites.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Pending email invites',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    for (final inv in emailInvites)
+                      Text(
+                        inv.email,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      trailing: m.isOwner
-                          ? null
-                          : IconButton(
-                              tooltip: 'Remove',
-                              icon: const Icon(Symbols.person_remove),
+                  ],
+                  const SizedBox(height: 16),
+                  Text(
+                    'Requests',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  if (incoming.isEmpty)
+                    const Text('No one is waiting.')
+                  else
+                    for (final r in incoming)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          r.displayName.isEmpty ? r.email : r.displayName,
+                        ),
+                        subtitle: Text(r.email),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextButton(
                               onPressed: () async {
-                                await notifier.removeMember(
-                                  groupId: groupId,
-                                  userId: m.userId,
-                                );
+                                await notifier.denyJoinRequest(r.id);
                                 if (context.mounted) Navigator.pop(context);
                                 await _showOwnerPanel(groupId);
                               },
+                              child: const Text('Do not allow'),
                             ),
-                    ),
-                const SizedBox(height: 16),
-                Text(
-                  'Requests',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                if (incoming.isEmpty)
-                  const Text('No one is waiting.')
-                else
-                  for (final r in incoming)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        r.displayName.isEmpty ? r.email : r.displayName,
+                            FilledButton(
+                              onPressed: () async {
+                                await notifier.allowJoinRequest(r.id);
+                                if (context.mounted) Navigator.pop(context);
+                                await _showOwnerPanel(groupId);
+                              },
+                              child: const Text('Allow'),
+                            ),
+                          ],
+                        ),
                       ),
-                      subtitle: Text(r.email),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextButton(
-                            onPressed: () async {
-                              await notifier.denyJoinRequest(r.id);
-                              if (context.mounted) Navigator.pop(context);
-                              await _showOwnerPanel(groupId);
-                            },
-                            child: const Text('Do not allow'),
-                          ),
-                          FilledButton(
-                            onPressed: () async {
-                              await notifier.allowJoinRequest(r.id);
-                              if (context.mounted) Navigator.pop(context);
-                              await _showOwnerPanel(groupId);
-                            },
-                            child: const Text('Allow'),
-                          ),
-                        ],
-                      ),
-                    ),
-              ],
+                ],
+              ),
             ),
           ),
         );
       },
-    );
+    ).whenComplete(inviteEmailController.dispose);
   }
 
   Future<void> _importTestData() async {
@@ -738,17 +810,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onPressed: _busy
                           ? null
                           : () => _run(() async {
-                                await ref
-                                    .read(groupSessionProvider.notifier)
-                                    .requestJoin(_inviteController.text);
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Waiting for the group owner.',
-                                    ),
+                              final result = await ref
+                                  .read(groupSessionProvider.notifier)
+                                  .requestJoin(_inviteController.text);
+                              if (!mounted) return;
+                              final joined = result?.status == 'joined' ||
+                                  ref.read(groupSessionProvider).hasGroup;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    joined
+                                        ? 'You joined the group.'
+                                        : 'Waiting for the group owner.',
                                   ),
-                                );
+                                ),
+                              );
                               }),
                       child: const Text('Ask to join'),
                     ),

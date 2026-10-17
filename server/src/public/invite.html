@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Selah — Join group</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Selah</h1>
+      <p class="lede" id="lede">Sign in with the email that received the invitation to join the group.</p>
+    </header>
+
+    <section id="preview" class="card">
+      <p id="preview-msg" class="msg">Loading invitation…</p>
+    </section>
+
+    <section id="auth" class="card">
+      <h2>Sign in</h2>
+      <label>
+        Email
+        <input id="email" type="email" autocomplete="email" />
+      </label>
+      <button id="request-code" type="button">Send code</button>
+      <label class="hidden" id="code-label">
+        Code from email
+        <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" />
+      </label>
+      <button class="hidden" id="verify-code" type="button">Sign in and join</button>
+      <p id="auth-msg" class="msg" hidden></p>
+    </section>
+
+    <section id="done" class="card hidden">
+      <h2>You are in</h2>
+      <p id="done-msg"></p>
+      <p><a href="/">Open church prayers</a></p>
+    </section>
+  </main>
+  <script src="/invite.js"></script>
+</body>
+</html>

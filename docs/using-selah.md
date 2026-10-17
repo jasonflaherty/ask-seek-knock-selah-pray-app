@@ -31,16 +31,26 @@ Each person belongs to **one** group.
 1. Sign in and set a display name.
 2. Enter the church name and the group name.
 3. Tap **Create group**.
-4. Share the **invite code** (only the owner sees it) with the others.
+4. Share the **invite code** (only the owner sees it), or invite by email (below).
 
-**To ask to join a group**
+**Invite by email (pre-approved)**
+
+1. Owner opens **People and requests** in Settings.
+2. Enter their email and tap **Send invitation**.
+3. They open the link in the email (web page on your Selah site), or open the Selah app.
+4. They sign in with **that same email** (one-time code).
+5. They join the group automatically — no extra Allow step.
+
+The email link looks like `https://your-selah-host.example/invite.html?code=ABCD1234`. The code is also in the message if they prefer the app.
+
+**To ask to join with a code (not pre-approved)**
 
 1. Sign in and set a display name.
 2. Enter the invite code from the group owner.
 3. Tap **Ask to join**.
 4. Wait until the owner taps **Allow**. Until then you are not a member and sync does not start.
 
-The owner opens **People and requests** in Settings. There they see who is waiting and can **Allow** or **Do not allow**. They also see the member list (names and emails).
+In **People and requests** the owner also sees waiting code requests (**Allow** / **Do not allow**) and the member list.
 
 If you already had prayers marked Church on this phone, Selah will ask whether to share them with this church. Choose carefully. Private (Just me) prayers are never part of that question.
 

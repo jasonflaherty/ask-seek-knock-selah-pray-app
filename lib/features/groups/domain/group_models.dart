@@ -86,6 +86,31 @@ class JoinRequestSummary {
   }
 }
 
+class EmailInviteSummary {
+  const EmailInviteSummary({
+    required this.id,
+    required this.email,
+    this.status = 'pending',
+    this.expiresAt,
+  });
+
+  final String id;
+  final String email;
+  final String status;
+  final DateTime? expiresAt;
+
+  factory EmailInviteSummary.fromJson(Map<String, dynamic> json) {
+    return EmailInviteSummary(
+      id: json['id'] as String,
+      email: json['email'] as String? ?? '',
+      status: json['status'] as String? ?? 'pending',
+      expiresAt: json['expiresAt'] == null
+          ? null
+          : DateTime.tryParse('${json['expiresAt']}'),
+    );
+  }
+}
+
 class GroupMember {
   const GroupMember({
     required this.userId,

@@ -20,6 +20,10 @@ import {
   listGroupMembers,
   resolveJoinRequest,
   removeMember,
+  applyPendingEmailInvites,
+  sendEmailInvite,
+  listEmailInvites,
+  previewInviteCode,
 } from './auth.js';
 import {
   listSharedPrayers,
@@ -119,8 +123,18 @@ app.post('/api/auth/sign-out', async (req, res, next) => {
 
 app.get('/api/me', requireUser, async (req, res, next) => {
   try {
+    await applyPendingEmailInvites(req.user.id, req.user.email);
     const memberships = await getMemberships(req.user.id);
     sendUser(res, req.user, memberships);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get('/api/invite-preview', async (req, res, next) => {
+  try {
+    const preview = await previewInviteCode(req.query?.code);
+    res.json(preview);
   } catch (err) {
     next(err);
   }
@@ -205,6 +219,36 @@ app.get('/api/groups/:groupId/members', requireUser, async (req, res, next) => {
     next(err);
   }
 });
+
+app.post(
+  '/api/groups/:groupId/email-invites',
+  requireUser,
+  async (req, res, next) => {
+    try {
+      const result = await sendEmailInvite({
+        ownerUserId: req.user.id,
+        groupId: req.params.groupId,
+        emailRaw: req.body?.email,
+      });
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+app.get(
+  '/api/groups/:groupId/email-invites',
+  requireUser,
+  async (req, res, next) => {
+    try {
+      const invites = await listEmailInvites(req.user.id, req.params.groupId);
+      res.json({ invites });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 app.delete(
   '/api/groups/:groupId/members/:userId',
