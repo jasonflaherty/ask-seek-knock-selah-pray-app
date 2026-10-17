@@ -56,7 +56,7 @@ When you belong to more than one group, tap **Use** next to the group you want a
 
 ## Morning reminder and timers
 
-In **Settings → Read and pray** you can turn on a morning reminder and pick the time. The reminder says: “Read for 10 minutes, then pray for 10 minutes.”
+In **Settings → Read and pray** you can turn on a morning reminder and pick the time. The first time you turn it on (or change the time), the phone may ask to allow notifications — allow them, or the reminder will not appear. The reminder says: “Read for 10 minutes, then pray for 10 minutes.”
 
 Open **Read and pray** from the home screen or Settings:
 

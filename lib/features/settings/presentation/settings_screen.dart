@@ -331,9 +331,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _applyReminder() async {
+  Future<void> _applyReminder({bool announceDenied = false}) async {
     final prefs = ref.read(reminderPrefsProvider);
-    await ref.read(morningReminderProvider).apply(prefs);
+    final reminder = ref.read(morningReminderProvider);
+    if (prefs.enabled) {
+      final allowed = await reminder.requestPermission();
+      if (!allowed) {
+        if (announceDenied && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Allow notifications for Selah so the morning reminder can appear.',
+              ),
+            ),
+          );
+        }
+        // Still call apply so a denied grant clears any stale schedule.
+      }
+    }
+    await reminder.apply(prefs);
   }
 
   @override
@@ -419,7 +435,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   value: reminder.enabled,
                   onChanged: (v) async {
                     await ref.read(reminderPrefsProvider.notifier).setEnabled(v);
-                    await _applyReminder();
+                    await _applyReminder(announceDenied: v);
                   },
                 ),
                 ListTile(
@@ -442,7 +458,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     await ref
                         .read(reminderPrefsProvider.notifier)
                         .setTime(picked.hour, picked.minute);
-                    await _applyReminder();
+                    await _applyReminder(announceDenied: true);
                   },
                 ),
                 OutlinedButton.icon(
