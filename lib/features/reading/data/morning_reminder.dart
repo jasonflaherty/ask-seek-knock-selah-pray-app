@@ -40,28 +40,37 @@ class MorningReminder {
     _ready = true;
   }
 
-  /// Uses the phone's current UTC offset so 7:00 means 7:00 on this device.
-  /// Refreshed each time the reminder is scheduled (covers DST after reopen).
+  /// Picks a real IANA zone Android understands whose current offset matches
+  /// the phone. Custom names like "DeviceLocal" crash native scheduling.
   void _setLocalTimezone() {
     final offset = DateTime.now().timeZoneOffset;
-    final zone = tz.TimeZone(
-      offset,
-      isDst: false,
-      abbreviation: _offsetLabel(offset),
-    );
-    tz.setLocalLocation(
-      tz.Location('DeviceLocal', [tz.minTime], [0], [zone]),
-    );
+    final location = _ianaLocationForOffset(offset) ?? tz.UTC;
+    tz.setLocalLocation(location);
   }
 
-  static String _offsetLabel(Duration offset) {
-    final total = offset.inMinutes;
-    final sign = total >= 0 ? '+' : '-';
-    final abs = total.abs();
-    final h = abs ~/ 60;
-    final m = abs % 60;
-    if (m == 0) return 'UTC$sign$h';
-    return 'UTC$sign$h:${m.toString().padLeft(2, '0')}';
+  static tz.Location? _ianaLocationForOffset(Duration offset) {
+    final minutes = offset.inMinutes;
+
+    // Etc/GMT signs are inverted: Etc/GMT+7 == UTC-7.
+    if (minutes % 60 == 0) {
+      final hours = minutes ~/ 60;
+      final etcName = hours == 0
+          ? 'Etc/UTC'
+          : hours > 0
+              ? 'Etc/GMT-${hours.abs()}'
+              : 'Etc/GMT+${hours.abs()}';
+      try {
+        return tz.getLocation(etcName);
+      } catch (_) {}
+    }
+
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    for (final location in tz.timeZoneDatabase.locations.values) {
+      if (location.timeZone(nowMs).offset.inMinutes == minutes) {
+        return location;
+      }
+    }
+    return null;
   }
 
   /// Asks the OS for notification permission. Returns whether alerts are allowed.
@@ -91,68 +100,73 @@ class MorningReminder {
   }
 
   Future<void> apply(ReminderPrefs prefs) async {
-    await ensureInitialized();
-    // Refresh offset in case DST changed since the last app open.
-    _setLocalTimezone();
-    await _plugin.cancel(id: _notificationId);
-    if (!prefs.enabled) return;
+    try {
+      await ensureInitialized();
+      // Refresh offset in case DST changed since the last app open.
+      _setLocalTimezone();
+      await _plugin.cancel(id: _notificationId);
+      if (!prefs.enabled) return;
 
-    final allowed = await requestPermission();
-    if (!allowed) {
-      debugPrint('Selah reminder: notification permission not granted.');
-      return;
-    }
-
-    const androidDetails = AndroidNotificationDetails(
-      _channelId,
-      'Read and pray',
-      channelDescription: 'Morning reminder to read and pray',
-      importance: Importance.high,
-      priority: Priority.high,
-      category: AndroidNotificationCategory.reminder,
-    );
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      prefs.hour,
-      prefs.minute,
-    );
-    if (!scheduled.isAfter(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
-
-    var mode = AndroidScheduleMode.exactAllowWhileIdle;
-    if (Platform.isAndroid) {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      final canExact = await android?.canScheduleExactNotifications();
-      if (canExact == false) {
-        mode = AndroidScheduleMode.inexactAllowWhileIdle;
+      final allowed = await requestPermission();
+      if (!allowed) {
+        debugPrint('Selah reminder: notification permission not granted.');
+        return;
       }
-    }
 
-    await _plugin.zonedSchedule(
-      id: _notificationId,
-      title: 'Selah',
-      body: 'Read for 10 minutes, then pray for 10 minutes.',
-      scheduledDate: scheduled,
-      notificationDetails: details,
-      androidScheduleMode: mode,
-      matchDateTimeComponents: DateTimeComponents.time,
-      payload: reminderPayload,
-    );
+      const androidDetails = AndroidNotificationDetails(
+        _channelId,
+        'Read and pray',
+        channelDescription: 'Morning reminder to read and pray',
+        importance: Importance.high,
+        priority: Priority.high,
+        category: AndroidNotificationCategory.reminder,
+      );
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      final now = tz.TZDateTime.now(tz.local);
+      var scheduled = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        prefs.hour,
+        prefs.minute,
+      );
+      if (!scheduled.isAfter(now)) {
+        scheduled = scheduled.add(const Duration(days: 1));
+      }
+
+      var mode = AndroidScheduleMode.exactAllowWhileIdle;
+      if (Platform.isAndroid) {
+        final android = _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+        final canExact = await android?.canScheduleExactNotifications();
+        if (canExact == false) {
+          mode = AndroidScheduleMode.inexactAllowWhileIdle;
+        }
+      }
+
+      await _plugin.zonedSchedule(
+        id: _notificationId,
+        title: 'Selah',
+        body: 'Read for 10 minutes, then pray for 10 minutes.',
+        scheduledDate: scheduled,
+        notificationDetails: details,
+        androidScheduleMode: mode,
+        matchDateTimeComponents: DateTimeComponents.time,
+        payload: reminderPayload,
+      );
+    } catch (e, st) {
+      // Never block app launch if scheduling fails.
+      debugPrint('Selah reminder: could not schedule ($e)\n$st');
+    }
   }
 }

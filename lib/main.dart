@@ -26,12 +26,14 @@ Future<void> main() async {
     await db.close();
   }
 
-  final reminder = MorningReminder();
-  await reminder.apply(ReminderPrefs(
-    enabled: prefs.getBool('read_pray_reminder_enabled') ?? true,
-    hour: prefs.getInt('read_pray_reminder_hour') ?? 7,
-    minute: prefs.getInt('read_pray_reminder_minute') ?? 0,
-  ));
+  // Reminder must not block launch if the OS rejects the schedule.
+  try {
+    await MorningReminder().apply(ReminderPrefs(
+      enabled: prefs.getBool('read_pray_reminder_enabled') ?? true,
+      hour: prefs.getInt('read_pray_reminder_hour') ?? 7,
+      minute: prefs.getInt('read_pray_reminder_minute') ?? 0,
+    ));
+  } catch (_) {}
 
   runApp(
     ProviderScope(
