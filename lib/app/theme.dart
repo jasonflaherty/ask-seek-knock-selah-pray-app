@@ -207,6 +207,19 @@ abstract final class AppTheme {
         titleTextStyle: textTheme.titleLarge,
         titleSpacing: 16,
       ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: card,
+        indicatorColor: palette.selectedItemBg,
+        elevation: 0,
+        height: 64,
+        labelTextStyle: WidgetStatePropertyAll(textTheme.labelSmall),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return IconThemeData(color: primary, size: 24);
+          }
+          return IconThemeData(color: onSurfaceVariant, size: 24);
+        }),
+      ),
       cardTheme: CardThemeData(
         color: card,
         elevation: 0,

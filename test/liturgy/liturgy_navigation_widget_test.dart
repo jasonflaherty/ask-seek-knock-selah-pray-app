@@ -83,10 +83,10 @@ void main() {
   Future<void> openLiturgy(WidgetTester tester) async {
     await tester.tap(find.byTooltip('Liturgical prayers'));
     await pumpFrames(tester, 20);
-    expect(find.text('Contents'), findsOneWidget);
+    expect(find.text('Today'), findsOneWidget);
   }
 
-  testWidgets('liturgy icon sits left of settings and opens collects', (
+  testWidgets('liturgy tab sits left of settings and opens collects', (
     tester,
   ) async {
     await pumpLiturgyApp(tester);
@@ -101,7 +101,7 @@ void main() {
     expect(liturgyDx, lessThan(settingsDx));
 
     await openLiturgy(tester);
-    expect(find.text('Today'), findsOneWidget);
+    expect(find.text('Ask, Seek, Knock...'), findsNothing);
   });
 
   testWidgets('contents jump scrolls to a collect title', (tester) async {
@@ -130,11 +130,16 @@ void main() {
 
     expect(find.text('Favorites'), findsNothing);
 
-    await tester.tap(
-      find.byKey(
-        const ValueKey('favorite-today-the-second-sunday-after-trinity'),
-      ),
+    final favoriteToday = find.byKey(
+      const ValueKey('favorite-today-the-second-sunday-after-trinity'),
     );
+    await tester.scrollUntilVisible(
+      favoriteToday,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await pumpFrames(tester, 5);
+    await tester.tap(favoriteToday);
     await pumpFrames(tester, 10);
 
     expect(find.text('Favorites'), findsWidgets);

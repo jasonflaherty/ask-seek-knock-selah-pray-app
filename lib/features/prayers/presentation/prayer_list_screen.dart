@@ -45,28 +45,6 @@ class PrayerListScreen extends ConsumerWidget {
             fontWeight: FontWeight.w400,
           ),
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Read and pray',
-            icon: const Icon(Symbols.auto_stories),
-            onPressed: () => context.push('/read-pray'),
-          ),
-          IconButton(
-            tooltip: 'Prayer timer',
-            icon: const Icon(Symbols.timer),
-            onPressed: () => context.push('/silence'),
-          ),
-          IconButton(
-            tooltip: 'Liturgical prayers',
-            icon: const Icon(Symbols.folded_hands),
-            onPressed: () => context.push('/liturgy'),
-          ),
-          IconButton(
-            tooltip: 'Settings',
-            icon: const Icon(Symbols.settings),
-            onPressed: () => context.push('/settings'),
-          ),
-        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/prayers/new'),
