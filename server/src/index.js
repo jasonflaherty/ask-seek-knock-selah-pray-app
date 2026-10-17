@@ -10,6 +10,7 @@ import {
   revokeToken,
   setDisplayName,
   createGroup,
+  updateGroupNames,
   requestJoinGroup,
   leaveGroup,
   deleteGroup,
@@ -190,6 +191,20 @@ app.post('/api/groups/leave', requireUser, async (req, res, next) => {
       throw err;
     }
     const memberships = await leaveGroup(req.user.id, groupId);
+    sendUser(res, req.user, memberships);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.patch('/api/groups/:groupId', requireUser, async (req, res, next) => {
+  try {
+    const memberships = await updateGroupNames({
+      userId: req.user.id,
+      groupId: req.params.groupId,
+      churchName: req.body?.churchName,
+      groupName: req.body?.groupName,
+    });
     sendUser(res, req.user, memberships);
   } catch (err) {
     next(err);

@@ -8,12 +8,12 @@ import 'group_sync_service.dart';
 
 final groupSessionProvider =
     StateNotifierProvider<GroupSessionNotifier, GroupSessionState>((ref) {
-  return GroupSessionNotifier(
-    api: ref.watch(selahApiProvider),
-    prefs: ref.watch(sharedPreferencesProvider),
-    sync: ref.watch(groupSyncServiceProvider),
-  );
-});
+      return GroupSessionNotifier(
+        api: ref.watch(selahApiProvider),
+        prefs: ref.watch(sharedPreferencesProvider),
+        sync: ref.watch(groupSyncServiceProvider),
+      );
+    });
 
 class GroupSessionState {
   const GroupSessionState({
@@ -69,10 +69,10 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
     required SelahApi api,
     required SharedPreferences prefs,
     required GroupSyncService sync,
-  })  : _api = api,
-        _prefs = prefs,
-        _sync = sync,
-        super(const GroupSessionState()) {
+  }) : _api = api,
+       _prefs = prefs,
+       _sync = sync,
+       super(const GroupSessionState()) {
     _restore();
   }
 
@@ -202,6 +202,37 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
     }
   }
 
+  Future<void> updateGroupNames({
+    required String groupId,
+    required String churchName,
+    required String groupName,
+  }) async {
+    final session = state.session;
+    if (session == null) return;
+    state = state.copyWith(loading: true, clearError: true);
+    try {
+      final next = await _api.updateGroupNames(
+        session.token,
+        groupId: groupId,
+        churchName: churchName,
+        groupName: groupName,
+      );
+      await _applySession(
+        next,
+        pendingChurchUpload: state.pendingChurchUploadConfirm,
+      );
+    } catch (e) {
+      state = state.copyWith(loading: false, error: '$e');
+      rethrow;
+    }
+  }
+
+  Future<void> refreshRequests() async {
+    final session = state.session;
+    if (session == null) return;
+    await _refreshRequests(session);
+  }
+
   Future<JoinRequestSummary?> requestJoin(String inviteCode) async {
     final session = state.session;
     if (session == null) return null;
@@ -217,8 +248,8 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
         pendingChurchUpload: joined
             ? true
             : (result.session.hasGroup
-                ? state.pendingChurchUploadConfirm
-                : false),
+                  ? state.pendingChurchUploadConfirm
+                  : false),
       );
       if (result.session.hasGroup) {
         await _sync.syncNow(result.session);
@@ -268,8 +299,9 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
       }
       await _applySession(
         next,
-        pendingChurchUpload:
-            next.hasGroup ? state.pendingChurchUploadConfirm : false,
+        pendingChurchUpload: next.hasGroup
+            ? state.pendingChurchUploadConfirm
+            : false,
       );
     } catch (e) {
       state = state.copyWith(loading: false, error: '$e');
@@ -288,8 +320,9 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
       }
       await _applySession(
         next,
-        pendingChurchUpload:
-            next.hasGroup ? state.pendingChurchUploadConfirm : false,
+        pendingChurchUpload: next.hasGroup
+            ? state.pendingChurchUploadConfirm
+            : false,
       );
     } catch (e) {
       state = state.copyWith(loading: false, error: '$e');
@@ -337,11 +370,7 @@ class GroupSessionNotifier extends StateNotifier<GroupSessionState> {
   }) async {
     final session = state.session;
     if (session == null) return;
-    await _api.removeMember(
-      session.token,
-      groupId: groupId,
-      userId: userId,
-    );
+    await _api.removeMember(session.token, groupId: groupId, userId: userId);
   }
 
   Future<void> confirmChurchUpload() async {

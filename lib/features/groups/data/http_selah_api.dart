@@ -8,11 +8,11 @@ import '../domain/selah_api.dart';
 
 class HttpSelahApi implements SelahApi {
   HttpSelahApi({http.Client? client, String? baseUrl})
-      : _client = client ?? http.Client(),
-        _baseUrl = (baseUrl ?? AppConfig.selahApiBaseUrl).replaceAll(
-          RegExp(r'/+$'),
-          '',
-        );
+    : _client = client ?? http.Client(),
+      _baseUrl = (baseUrl ?? AppConfig.selahApiBaseUrl).replaceAll(
+        RegExp(r'/+$'),
+        '',
+      );
 
   final http.Client _client;
   final String _baseUrl;
@@ -155,6 +155,22 @@ class HttpSelahApi implements SelahApi {
   }
 
   @override
+  Future<AuthSession> updateGroupNames(
+    String token, {
+    required String groupId,
+    required String churchName,
+    required String groupName,
+  }) async {
+    final data = await _json(
+      'PATCH',
+      '/api/groups/$groupId',
+      token: token,
+      body: {'churchName': churchName, 'groupName': groupName},
+    );
+    return _session(data, token: token);
+  }
+
+  @override
   Future<({AuthSession session, JoinRequestSummary? request})> requestJoin(
     String token,
     String inviteCode,
@@ -224,20 +240,12 @@ class HttpSelahApi implements SelahApi {
 
   @override
   Future<void> allowJoinRequest(String token, String requestId) async {
-    await _json(
-      'POST',
-      '/api/join-requests/$requestId/allow',
-      token: token,
-    );
+    await _json('POST', '/api/join-requests/$requestId/allow', token: token);
   }
 
   @override
   Future<void> denyJoinRequest(String token, String requestId) async {
-    await _json(
-      'POST',
-      '/api/join-requests/$requestId/deny',
-      token: token,
-    );
+    await _json('POST', '/api/join-requests/$requestId/deny', token: token);
   }
 
   @override
@@ -289,16 +297,12 @@ class HttpSelahApi implements SelahApi {
     required String groupId,
     required String userId,
   }) async {
-    await _json(
-      'DELETE',
-      '/api/groups/$groupId/members/$userId',
-      token: token,
-    );
+    await _json('DELETE', '/api/groups/$groupId/members/$userId', token: token);
   }
 
   @override
   Future<({List<RemoteSharedPrayer> prayers, List<RemoteTombstone> tombstones})>
-      pullPrayers(String token) async {
+  pullPrayers(String token) async {
     final data = await _json('GET', '/api/prayers', token: token);
     final prayers = (data['prayers'] as List? ?? [])
         .whereType<Map>()
@@ -323,9 +327,7 @@ class HttpSelahApi implements SelahApi {
       token: token,
       body: body,
     );
-    return RemoteSharedPrayer.fromJson(
-      data['prayer'] as Map<String, dynamic>,
-    );
+    return RemoteSharedPrayer.fromJson(data['prayer'] as Map<String, dynamic>);
   }
 
   @override

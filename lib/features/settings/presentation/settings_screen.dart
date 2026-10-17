@@ -42,9 +42,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _codeSent = false;
 
   TestDataImporter get _importer => TestDataImporter(
-        ref.read(prayerRepositoryProvider),
-        ref.read(sharedPreferencesProvider),
-      );
+    ref.read(prayerRepositoryProvider),
+    ref.read(sharedPreferencesProvider),
+  );
 
   PrayerBackupService get _backup =>
       PrayerBackupService(ref.read(prayerRepositoryProvider));
@@ -86,6 +86,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _saveGroupNames(
+    String groupId,
+    String churchName,
+    String groupName,
+  ) {
+    return _run(() async {
+      await ref
+          .read(groupSessionProvider.notifier)
+          .updateGroupNames(
+            groupId: groupId,
+            churchName: churchName,
+            groupName: groupName,
+          );
+      if (!mounted) return;
+      announceForAccessibility(context, 'Church and group name saved');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Church and group name saved')),
+      );
+    });
   }
 
   Future<void> _showOwnerPanel(String groupId) async {
@@ -347,7 +368,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   value: reminder.enabled,
                   onChanged: (v) async {
-                    await ref.read(reminderPrefsProvider.notifier).setEnabled(v);
+                    await ref
+                        .read(reminderPrefsProvider.notifier)
+                        .setEnabled(v);
                     await _applyReminder(announceDenied: v);
                   },
                 ),
@@ -401,16 +424,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onPressed: _busy
                         ? null
                         : () => _run(() async {
-                              await ref
-                                  .read(groupSessionProvider.notifier)
-                                  .requestCode(_emailController.text);
-                              setState(() => _codeSent = true);
-                              if (!mounted) return;
-                              announceForAccessibility(
-                                context,
-                                'Sign-in code sent',
-                              );
-                            }),
+                            await ref
+                                .read(groupSessionProvider.notifier)
+                                .requestCode(_emailController.text);
+                            setState(() => _codeSent = true);
+                            if (!mounted) return;
+                            announceForAccessibility(
+                              context,
+                              'Sign-in code sent',
+                            );
+                          }),
                     child: const Text('Send sign-in code'),
                   ),
                   if (_codeSent) ...[
@@ -428,15 +451,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onPressed: _busy
                           ? null
                           : () => _run(() async {
-                                await ref
-                                    .read(groupSessionProvider.notifier)
-                                    .verifyCode(
-                                      _emailController.text,
-                                      _codeController.text,
-                                    );
-                                if (!mounted) return;
-                                announceForAccessibility(context, 'Signed in');
-                              }),
+                              await ref
+                                  .read(groupSessionProvider.notifier)
+                                  .verifyCode(
+                                    _emailController.text,
+                                    _codeController.text,
+                                  );
+                              if (!mounted) return;
+                              announceForAccessibility(context, 'Signed in');
+                            }),
                       child: const Text('Sign in'),
                     ),
                   ],
@@ -463,10 +486,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onPressed: _busy
                         ? null
                         : () => _run(() async {
-                              await ref
-                                  .read(groupSessionProvider.notifier)
-                                  .setDisplayName(_displayNameController.text);
-                            }),
+                            await ref
+                                .read(groupSessionProvider.notifier)
+                                .setDisplayName(_displayNameController.text);
+                          }),
                     child: const Text('Save display name'),
                   ),
                   const SizedBox(height: 16),
@@ -484,8 +507,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: Padding(
-                            padding:
-                                const EdgeInsets.all(AppTheme.cardPadding),
+                            padding: const EdgeInsets.all(AppTheme.cardPadding),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -504,6 +526,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     style: theme.textTheme.bodySmall,
                                   ),
                                 ],
+                                if (m.isOwner) ...[
+                                  const SizedBox(height: 12),
+                                  _RenameGroupForm(
+                                    groupId: m.groupId,
+                                    churchName: m.churchName,
+                                    groupName: m.groupName,
+                                    busy: _busy,
+                                    onSave: (church, group) => _saveGroupNames(
+                                      m.groupId,
+                                      church,
+                                      group,
+                                    ),
+                                  ),
+                                ],
                                 const SizedBox(height: 8),
                                 if (m.isOwner)
                                   OutlinedButton(
@@ -517,13 +553,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     onPressed: _busy
                                         ? null
                                         : () => _run(() async {
-                                              await ref
-                                                  .read(
-                                                    groupSessionProvider
-                                                        .notifier,
-                                                  )
-                                                  .leaveGroup(m.groupId);
-                                            }),
+                                            await ref
+                                                .read(
+                                                  groupSessionProvider.notifier,
+                                                )
+                                                .leaveGroup(m.groupId);
+                                          }),
                                     child: const Text('Leave group'),
                                   ),
                                 if (m.isOwner)
@@ -533,8 +568,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         : () async {
                                             final ok = await showDialog<bool>(
                                               context: context,
-                                              builder: (context) =>
-                                                  AlertDialog(
+                                              builder: (context) => AlertDialog(
                                                 title: const Text(
                                                   'Delete group?',
                                                 ),
@@ -547,17 +581,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                                   TextButton(
                                                     onPressed: () =>
                                                         Navigator.pop(
-                                                      context,
-                                                      false,
-                                                    ),
+                                                          context,
+                                                          false,
+                                                        ),
                                                     child: const Text('Cancel'),
                                                   ),
                                                   FilledButton(
                                                     onPressed: () =>
                                                         Navigator.pop(
-                                                      context,
-                                                      true,
-                                                    ),
+                                                          context,
+                                                          true,
+                                                        ),
                                                     child: const Text('Delete'),
                                                   ),
                                                 ],
@@ -628,13 +662,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onPressed: _busy
                           ? null
                           : () => _run(() async {
-                                await ref
-                                    .read(groupSessionProvider.notifier)
-                                    .createGroup(
-                                      churchName: _churchNameController.text,
-                                      groupName: _groupNameController.text,
-                                    );
-                              }),
+                              await ref
+                                  .read(groupSessionProvider.notifier)
+                                  .createGroup(
+                                    churchName: _churchNameController.text,
+                                    groupName: _groupNameController.text,
+                                  );
+                            }),
                       child: const Text('Create group'),
                     ),
                     const SizedBox(height: 16),
@@ -655,7 +689,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   .read(groupSessionProvider.notifier)
                                   .requestJoin(_inviteController.text);
                               if (!mounted) return;
-                              final joined = result?.status == 'joined' ||
+                              final joined =
+                                  result?.status == 'joined' ||
                                   ref.read(groupSessionProvider).hasGroup;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -666,7 +701,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ),
                                 ),
                               );
-                              }),
+                            }),
                       child: const Text('Ask to join'),
                     ),
                   ],
@@ -676,15 +711,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onPressed: _busy
                           ? null
                           : () => _run(() async {
-                                await ref
-                                    .read(groupSessionProvider.notifier)
-                                    .syncNow();
-                                if (!mounted) return;
-                                announceForAccessibility(context, 'Synced');
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Synced')),
-                                );
-                              }),
+                              await ref
+                                  .read(groupSessionProvider.notifier)
+                                  .syncNow();
+                              if (!mounted) return;
+                              announceForAccessibility(context, 'Synced');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Synced')),
+                              );
+                            }),
                       icon: const Icon(Symbols.sync),
                       label: const Text('Sync now'),
                     ),
@@ -712,20 +747,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               onPressed: _busy
                                   ? null
                                   : () => _run(() async {
-                                        await ref
-                                            .read(
-                                              groupSessionProvider.notifier,
-                                            )
-                                            .confirmChurchUpload();
-                                      }),
+                                      await ref
+                                          .read(groupSessionProvider.notifier)
+                                          .confirmChurchUpload();
+                                    }),
                               child: const Text('Share them'),
                             ),
                             TextButton(
                               onPressed: _busy
                                   ? null
                                   : () => ref
-                                      .read(groupSessionProvider.notifier)
-                                      .declineChurchUpload(),
+                                        .read(groupSessionProvider.notifier)
+                                        .declineChurchUpload(),
                               child: const Text('Keep them on this phone'),
                             ),
                           ],
@@ -738,11 +771,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onPressed: _busy
                         ? null
                         : () => _run(() async {
-                              await ref
-                                  .read(groupSessionProvider.notifier)
-                                  .signOut();
-                              setState(() => _codeSent = false);
-                            }),
+                            await ref
+                                .read(groupSessionProvider.notifier)
+                                .signOut();
+                            setState(() => _codeSent = false);
+                          }),
                     icon: const Icon(Symbols.logout),
                     label: const Text('Sign out'),
                   ),
@@ -817,8 +850,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     _busy && !_loaded
                         ? 'Importing…'
                         : _loaded
-                            ? 'Test data already loaded'
-                            : 'Import test data',
+                        ? 'Test data already loaded'
+                        : 'Import test data',
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -857,6 +890,88 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 }
 
+/// Church and group names belong to the owner. Controllers live here so
+/// they are not disposed with the create-group fields.
+class _RenameGroupForm extends StatefulWidget {
+  const _RenameGroupForm({
+    required this.groupId,
+    required this.churchName,
+    required this.groupName,
+    required this.busy,
+    required this.onSave,
+  });
+
+  final String groupId;
+  final String churchName;
+  final String groupName;
+  final bool busy;
+  final Future<void> Function(String churchName, String groupName) onSave;
+
+  @override
+  State<_RenameGroupForm> createState() => _RenameGroupFormState();
+}
+
+class _RenameGroupFormState extends State<_RenameGroupForm> {
+  late final TextEditingController _church = TextEditingController(
+    text: widget.churchName,
+  );
+  late final TextEditingController _group = TextEditingController(
+    text: widget.groupName,
+  );
+
+  @override
+  void didUpdateWidget(_RenameGroupForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.groupId != widget.groupId) {
+      _church.text = widget.churchName;
+      _group.text = widget.groupName;
+      return;
+    }
+    if (_church.text == oldWidget.churchName) {
+      _church.text = widget.churchName;
+    }
+    if (_group.text == oldWidget.groupName) {
+      _group.text = widget.groupName;
+    }
+  }
+
+  @override
+  void dispose() {
+    _church.dispose();
+    _group.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: _church,
+          enabled: !widget.busy,
+          decoration: const InputDecoration(labelText: 'Church name'),
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _group,
+          enabled: !widget.busy,
+          decoration: const InputDecoration(labelText: 'Group name'),
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: widget.busy
+              ? null
+              : () => widget.onSave(_church.text, _group.text),
+          child: const Text('Save names'),
+        ),
+      ],
+    );
+  }
+}
+
 /// Owns the invite field so it is disposed with the sheet, not during pop.
 class _OwnerPanelSheet extends ConsumerStatefulWidget {
   const _OwnerPanelSheet({required this.groupId});
@@ -878,7 +993,10 @@ class _OwnerPanelSheetState extends ConsumerState<_OwnerPanelSheet> {
   @override
   void initState() {
     super.initState();
-    _reload();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadPanel();
+    });
   }
 
   @override
@@ -887,9 +1005,22 @@ class _OwnerPanelSheetState extends ConsumerState<_OwnerPanelSheet> {
     super.dispose();
   }
 
+  Future<void> _loadPanel() async {
+    try {
+      await _reload();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _busy = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
   Future<void> _reload() async {
     final notifier = ref.read(groupSessionProvider.notifier);
-    await notifier.syncNow();
+    await notifier.refreshRequests();
     if (!mounted) return;
     final members = await notifier.listMembers(widget.groupId);
     if (!mounted) return;
@@ -900,6 +1031,7 @@ class _OwnerPanelSheetState extends ConsumerState<_OwnerPanelSheet> {
         .incomingJoinRequests
         .where((r) => r.groupId == widget.groupId)
         .toList();
+    if (!mounted) return;
     setState(() {
       _members = members;
       _emailInvites = emailInvites;
@@ -970,18 +1102,15 @@ class _OwnerPanelSheetState extends ConsumerState<_OwnerPanelSheet> {
                                   onPressed: _busy
                                       ? null
                                       : () => _run(
-                                            () => notifier.removeMember(
-                                              groupId: widget.groupId,
-                                              userId: m.userId,
-                                            ),
+                                          () => notifier.removeMember(
+                                            groupId: widget.groupId,
+                                            userId: m.userId,
                                           ),
+                                        ),
                                 ),
                         ),
                     const SizedBox(height: 16),
-                    Text(
-                      'Invite by email',
-                      style: theme.textTheme.titleMedium,
-                    ),
+                    Text('Invite by email', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
                       'They sign in with that email (web link or app) and join '
@@ -1025,10 +1154,7 @@ class _OwnerPanelSheetState extends ConsumerState<_OwnerPanelSheet> {
                         style: theme.textTheme.titleSmall,
                       ),
                       for (final inv in _emailInvites)
-                        Text(
-                          inv.email,
-                          style: theme.textTheme.bodySmall,
-                        ),
+                        Text(inv.email, style: theme.textTheme.bodySmall),
                     ],
                     const SizedBox(height: 16),
                     Text('Requests', style: theme.textTheme.titleMedium),
@@ -1050,17 +1176,16 @@ class _OwnerPanelSheetState extends ConsumerState<_OwnerPanelSheet> {
                                 onPressed: _busy
                                     ? null
                                     : () => _run(
-                                          () => notifier.denyJoinRequest(r.id),
-                                        ),
+                                        () => notifier.denyJoinRequest(r.id),
+                                      ),
                                 child: const Text('Do not allow'),
                               ),
                               FilledButton(
                                 onPressed: _busy
                                     ? null
                                     : () => _run(
-                                          () =>
-                                              notifier.allowJoinRequest(r.id),
-                                        ),
+                                        () => notifier.allowJoinRequest(r.id),
+                                      ),
                                 child: const Text('Allow'),
                               ),
                             ],

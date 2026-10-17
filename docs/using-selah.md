@@ -33,6 +33,8 @@ Each person belongs to **one** group.
 3. Tap **Create group**.
 4. Share the **invite code** (only the owner sees it), or invite by email (below).
 
+The owner can change the church name and the group name later in Settings. Tap **Save names**. Everyone in the group sees the new names.
+
 **Invite by email (pre-approved)**
 
 1. Owner opens **People and requests** in Settings.

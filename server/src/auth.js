@@ -62,6 +62,28 @@ export function normalizeEmail(email) {
     .toLowerCase();
 }
 
+function cleanDisplayName(value) {
+  return String(value || '')
+    .replace(/[\r\n\u0000]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Prefer a display name on the envelope. Fall back to the bare address. */
+function mailbox(email, displayName) {
+  const name = cleanDisplayName(displayName);
+  if (!name) return email;
+  return { name, address: email };
+}
+
+async function displayNameForEmail(email) {
+  const { rows } = await query(
+    'SELECT display_name FROM users WHERE email = $1',
+    [email],
+  );
+  return cleanDisplayName(rows[0]?.display_name);
+}
+
 export function mapMembership(row) {
   return {
     role: row.role,
@@ -101,10 +123,12 @@ export async function requestLoginCode(emailRaw) {
     [email, hash(code), expires.toISOString()],
   );
 
+  const displayName = await displayNameForEmail(email);
+  const greeting = displayName ? `Hi ${displayName},\n\n` : '';
   await sendMail({
-    to: email,
+    to: mailbox(email, displayName),
     subject: 'Your Selah sign-in code',
-    text: `Your Selah sign-in code is ${code}. It expires in 10 minutes.`,
+    text: `${greeting}Your Selah sign-in code is ${code}. It expires in 10 minutes.`,
   });
 
   return { ok: true, cooldownMs: CODE_COOLDOWN_MS };
@@ -370,6 +394,47 @@ export async function createGroup({ userId, churchName, groupName }) {
   return getMemberships(userId);
 }
 
+export async function updateGroupNames({
+  userId,
+  groupId,
+  churchName,
+  groupName,
+}) {
+  const membership = await getMembership(userId, groupId);
+  if (!membership || membership.role !== 'owner') {
+    const err = new Error('Only the group owner can change these names.');
+    err.status = 403;
+    throw err;
+  }
+
+  const church = String(churchName || '').trim().slice(0, 120);
+  const group = String(groupName || '').trim().slice(0, 120);
+  if (!church || !group) {
+    const err = new Error('Church name and group name are required.');
+    err.status = 400;
+    throw err;
+  }
+
+  await withClient(async (client) => {
+    await client.query('BEGIN');
+    try {
+      await client.query('UPDATE churches SET name = $1 WHERE id = $2', [
+        church,
+        membership.church_id,
+      ]);
+      await client.query('UPDATE groups SET name = $1 WHERE id = $2', [
+        group,
+        groupId,
+      ]);
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    }
+  });
+  return getMemberships(userId);
+}
+
 export async function requestJoinGroup({ userId, inviteCodeRaw }) {
   const userRes = await query('SELECT * FROM users WHERE id = $1', [userId]);
   if (!userRes.rows.length) {
@@ -568,12 +633,19 @@ export async function sendEmailInvite({ ownerUserId, groupId, emailRaw }) {
         ownerUserId,
       ])
     ).rows[0] || {};
-  const who = String(ownerName.display_name || '').trim() || ownerName.email;
+  const ownerDisplay = cleanDisplayName(ownerName.display_name);
+  const who = ownerDisplay || ownerName.email;
+  const inviteeName = await displayNameForEmail(email);
+  const hello = inviteeName ? `Hi ${inviteeName},` : 'Hello,';
 
   await sendMail({
-    to: email,
-    subject: `You're invited to ${ownership.group_name} on Selah`,
+    to: mailbox(email, inviteeName),
+    subject: ownerDisplay
+      ? `${ownerDisplay} invited you to ${ownership.group_name} on Selah`
+      : `You're invited to ${ownership.group_name} on Selah`,
     text: [
+      hello,
+      '',
       `${who} invited you to join ${ownership.group_name} (${ownership.church_name}) on Selah.`,
       '',
       '1. Open this link on your phone or computer:',

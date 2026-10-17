@@ -22,6 +22,12 @@ abstract class SelahApi {
     required String churchName,
     required String groupName,
   });
+  Future<AuthSession> updateGroupNames(
+    String token, {
+    required String groupId,
+    required String churchName,
+    required String groupName,
+  });
 
   /// Asks to join, or joins immediately if this email was pre-approved.
   Future<({AuthSession session, JoinRequestSummary? request})> requestJoin(
@@ -54,7 +60,7 @@ abstract class SelahApi {
   });
 
   Future<({List<RemoteSharedPrayer> prayers, List<RemoteTombstone> tombstones})>
-      pullPrayers(String token);
+  pullPrayers(String token);
   Future<RemoteSharedPrayer> pushPrayer(
     String token,
     Map<String, dynamic> body,
