@@ -58,4 +58,28 @@ void main() {
     // Monday after Advent 1 2024 (1 Dec was Sunday).
     expect(calendar.dayKey(DateTime(2024, 12, 2)), 'advent-1');
   });
+
+  test('Trinity week holds the Sunday collect, then advances', () {
+    // 11 Oct 2026 is the Nineteenth Sunday after Trinity.
+    for (var day = 11; day <= 17; day++) {
+      final today = calendar.todayAt(DateTime(2026, 10, day, 9));
+      expect(today.calendarKey, 'trinity-19', reason: 'October $day');
+      expect(today.label, 'The Nineteenth Sunday after Trinity');
+    }
+
+    final nextSunday = calendar.todayAt(DateTime(2026, 10, 18, 9));
+    expect(nextSunday.calendarKey, 'trinity-20');
+    expect(nextSunday.label, 'The Twentieth Sunday after Trinity');
+  });
+
+  test('today refreshes at 5pm and at midnight', () {
+    expect(
+      calendar.nextRefresh(DateTime(2026, 10, 17, 9)),
+      DateTime(2026, 10, 17, 17),
+    );
+    expect(
+      calendar.nextRefresh(DateTime(2026, 10, 17, 17)),
+      DateTime(2026, 10, 18),
+    );
+  });
 }

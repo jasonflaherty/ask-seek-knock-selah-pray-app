@@ -46,12 +46,15 @@ final _liturgyPrayers = LiturgyCatalog.parse(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<void> pumpLiturgyApp(WidgetTester tester) async {
+  Future<ProviderContainer> pumpLiturgyApp(
+    WidgetTester tester, {
+    FakeClock? clock,
+  }) async {
     VisibilityDetectorController.instance.updateInterval = Duration.zero;
     SharedPreferences.setMockInitialValues({});
     appRouter.go('/');
     final prefs = await SharedPreferences.getInstance();
-    final clock = FakeClock(DateTime(2024, 6, 15, 12));
+    clock ??= FakeClock(DateTime(2024, 6, 15, 12));
     final repository = FakePrayerRepository(clock);
 
     final container = ProviderContainer(
@@ -78,6 +81,8 @@ void main() {
       container.dispose();
       repository.dispose();
     });
+
+    return container;
   }
 
   Future<void> openLiturgy(WidgetTester tester) async {
@@ -149,5 +154,60 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  Text todayLabel(WidgetTester tester) {
+    return tester.widget<Text>(
+      find.byKey(const ValueKey('liturgy-today-label')),
+    );
+  }
+
+  testWidgets('today stays on the cached day until the app resumes', (
+    tester,
+  ) async {
+    final clock = FakeClock(DateTime(2026, 10, 17, 9));
+    await pumpLiturgyApp(tester, clock: clock);
+    await openLiturgy(tester);
+
+    expect(todayLabel(tester).data, 'The Nineteenth Sunday after Trinity');
+    expect(
+      find.byKey(
+        const ValueKey('favorite-today-the-nineteenth-sunday-after-trinity'),
+      ),
+      findsOneWidget,
+    );
+
+    clock.set(DateTime(2026, 10, 18, 9));
+    await pumpFrames(tester, 5);
+    expect(todayLabel(tester).data, 'The Nineteenth Sunday after Trinity');
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await pumpFrames(tester, 5);
+
+    expect(todayLabel(tester).data, 'The Twentieth Sunday after Trinity');
+    expect(
+      find.byKey(
+        const ValueKey('favorite-today-the-twentieth-sunday-after-trinity'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('today advances when the refresh timer fires', (tester) async {
+    final clock = FakeClock(DateTime(2026, 10, 17, 23, 59, 50), true);
+    final container = await pumpLiturgyApp(tester, clock: clock);
+    await openLiturgy(tester);
+    expect(todayLabel(tester).data, 'The Nineteenth Sunday after Trinity');
+
+    clock.set(DateTime(2026, 10, 18, 0, 1));
+    await tester.pump(const Duration(seconds: 10));
+    await pumpFrames(tester, 5);
+
+    expect(todayLabel(tester).data, 'The Twentieth Sunday after Trinity');
+
+    // Cancel the next-boundary timer before the framework checks for leftovers.
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
   });
 }

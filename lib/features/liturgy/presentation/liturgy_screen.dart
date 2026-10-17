@@ -75,8 +75,7 @@ class _LiturgyBodyState extends ConsumerState<_LiturgyBody> {
   final Map<String, GlobalKey> _prayerKeys = {};
   final Map<String, GlobalKey> _sectionKeys = {};
 
-  GlobalKey _prayerKey(String id) =>
-      _prayerKeys.putIfAbsent(id, GlobalKey.new);
+  GlobalKey _prayerKey(String id) => _prayerKeys.putIfAbsent(id, GlobalKey.new);
 
   GlobalKey _sectionKey(String section) =>
       _sectionKeys.putIfAbsent(section, GlobalKey.new);
@@ -135,6 +134,7 @@ class _LiturgyBodyState extends ConsumerState<_LiturgyBody> {
                 const SizedBox(height: 4),
                 Text(
                   today.label,
+                  key: const ValueKey('liturgy-today-label'),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -323,13 +323,16 @@ class _TocLink extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(indent ? 16 : 0, 8, 0, 8),
             child: Text(
               label,
-              style: (isSection
-                      ? theme.textTheme.titleSmall
-                      : theme.textTheme.bodyLarge)
-                  ?.copyWith(
-                fontWeight: isSection ? FontWeight.w600 : FontWeight.w400,
-                color: theme.colorScheme.primary,
-              ),
+              style:
+                  (isSection
+                          ? theme.textTheme.titleSmall
+                          : theme.textTheme.bodyLarge)
+                      ?.copyWith(
+                        fontWeight: isSection
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: theme.colorScheme.primary,
+                      ),
             ),
           ),
         ),

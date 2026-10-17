@@ -64,6 +64,16 @@ class LiturgicalCalendar {
     return _sundayKey(sunday);
   }
 
+  /// Next local instant when [todayAt] should be read again.
+  ///
+  /// Morning office becomes Evening at [morningCutoffHour]. Any selection
+  /// can change at the next local midnight.
+  DateTime nextRefresh(DateTime now) {
+    final cutoff = DateTime(now.year, now.month, now.day, morningCutoffHour);
+    if (now.isBefore(cutoff)) return cutoff;
+    return DateTime(now.year, now.month, now.day + 1);
+  }
+
   /// Prayer ids for the Today banner at [now].
   ///
   /// Date/Sunday collects replace office collects. Ordinary days without a

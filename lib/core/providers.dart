@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -90,16 +92,52 @@ final liturgicalCalendarProvider = Provider<LiturgicalCalendar>((ref) {
   return const LiturgicalCalendar();
 });
 
-final liturgyTodayProvider = Provider<TodaySelection>((ref) {
+final liturgyTodayProvider = Provider.autoDispose<TodaySelection>((ref) {
   final calendar = ref.watch(liturgicalCalendarProvider);
-  final now = ref.watch(clockProvider).now();
+  final clock = ref.watch(clockProvider);
+  final now = clock.now();
+
+  // The selection is cached while Liturgy stays mounted. Re-read the clock
+  // at the next office or midnight boundary, and again when the app resumes.
+  var alive = true;
+  ref.onDispose(() => alive = false);
+
+  if (clock.followsWallClock) {
+    var delay = calendar.nextRefresh(now).difference(now);
+    if (delay < const Duration(seconds: 1)) {
+      delay = const Duration(seconds: 1);
+    }
+    final timer = Timer(delay, () {
+      if (alive) ref.invalidateSelf();
+    });
+    ref.onDispose(timer.cancel);
+  }
+
+  final binding = WidgetsBinding.instance;
+  final observer = _LiturgyTodayResumeObserver(() {
+    if (alive) ref.invalidateSelf();
+  });
+  binding.addObserver(observer);
+  ref.onDispose(() => binding.removeObserver(observer));
+
   return calendar.todayAt(now);
 });
 
+class _LiturgyTodayResumeObserver extends WidgetsBindingObserver {
+  _LiturgyTodayResumeObserver(this._onResume);
+
+  final void Function() _onResume;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _onResume();
+  }
+}
+
 final liturgyFavoritesProvider =
     StateNotifierProvider<LiturgyFavoritesNotifier, Set<String>>((ref) {
-  return LiturgyFavoritesNotifier(ref.watch(sharedPreferencesProvider));
-});
+      return LiturgyFavoritesNotifier(ref.watch(sharedPreferencesProvider));
+    });
 
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
   ref,
@@ -117,15 +155,18 @@ final homeMeditationCatalogProvider = Provider<HomeMeditationCatalog>((ref) {
   return HomeMeditationCatalog();
 });
 
-final homeMeditationVersesProvider =
-    FutureProvider<List<HomeMeditationVerse>>((ref) async {
+final homeMeditationVersesProvider = FutureProvider<List<HomeMeditationVerse>>((
+  ref,
+) async {
   return ref.watch(homeMeditationCatalogProvider).load();
 });
 
-final homeMeditationOffsetProvider = StateNotifierProvider<
-    HomeMeditationOffsetNotifier, HomeMeditationOffset>((ref) {
-  return HomeMeditationOffsetNotifier(ref.watch(sharedPreferencesProvider));
-});
+final homeMeditationOffsetProvider =
+    StateNotifierProvider<HomeMeditationOffsetNotifier, HomeMeditationOffset>((
+      ref,
+    ) {
+      return HomeMeditationOffsetNotifier(ref.watch(sharedPreferencesProvider));
+    });
 
 /// Scripture for the journal home banner on the local calendar day.
 final homeMeditationTodayProvider = Provider<HomeMeditationVerse?>((ref) {
@@ -133,8 +174,7 @@ final homeMeditationTodayProvider = Provider<HomeMeditationVerse?>((ref) {
   if (verses == null) return null;
   final now = ref.watch(clockProvider).now();
   final stored = ref.watch(homeMeditationOffsetProvider);
-  final offset =
-      stored.dayKey == homeMeditationDayKey(now) ? stored.offset : 0;
+  final offset = stored.dayKey == homeMeditationDayKey(now) ? stored.offset : 0;
   return homeMeditationForDay(verses, now, offset: offset);
 });
 
