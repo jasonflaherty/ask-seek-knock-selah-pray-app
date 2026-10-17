@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../app/settings_app_bar_action.dart';
 import '../../../app/theme.dart';
 import '../application/silence_session_notifier.dart';
 import '../application/silence_session_state.dart';
@@ -35,6 +36,7 @@ class SilenceScreen extends ConsumerWidget {
               fontWeight: FontWeight.w400,
             ),
           ),
+          actions: const [SettingsAppBarAction()],
         ),
         body: SafeArea(
           child: Align(

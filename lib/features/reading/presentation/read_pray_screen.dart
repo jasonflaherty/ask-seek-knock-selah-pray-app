@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/settings_app_bar_action.dart';
 import '../../../app/theme.dart';
 import '../../groups/application/group_session_notifier.dart';
 import '../application/read_pray_session_notifier.dart';
@@ -30,6 +31,7 @@ class ReadPrayScreen extends ConsumerWidget {
               fontWeight: FontWeight.w400,
             ),
           ),
+          actions: const [SettingsAppBarAction()],
         ),
         body: SafeArea(
           child: Align(

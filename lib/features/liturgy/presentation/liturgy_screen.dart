@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../app/settings_app_bar_action.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../domain/liturgical_prayer.dart';
@@ -24,6 +25,7 @@ class LiturgyScreen extends ConsumerWidget {
             fontWeight: FontWeight.w400,
           ),
         ),
+        actions: const [SettingsAppBarAction()],
       ),
       body: SafeArea(
         child: Align(

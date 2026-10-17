@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../app/settings_app_bar_action.dart';
 import '../../../app/theme.dart';
 import '../../../core/providers.dart';
 import '../../../core/utils/announce.dart';
@@ -45,6 +46,7 @@ class PrayerListScreen extends ConsumerWidget {
             fontWeight: FontWeight.w400,
           ),
         ),
+        actions: const [SettingsAppBarAction()],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/prayers/new'),

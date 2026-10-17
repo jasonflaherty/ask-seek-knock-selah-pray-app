@@ -3,11 +3,16 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 /// Persistent bottom navigation around every routed screen.
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.child});
 
   final Widget child;
 
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
   static const _destinations =
       <({String path, String label, String tooltip, IconData icon})>[
     (
@@ -18,7 +23,7 @@ class AppShell extends StatelessWidget {
     ),
     (
       path: '/read-pray',
-      label: 'Read',
+      label: '10/10',
       tooltip: 'Read and pray',
       icon: Symbols.auto_stories,
     ),
@@ -34,31 +39,30 @@ class AppShell extends StatelessWidget {
       tooltip: 'Liturgical prayers',
       icon: Symbols.folded_hands,
     ),
-    (
-      path: '/settings',
-      label: 'Settings',
-      tooltip: 'Settings',
-      icon: Symbols.settings,
-    ),
   ];
 
-  static int indexForLocation(String location) {
+  /// Last main tab, kept when visiting Settings / Metrics / prayer detail.
+  int _lastMainIndex = 0;
+
+  static int? mainIndexForLocation(String location) {
     if (location.startsWith('/read-pray')) return 1;
     if (location.startsWith('/silence')) return 2;
     if (location.startsWith('/liturgy')) return 3;
-    if (location.startsWith('/settings') || location.startsWith('/metrics')) {
-      return 4;
-    }
-    return 0;
+    if (location == '/' || location.startsWith('/prayers')) return 0;
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    final selected = indexForLocation(location);
+    final mainIndex = mainIndexForLocation(location);
+    if (mainIndex != null) {
+      _lastMainIndex = mainIndex;
+    }
+    final selected = mainIndex ?? _lastMainIndex;
 
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selected,
         onDestinationSelected: (index) {
