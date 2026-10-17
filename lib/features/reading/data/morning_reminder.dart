@@ -23,6 +23,17 @@ class MorningReminder {
   final FlutterLocalNotificationsPlugin _plugin;
   bool _ready = false;
 
+  /// Called when the person taps the read-and-pray reminder.
+  static void Function()? onOpened;
+
+  static bool _launchChecked = false;
+
+  static void _onResponse(NotificationResponse response) {
+    if (response.payload == reminderPayload) {
+      onOpened?.call();
+    }
+  }
+
   Future<void> ensureInitialized() async {
     if (_ready) return;
     tzdata.initializeTimeZones();
@@ -36,8 +47,21 @@ class MorningReminder {
     );
     await _plugin.initialize(
       settings: const InitializationSettings(android: android, iOS: ios),
+      onDidReceiveNotificationResponse: _onResponse,
     );
     _ready = true;
+  }
+
+  /// Opens 10/10 when this process was started from the reminder.
+  /// Safe to call once after the router is attached.
+  Future<void> openIfLaunchedFromReminder() async {
+    if (_launchChecked) return;
+    _launchChecked = true;
+    await ensureInitialized();
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) return;
+    if (details?.notificationResponse?.payload != reminderPayload) return;
+    onOpened?.call();
   }
 
   /// Pacific Time (US), including daylight saving. Android accepts this IANA id.
@@ -53,15 +77,19 @@ class MorningReminder {
     if (kIsWeb) return false;
 
     if (Platform.isAndroid) {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       final granted = await android?.requestNotificationsPermission();
       return granted ?? false;
     }
 
     if (Platform.isIOS || Platform.isMacOS) {
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
       final granted = await ios?.requestPermissions(
         alert: true,
         badge: true,
@@ -120,8 +148,10 @@ class MorningReminder {
 
       var mode = AndroidScheduleMode.exactAllowWhileIdle;
       if (Platform.isAndroid) {
-        final android = _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+        final android = _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
         final canExact = await android?.canScheduleExactNotifications();
         if (canExact == false) {
           mode = AndroidScheduleMode.inexactAllowWhileIdle;

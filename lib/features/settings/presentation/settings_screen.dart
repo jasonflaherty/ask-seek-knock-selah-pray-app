@@ -16,8 +16,6 @@ import '../../../core/providers.dart';
 import '../../../core/utils/announce.dart';
 import '../../groups/application/group_session_notifier.dart';
 import '../../groups/domain/group_models.dart';
-import '../../reading/application/reminder_prefs.dart';
-import '../../reading/data/morning_reminder.dart';
 import '../data/prayer_backup.dart';
 import '../data/test_data_importer.dart';
 
@@ -265,34 +263,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _applyReminder({bool announceDenied = false}) async {
-    final prefs = ref.read(reminderPrefsProvider);
-    final reminder = ref.read(morningReminderProvider);
-    if (prefs.enabled) {
-      final allowed = await reminder.requestPermission();
-      if (!allowed) {
-        if (announceDenied && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Allow notifications for Selah so the morning reminder can appear.',
-              ),
-            ),
-          );
-        }
-        // Still call apply so a denied grant clears any stale schedule.
-      }
-    }
-    await reminder.apply(prefs);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeMode = ref.watch(themeModeProvider);
     final showHomeVerse = ref.watch(homeVerseVisibleProvider);
     final group = ref.watch(groupSessionProvider);
-    final reminder = ref.watch(reminderPrefsProvider);
     final canImport = _statusReady && !_loaded && !_busy;
     final canDelete = _statusReady && _loaded && !_busy;
     final session = group.session;
@@ -351,56 +327,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onChanged: (value) => ref
                       .read(homeVerseVisibleProvider.notifier)
                       .setVisible(value),
-                ),
-                const SizedBox(height: 32),
-                Text('Read and pray', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text(
-                  'A morning reminder on this phone. Private prayers stay here.',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Morning reminder'),
-                  subtitle: Text(
-                    'Read for 10 minutes, then pray for 10 minutes.',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  value: reminder.enabled,
-                  onChanged: (v) async {
-                    await ref
-                        .read(reminderPrefsProvider.notifier)
-                        .setEnabled(v);
-                    await _applyReminder(announceDenied: v);
-                  },
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Reminder time'),
-                  subtitle: Text(
-                    '${reminder.hour.toString().padLeft(2, '0')}:'
-                    '${reminder.minute.toString().padLeft(2, '0')}',
-                  ),
-                  trailing: const Icon(Symbols.schedule),
-                  onTap: () async {
-                    final picked = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay(
-                        hour: reminder.hour,
-                        minute: reminder.minute,
-                      ),
-                    );
-                    if (picked == null) return;
-                    await ref
-                        .read(reminderPrefsProvider.notifier)
-                        .setTime(picked.hour, picked.minute);
-                    await _applyReminder(announceDenied: true);
-                  },
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => context.push('/read-pray'),
-                  icon: const Icon(Symbols.menu_book),
-                  label: const Text('Open read and pray'),
                 ),
                 const SizedBox(height: 32),
                 Text('Account and groups', style: theme.textTheme.titleMedium),

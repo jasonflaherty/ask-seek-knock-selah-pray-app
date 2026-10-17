@@ -68,9 +68,9 @@ To change groups, leave (or delete, if you are the owner) your current group fir
 
 ## Morning reminder and timers
 
-In **Settings → Read and pray** you can turn on a morning reminder and pick the time (Pacific Time). The first time you turn it on (or change the time), the phone may ask to allow notifications — allow them, or the reminder will not appear. The reminder says: “Read for 10 minutes, then pray for 10 minutes.”
+On **10/10** you can turn on a morning reminder and pick the time (Pacific Time). The first time you turn it on (or change the time), the phone may ask to allow notifications — allow them, or the reminder will not appear. The reminder says: “Read for 10 minutes, then pray for 10 minutes.” Tapping the reminder opens **10/10**.
 
-Open **Read and pray** from the bottom bar (**10/10**) or from Settings:
+Open **Read and pray** from the bottom bar (**10/10**):
 
 1. Tap **Start reading (10 min)**.
 2. When the reading time ends, a short ding plays and the pray timer starts. You may skip to prayer early (no ding).

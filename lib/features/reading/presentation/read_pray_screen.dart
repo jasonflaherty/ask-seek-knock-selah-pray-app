@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../app/settings_app_bar_action.dart';
 import '../../../app/theme.dart';
 import '../../groups/application/group_session_notifier.dart';
 import '../application/read_pray_session_notifier.dart';
+import '../application/reminder_prefs.dart';
+import '../data/morning_reminder.dart';
 import '../domain/read_pray_phase.dart';
 import 'study_notes_section.dart';
 
@@ -44,6 +48,7 @@ class ReadPrayScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(AppTheme.screenPadding),
                 children: [
                   _TimerCard(session: session, notifier: notifier),
+                  const _MorningReminderSection(),
                   if (inGroup) ...[
                     const SizedBox(height: 24),
                     const StudyNotesSection(),
@@ -120,8 +125,9 @@ class _TimerCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: FilledButton(
-                      onPressed:
-                          session.running ? notifier.pause : notifier.resume,
+                      onPressed: session.running
+                          ? notifier.pause
+                          : notifier.resume,
                       child: Text(session.running ? 'Pause' : 'Resume'),
                     ),
                   ),
@@ -145,6 +151,110 @@ class _TimerCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MorningReminderSection extends ConsumerStatefulWidget {
+  const _MorningReminderSection();
+
+  @override
+  ConsumerState<_MorningReminderSection> createState() =>
+      _MorningReminderSectionState();
+}
+
+class _MorningReminderSectionState
+    extends ConsumerState<_MorningReminderSection> {
+  Future<void> _apply({bool announceDenied = false}) async {
+    final prefs = ref.read(reminderPrefsProvider);
+    final reminder = ref.read(morningReminderProvider);
+    if (prefs.enabled) {
+      final allowed = await reminder.requestPermission();
+      if (!allowed) {
+        if (announceDenied && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Allow notifications for Selah so the morning reminder can appear.',
+              ),
+            ),
+          );
+        }
+      }
+    }
+    await reminder.apply(prefs);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final reminder = ref.watch(reminderPrefsProvider);
+    final inGroup = ref.watch(groupSessionProvider).hasGroup;
+    final time =
+        '${reminder.hour.toString().padLeft(2, '0')}:'
+        '${reminder.minute.toString().padLeft(2, '0')}';
+
+    return ExpansionTile(
+      title: const Text('Morning reminder'),
+      subtitle: Text(
+        reminder.enabled ? time : 'Off',
+        style: theme.textTheme.bodySmall,
+      ),
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: EdgeInsets.zero,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      children: [
+        Text(
+          'A reminder on this phone. Private prayers stay here.',
+          style: theme.textTheme.bodySmall,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Morning reminder'),
+          subtitle: Text(
+            'Read for 10 minutes, then pray for 10 minutes.',
+            style: theme.textTheme.bodySmall,
+          ),
+          value: reminder.enabled,
+          onChanged: (v) async {
+            await ref.read(reminderPrefsProvider.notifier).setEnabled(v);
+            await _apply(announceDenied: v);
+          },
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Reminder time'),
+          subtitle: Text(time),
+          trailing: const Icon(Symbols.schedule),
+          onTap: () async {
+            final picked = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay(
+                hour: reminder.hour,
+                minute: reminder.minute,
+              ),
+            );
+            if (picked == null) return;
+            await ref
+                .read(reminderPrefsProvider.notifier)
+                .setTime(picked.hour, picked.minute);
+            await _apply(announceDenied: true);
+          },
+        ),
+        if (!inGroup) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Sign in to share what you are reading with your group.',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: () => context.push('/settings'),
+            child: const Text('Account and groups'),
+          ),
+        ],
+      ],
     );
   }
 }
