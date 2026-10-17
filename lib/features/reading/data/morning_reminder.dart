@@ -40,37 +40,11 @@ class MorningReminder {
     _ready = true;
   }
 
-  /// Picks a real IANA zone Android understands whose current offset matches
-  /// the phone. Custom names like "DeviceLocal" crash native scheduling.
+  /// Pacific Time (US), including daylight saving. Android accepts this IANA id.
+  static const _pacificZone = 'America/Los_Angeles';
+
   void _setLocalTimezone() {
-    final offset = DateTime.now().timeZoneOffset;
-    final location = _ianaLocationForOffset(offset) ?? tz.UTC;
-    tz.setLocalLocation(location);
-  }
-
-  static tz.Location? _ianaLocationForOffset(Duration offset) {
-    final minutes = offset.inMinutes;
-
-    // Etc/GMT signs are inverted: Etc/GMT+7 == UTC-7.
-    if (minutes % 60 == 0) {
-      final hours = minutes ~/ 60;
-      final etcName = hours == 0
-          ? 'Etc/UTC'
-          : hours > 0
-              ? 'Etc/GMT-${hours.abs()}'
-              : 'Etc/GMT+${hours.abs()}';
-      try {
-        return tz.getLocation(etcName);
-      } catch (_) {}
-    }
-
-    final nowMs = DateTime.now().millisecondsSinceEpoch;
-    for (final location in tz.timeZoneDatabase.locations.values) {
-      if (location.timeZone(nowMs).offset.inMinutes == minutes) {
-        return location;
-      }
-    }
-    return null;
+    tz.setLocalLocation(tz.getLocation(_pacificZone));
   }
 
   /// Asks the OS for notification permission. Returns whether alerts are allowed.
